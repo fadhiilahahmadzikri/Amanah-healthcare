@@ -194,7 +194,9 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           throw new Error('Sesi dinas tujuan wajib dipilih');
         }
 
-        if (!isInternalAdmin) {
+        const isBulk = effectiveIds.length > 1;
+
+        if (!isBulk) {
           const res = await rescheduleAppointmentAction(effectiveIds[0], {
             target_date: dateStr,
             session: session,

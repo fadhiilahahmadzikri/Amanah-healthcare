@@ -71,8 +71,10 @@ export function useBookingSessions(
           if (firstAvailable) {
             onSessionChangeRef.current?.(firstAvailable.session);
             onSessionLabelChangeRef.current?.(firstAvailable.label);
-            if (firstAvailable.practitioners[0]?.sessionId) {
-              onSessionIdChangeRef.current?.(firstAvailable.practitioners[0].sessionId);
+            const targetSessionId =
+              firstAvailable.sessionId || firstAvailable.practitioners[0]?.sessionId;
+            if (targetSessionId) {
+              onSessionIdChangeRef.current?.(targetSessionId);
             }
           } else {
             onSessionChangeRef.current?.('');
@@ -81,8 +83,10 @@ export function useBookingSessions(
           }
         } else {
           onSessionLabelChangeRef.current?.(current.label);
-          if (current.practitioners[0]?.sessionId) {
-            onSessionIdChangeRef.current?.(current.practitioners[0].sessionId);
+          const targetSessionId =
+            current.sessionId || current.practitioners[0]?.sessionId;
+          if (targetSessionId) {
+            onSessionIdChangeRef.current?.(targetSessionId);
           }
         }
       } catch (err) {

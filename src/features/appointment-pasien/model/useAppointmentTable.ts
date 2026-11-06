@@ -246,6 +246,7 @@ export function useAppointmentTable({
       onQrCheckIn: dialogs.actions.openQr,
       onReschedule: dialogs.actions.openReschedule,
       onViewDetail: dialogs.actions.openPatientDetail,
+      onViewPatientDetail: dialogs.actions.openPatientDetail,
       onViewRecord: dialogs.actions.openRecordDetail,
       onViewTimeline: dialogs.actions.openTimeline,
       onViewMilestone: dialogs.actions.openTimeline

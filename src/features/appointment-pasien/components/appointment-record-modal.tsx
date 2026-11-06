@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { AppointmentStatusPill } from '@/features/klinik/components/appointment-card';
 import { getAntreanPillClasses } from './appointment-tables/columns';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
+import { isAppointmentTerminal } from '../constants/options';
 import type { AdminAppointment } from '../api/types';
 
 export interface AppointmentRecordModalProps {
@@ -52,7 +53,9 @@ export function AppointmentRecordModal({
 
   if (!appointment) return null;
 
-  const { canUpdateStatus, canCheckIn } = appointment.capabilities;
+  const { canUpdateStatus, canCheckIn, canReschedule, canCancel } = appointment.capabilities;
+  const isTerminal = isAppointmentTerminal(appointment.status);
+  const canReassign = !isTerminal;
   const sessionLabel = appointment.sessionName ?? '';
   const scheduledTime = appointment.scheduledStartTime
     ? appointment.scheduledStartTime.slice(0, 5)
@@ -158,7 +161,7 @@ export function AppointmentRecordModal({
                       <span>Garis Waktu</span>
                     </DropdownMenuItem>
                   )}
-                  {onChangeDoctor && (
+                  {canReassign && onChangeDoctor && (
                     <DropdownMenuItem
                       onClick={onChangeDoctor}
                       className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
@@ -167,7 +170,7 @@ export function AppointmentRecordModal({
                       <span>{appointment.doctorName ? 'Ganti Dokter' : 'Tugaskan Dokter'}</span>
                     </DropdownMenuItem>
                   )}
-                  {onChangeRoom && (
+                  {canReassign && onChangeRoom && (
                     <DropdownMenuItem
                       onClick={onChangeRoom}
                       className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
@@ -176,7 +179,7 @@ export function AppointmentRecordModal({
                       <span>{appointment.roomName ? 'Ganti Ruangan' : 'Tugaskan Ruangan'}</span>
                     </DropdownMenuItem>
                   )}
-                  {onReschedule && (
+                  {canReschedule && onReschedule && (
                     <DropdownMenuItem
                       onClick={onReschedule}
                       className='flex items-center gap-2 px-2.5 py-2 rounded-lg cursor-pointer font-medium hover:bg-muted/80 text-foreground transition-colors'
@@ -185,7 +188,7 @@ export function AppointmentRecordModal({
                       <span>Jadwalkan Ulang</span>
                     </DropdownMenuItem>
                   )}
-                  {onCancel && (
+                  {canCancel && !isTerminal && onCancel && (
                     <>
                       <DropdownMenuSeparator className='my-1 border-border/40' />
                       <DropdownMenuItem

@@ -104,7 +104,10 @@ export function useInviteStaffModal({
     enabled: isOpen
   });
 
-  const roles = useMemo(() => optionsData?.roles || [], [optionsData?.roles]);
+  const roles = useMemo(
+    () => (optionsData?.roles || []).filter((r) => !(r as any).isSystem),
+    [optionsData?.roles]
+  );
   const polyclinics = useMemo(() => optionsData?.polyclinics || [], [optionsData?.polyclinics]);
   const clinicUnits = useMemo(() => optionsData?.clinicUnits || [], [optionsData?.clinicUnits]);
 

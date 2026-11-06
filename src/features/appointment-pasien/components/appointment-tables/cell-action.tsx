@@ -27,6 +27,7 @@ export interface AppointmentTableMeta {
   onQrCheckIn?: (item: AdminAppointment) => void;
   onReschedule?: (item: AdminAppointment) => void;
   onViewDetail?: (item: AdminAppointment) => void;
+  onViewPatientDetail?: (item: AdminAppointment) => void;
   onViewMilestone?: (item: AdminAppointment) => void;
   onCallPatient?: (item: AdminAppointment) => Promise<void> | void;
 }
@@ -40,6 +41,7 @@ export interface CellActionProps {
   onQrCheckIn?: (item: AdminAppointment) => void;
   onReschedule?: (item: AdminAppointment) => void;
   onViewDetail?: (item: AdminAppointment) => void;
+  onViewPatientDetail?: (item: AdminAppointment) => void;
   onViewMilestone?: (item: AdminAppointment) => void;
 }
 
@@ -52,6 +54,7 @@ export function CellAction({
   onQrCheckIn: propOnQrCheckIn,
   onReschedule: propOnReschedule,
   onViewDetail: propOnViewDetail,
+  onViewPatientDetail: propOnViewPatientDetail,
   onViewMilestone: propOnViewMilestone
 }: CellActionProps) {
   const queryClient = useQueryClient();
@@ -64,6 +67,7 @@ export function CellAction({
   const onQrCheckIn = propOnQrCheckIn ?? meta?.onQrCheckIn;
   const onReschedule = propOnReschedule ?? meta?.onReschedule;
   const onViewDetail = propOnViewDetail ?? meta?.onViewDetail;
+  const onViewPatientDetail = propOnViewPatientDetail ?? meta?.onViewPatientDetail;
   const onViewMilestone = propOnViewMilestone ?? meta?.onViewMilestone;
 
   const isTerminal = isAppointmentTerminal(data.status);
@@ -152,7 +156,20 @@ export function CellAction({
             <span className='sr-only'>Menu Aksi</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='w-44 text-xs font-medium'>
+        <DropdownMenuContent align='end' className='w-48 text-xs font-medium'>
+          {onViewPatientDetail && (
+            <DropdownMenuItem
+              onSelect={(e) => {
+                e.preventDefault();
+                onViewPatientDetail(data);
+              }}
+              className='cursor-pointer text-xs gap-2'
+            >
+              <Icons.user className='size-3.5 text-primary' />
+              <span>Lihat Pasien</span>
+            </DropdownMenuItem>
+          )}
+
           {canReassign && (
             <DropdownMenuItem
               onSelect={(e) => {

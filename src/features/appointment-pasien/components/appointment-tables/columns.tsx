@@ -11,6 +11,7 @@ import { AppointmentStatusPill } from '@/features/klinik/components/appointment-
 import Link from 'next/link';
 import type { AdminAppointment } from '../../api/types';
 import type { Option } from '@/types/data-table';
+import { isAppointmentTerminal } from '../../constants/options';
 import { CellAction } from './cell-action';
 import { formatClinicDate, formatClinicTime } from '@/lib/date-format';
 
@@ -254,7 +255,15 @@ export function getAppointmentColumns(
       ),
       cell: ({ row, table }) => {
         const appt = row.original;
+        const isTerminal = isAppointmentTerminal(appt.status);
         if (!appt.doctorName) {
+          if (isTerminal) {
+            return (
+              <span className='text-sm text-muted-foreground/60 italic select-none'>
+                -
+              </span>
+            );
+          }
           return (
             <button
               type='button'
@@ -324,7 +333,15 @@ export function getAppointmentColumns(
       ),
       cell: ({ row, table }) => {
         const appt = row.original;
+        const isTerminal = isAppointmentTerminal(appt.status);
         if (!appt.roomName) {
+          if (isTerminal) {
+            return (
+              <span className='text-sm text-muted-foreground/60 italic select-none'>
+                -
+              </span>
+            );
+          }
           return (
             <button
               type='button'
@@ -340,6 +357,16 @@ export function getAppointmentColumns(
             >
               Belum di-assign
             </button>
+          );
+        }
+        if (isTerminal) {
+          return (
+            <span
+              className='text-sm text-muted-foreground truncate max-w-[140px] text-left block font-medium select-none'
+              title={appt.roomName}
+            >
+              {appt.roomName}
+            </span>
           );
         }
         return (

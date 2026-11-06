@@ -256,6 +256,7 @@ export interface BookingPractitioner {
 }
 
 export interface BookingOptionShift {
+  sessionId?: string;
   session: string;
   shift: string;
   label: string;

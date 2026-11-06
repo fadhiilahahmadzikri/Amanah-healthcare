@@ -19,7 +19,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { doctorCandidatesQueryOptions, appointmentKeys } from '../api/queries';
-import { changeAppointmentDoctor } from '../api/service';
+import { changeAppointmentDoctor, bulkAssignDoctor } from '../api/service';
 import { getQueryClient } from '@/lib/query-client';
 import { DoctorAvatar } from '@/features/klinik/components/doctor-avatar';
 import { toast } from 'sonner';
@@ -35,6 +35,7 @@ import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
 export interface ChangeDoctorModalProps {
   isOpen: boolean;
   appointmentId: string;
+  appointmentIds?: string[];
   patientName?: string;
   patientId?: string;
   queueNumber?: string;
@@ -49,6 +50,7 @@ export interface ChangeDoctorModalProps {
 export function ChangeDoctorModal({
   isOpen,
   appointmentId,
+  appointmentIds,
   patientName = '-',
   patientId: _patientId = '-',
   queueNumber = '-',
@@ -67,8 +69,12 @@ export function ChangeDoctorModal({
   const [isRosterModalOpen, setIsRosterModalOpen] = useState(false);
   const [alertDoctor, setAlertDoctor] = useState<DoctorCandidateItem | null>(null);
 
+  const isBulkMode = Boolean(appointmentIds && appointmentIds.length > 1);
   const isAssignMode =
-    !currentDoctorName || currentDoctorName === '-' || currentDoctorName === 'Belum di-assign';
+    isBulkMode ||
+    !currentDoctorName ||
+    currentDoctorName === '-' ||
+    currentDoctorName === 'Belum di-assign';
 
   const {
     data: candidatesData,
@@ -150,12 +156,21 @@ export function ChangeDoctorModal({
   };
 
   const mutation = useMutation({
-    mutationFn: (payload: ChangeDoctorPayload) =>
-      changeAppointmentDoctor(payload.appointmentId, payload.doctorId, {
+    mutationFn: async (payload: ChangeDoctorPayload) => {
+      if (isBulkMode && appointmentIds && appointmentIds.length > 1) {
+        return await bulkAssignDoctor({
+          appointmentIds,
+          doctorId: payload.doctorId,
+          reason: payload.reason,
+          closeOldSchedule: payload.closeOldSchedule
+        });
+      }
+      return await changeAppointmentDoctor(payload.appointmentId, payload.doctorId, {
         closeOldSchedule: payload.closeOldSchedule,
         reason: payload.reason
-      }),
-    onSuccess: (res) => {
+      });
+    },
+    onSuccess: (res: any) => {
       const qc = getQueryClient();
       void qc.invalidateQueries({ queryKey: appointmentKeys.all });
       void qc.invalidateQueries({ queryKey: ['doctor-schedules'] });
@@ -165,14 +180,21 @@ export function ChangeDoctorModal({
         return;
       }
 
-      toast.success(res.message, {
-        description: `Pasien kini ditugaskan kepada ${selectedDoctor?.name || 'Dokter baru'}.`,
-        action: onViewAppointment
-          ? {
-              label: 'Lihat Janji Temu',
-              onClick: () => onViewAppointment(appointmentId)
-            }
-          : undefined
+      const msg = isBulkMode
+        ? `Berhasil menugaskan ${selectedDoctor?.name || 'dokter'} ke ${appointmentIds?.length} antrean terpilih.`
+        : res?.message || 'Dokter pemeriksa berhasil diperbarui';
+
+      toast.success(msg, {
+        description: isBulkMode
+          ? undefined
+          : `Pasien kini ditugaskan kepada ${selectedDoctor?.name || 'Dokter baru'}.`,
+        action:
+          onViewAppointment && !isBulkMode
+            ? {
+                label: 'Lihat Janji Temu',
+                onClick: () => onViewAppointment(appointmentId)
+              }
+            : undefined
       });
       onSuccess?.();
       onClose();
@@ -207,12 +229,16 @@ export function ChangeDoctorModal({
 
   const modalTitle =
     currentStep === 'category'
-      ? isAssignMode
+      ? isBulkMode
         ? 'Pilih Kategori Dokter'
-        : 'Pilih Kategori Dokter Pengganti'
-      : isAssignMode
-        ? 'Tugaskan Dokter Pemeriksa'
-        : 'Ganti Dokter Pemeriksa';
+        : isAssignMode
+          ? 'Pilih Kategori Dokter'
+          : 'Pilih Kategori Dokter Pengganti'
+      : isBulkMode
+        ? `Tugaskan Dokter (${appointmentIds?.length} Antrean)`
+        : isAssignMode
+          ? 'Tugaskan Dokter Pemeriksa'
+          : 'Ganti Dokter Pemeriksa';
 
   return (
     <ModalWrapper
@@ -230,20 +256,32 @@ export function ChangeDoctorModal({
               {modalTitle}
             </h3>
             <p className='text-xs text-muted-foreground leading-relaxed'>
-              Janji temu untuk <span className='font-semibold text-foreground'>{patientName}</span>
-              {queueNumber && queueNumber !== '-' ? ` dengan nomor antrean ${queueNumber}` : ''}
-              {!isAssignMode && currentDoctorName && currentDoctorName !== '-'
-                ? `, saat ini ditangani oleh ${currentDoctorName}`
-                : ''}
-              {activeGroup ? ` • Kategori ${activeGroup.name}` : ''}.
-              {onViewAppointment && (
-                <button
-                  type='button'
-                  onClick={() => onViewAppointment(appointmentId)}
-                  className='text-xs font-semibold text-primary hover:underline cursor-pointer ml-1.5 inline-block'
-                >
-                  Lihat Pasien
-                </button>
+              {isBulkMode ? (
+                <span>
+                  Pilih dokter penanggung jawab untuk seluruh{' '}
+                  <span className='font-semibold text-foreground'>
+                    {appointmentIds?.length} antrean terpilih
+                  </span>
+                  {activeGroup ? ` • Kategori ${activeGroup.name}` : ''}.
+                </span>
+              ) : (
+                <>
+                  Janji temu untuk <span className='font-semibold text-foreground'>{patientName}</span>
+                  {queueNumber && queueNumber !== '-' ? ` dengan nomor antrean ${queueNumber}` : ''}
+                  {!isAssignMode && currentDoctorName && currentDoctorName !== '-'
+                    ? `, saat ini ditangani oleh ${currentDoctorName}`
+                    : ''}
+                  {activeGroup ? ` • Kategori ${activeGroup.name}` : ''}.
+                  {onViewAppointment && (
+                    <button
+                      type='button'
+                      onClick={() => onViewAppointment(appointmentId)}
+                      className='text-xs font-semibold text-primary hover:underline cursor-pointer ml-1.5 inline-block'
+                    >
+                      Lihat Pasien
+                    </button>
+                  )}
+                </>
               )}
             </p>
           </div>

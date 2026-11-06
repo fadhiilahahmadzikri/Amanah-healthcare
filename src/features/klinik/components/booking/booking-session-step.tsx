@@ -142,7 +142,11 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
         value={session}
         onValueChange={(val) => {
           const matched = sessions.find((s) => s.session === val);
-          onSelectSession(val, matched?.practitioners?.[0]?.sessionId, matched?.label);
+          onSelectSession(
+            val,
+            matched?.sessionId || matched?.practitioners?.[0]?.sessionId,
+            matched?.label
+          );
         }}
         className='grid grid-cols-2 gap-2 sm:gap-2.5'
       >
@@ -163,12 +167,20 @@ function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
               onKeyDown={(e) => {
                 if (!isDisabled && (e.key === 'Enter' || e.key === ' ')) {
                   e.preventDefault();
-                  onSelectSession(sess.session, primaryPractitioner?.sessionId, sess.label);
+                  onSelectSession(
+                    sess.session,
+                    sess.sessionId || primaryPractitioner?.sessionId,
+                    sess.label
+                  );
                 }
               }}
               onClick={() => {
                 if (!isDisabled) {
-                  onSelectSession(sess.session, primaryPractitioner?.sessionId, sess.label);
+                  onSelectSession(
+                    sess.session,
+                    sess.sessionId || primaryPractitioner?.sessionId,
+                    sess.label
+                  );
                 }
               }}
               className={cn(
