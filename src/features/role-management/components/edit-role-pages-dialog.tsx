@@ -101,14 +101,23 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
     }
   });
 
-  const handleToggleSelectPage = (pageId: string) => {
+  const handleToggleSelectPage = (parent: ApplicationPage, childId: string) => {
     setSelectedPageIds((prev) => {
       const next = new Set(prev);
-      if (next.has(pageId)) {
-        next.delete(pageId);
+      if (next.has(childId)) {
+        next.delete(childId);
       } else {
-        next.add(pageId);
+        next.add(childId);
       }
+
+      const children = parent.children || [];
+      const hasAnyChild = children.some((c) => next.has(c.id));
+      if (hasAnyChild) {
+        next.add(parent.id);
+      } else {
+        next.delete(parent.id);
+      }
+
       return next;
     });
   };
@@ -123,6 +132,11 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
         } else {
           next.delete(id);
         }
+      }
+      if (selectAll) {
+        next.add(parent.id);
+      } else {
+        next.delete(parent.id);
       }
       return next;
     });
@@ -246,7 +260,7 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
                             <Checkbox
                               id={`page-${child.id}`}
                               checked={isAssigned}
-                              onCheckedChange={() => handleToggleSelectPage(child.id)}
+                              onCheckedChange={() => handleToggleSelectPage(parent, child.id)}
                               disabled={!canManage}
                               className='mt-0.5 shrink-0'
                             />
