@@ -190,11 +190,17 @@ export const CLINICAL_MODULE_INFO: Record<string, ModuleInfo> = {
     description: 'Daftar pengguna sistem, pencadangan akun, pemulihan, dan penghapusan',
     viewCodes: ['users:read']
   },
+  notifications: {
+    id: 'notifications',
+    title: 'Notifikasi & Pengumuman',
+    description: 'Penerimaan notifikasi sistem, pemberitahuan janji temu, dan siaran pengumuman klinik',
+    viewCodes: ['notifications:read']
+  },
   settings: {
     id: 'settings',
     title: 'Pengaturan Fasilitas & RBAC',
-    description: 'Pengaturan poliklinik, ruangan, peran hak akses, dan siaran pengumuman',
-    viewCodes: ['roles:read', 'pages:read', 'notifications:read', 'profile:read']
+    description: 'Pengaturan poliklinik, ruangan, dan peran hak akses klinik',
+    viewCodes: ['roles:read', 'pages:read', 'profile:read']
   },
   general: {
     id: 'general',
