@@ -53,6 +53,13 @@ export const chatApiService = {
   },
 
   // --- Patient & Guest Endpoints ---
+  async getCustomerConversations(guestId?: string): Promise<Conversation[]> {
+    return clientFetch<Conversation[]>('/api/v1/chat/conversations', {
+      method: 'GET',
+      query: guestId ? { guestId } : undefined
+    });
+  },
+
   async getOrCreateConversation(data?: {
     guestId?: string;
     name?: string;

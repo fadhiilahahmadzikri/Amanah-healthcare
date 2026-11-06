@@ -226,22 +226,17 @@ export function ChatMainArea({
         )}
       </div>
 
-      {/* Typing Indicator */}
-      {isClientTyping && (
-        <div className='px-4 py-1.5 flex items-center gap-1.5 animate-in fade-in duration-200'>
-          <div className='flex items-center gap-1.5 bg-muted/70 px-2.5 py-1 rounded-full border border-border/50 text-[11px] text-muted-foreground'>
-            <span>Pasien sedang mengetik</span>
-            <span className='flex gap-0.5 items-center ml-0.5'>
-              <span className='size-1 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]' />
-              <span className='size-1 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]' />
-              <span className='size-1 rounded-full bg-primary animate-bounce' />
-            </span>
-          </div>
-        </div>
-      )}
-
       {/* 3. Text Composer (Standardized height & touch targets) */}
-      <div className='p-3 border-t border-border/60 bg-card/40'>
+      <div className='relative z-20 p-3 border-t border-border/60 bg-card/95 backdrop-blur-md'>
+        {/* Floating Bare 3-Dot Bouncing Indicator (Unwrapped, strictly above message stream) */}
+        {isClientTyping && (
+          <div className='absolute -top-6 left-4 sm:left-5 z-30 flex items-center gap-1.5 pointer-events-none animate-in fade-in duration-200'>
+            <span className='size-2 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]' />
+            <span className='size-2 rounded-full bg-primary animate-bounce [animation-delay:-0.15s]' />
+            <span className='size-2 rounded-full bg-primary animate-bounce' />
+          </div>
+        )}
+
         {conversation.status === 'open' ? (
           <div className='min-h-[44px] border border-border/80 rounded-xl flex items-center px-3 bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 shadow-2xs transition-all gap-2'>
             <input

@@ -1,12 +1,11 @@
 import type { ReactNode } from 'react';
 import { HealthcareFAQ } from './faq';
-import { HealthcareChatFab } from './HealthcareChatFab';
 import { HealthcareFooter } from './HealthcareFooter';
 import { HealthcareHeader } from './HealthcareHeader';
 import { MedicalClinicJsonLd } from './MedicalClinicJsonLd';
 import { SmoothScroll } from './SmoothScroll';
 import { TechnicalDivider } from './TechnicalDivider';
-import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
+import { ConsultationWidget } from '@/features/chat/components/consultation-widget';
 
 type HealthcareShellProps = {
   activePath: string;
@@ -42,8 +41,7 @@ export function HealthcareShell({
       <div className='mx-auto max-w-[1300px] border-x-2 border-line'>
         {showFaq ? <TechnicalDivider /> : null}
       </div>
-      <HealthcareChatFab />
-      <ChatwootWidget />
+      <ConsultationWidget />
       <HealthcareFooter locale={locale} />
     </div>
   );

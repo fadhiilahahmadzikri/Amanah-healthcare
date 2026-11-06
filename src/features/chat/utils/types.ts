@@ -37,6 +37,8 @@ export interface Conversation {
   awaitingReply: boolean;
   unreadCount?: number;
   messages?: ChatMessage[];
+  createdAt?: string;
+  closedAt?: string | null;
 }
 
 export interface ConversationListResponse {
