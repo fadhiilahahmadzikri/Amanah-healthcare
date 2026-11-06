@@ -22,6 +22,7 @@ import { MaskedNik, formatMaskedNik } from '@/components/ui/masked-nik';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { BookingRegularReviewSection } from './molecules/booking-regular-review-section';
 import { BookingPrimaryEmergencyInterceptor } from './molecules/booking-primary-emergency-interceptor';
+import { REGULAR_BOOKING_STEPS } from '../../model/booking-regular-form-steps';
 import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
 
 export interface BookingRegularPatientFormProps {
@@ -247,7 +248,7 @@ export function BookingRegularPatientForm({
       )}
 
       <div ref={stepContainerRef} className='py-1 flex flex-col justify-start'>
-        {currentStep === 1 && (
+        {currentStep === REGULAR_BOOKING_STEPS.TARGET_PATIENT && (
           <div data-field-id='relationship' className='space-y-1.5'>
             <div className='grid grid-cols-2 sm:grid-cols-3 gap-2'>
               {relationshipOptions.map((opt) => {
@@ -288,7 +289,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 2 && (
+        {currentStep === REGULAR_BOOKING_STEPS.FULL_NAME && (
           <PatientLineInput
             id='patient-fullname'
             data-field-id='fullName'
@@ -300,7 +301,7 @@ export function BookingRegularPatientForm({
           />
         )}
 
-        {currentStep === 3 && (
+        {currentStep === REGULAR_BOOKING_STEPS.NIK && (
           <div className='space-y-2'>
             <PatientLineInput
               id='patient-nik'
@@ -346,7 +347,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 4 && (
+        {currentStep === REGULAR_BOOKING_STEPS.MOTHER_NAME && (
           <PatientLineInput
             id='patient-mother'
             data-field-id='motherName'
@@ -358,7 +359,7 @@ export function BookingRegularPatientForm({
           />
         )}
 
-        {currentStep === 5 && (
+        {currentStep === REGULAR_BOOKING_STEPS.BIRTH_INFO && (
           <div className='space-y-3'>
             <PatientLineInput
               id='patient-pob'
@@ -380,7 +381,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 6 && (
+        {currentStep === REGULAR_BOOKING_STEPS.GENDER && (
           <div data-field-id='gender' className='space-y-2'>
             <PatientGenderSelector
               value={gender}
@@ -390,7 +391,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 7 && (
+        {currentStep === REGULAR_BOOKING_STEPS.BLOOD_TYPE && (
           <div data-field-id='bloodType' className='pt-2'>
             <PatientBloodTypeSelector
               id='booking_blood_type'
@@ -404,7 +405,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 8 && (
+        {currentStep === REGULAR_BOOKING_STEPS.PHONE && (
           <PatientLineInput
             id='patient-phone'
             data-field-id='phone'
@@ -421,7 +422,7 @@ export function BookingRegularPatientForm({
           />
         )}
 
-        {currentStep === 9 && (
+        {currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT && (
           <div data-field-id='emergencyContact'>
             {isSelf && !isEnteringManualEmergency ? (
               <BookingPrimaryEmergencyInterceptor
@@ -446,7 +447,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 10 && (
+        {currentStep === REGULAR_BOOKING_STEPS.ADDRESS && (
           <div data-field-id='region'>
             <PatientRegionDropdown
               values={region}
@@ -455,7 +456,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 11 && (
+        {currentStep === REGULAR_BOOKING_STEPS.OCCUPATION && (
           <div data-field-id='occupationCode' className='space-y-1.5'>
             <PatientSearchableSelect
               id='patient-occupation'
@@ -475,7 +476,7 @@ export function BookingRegularPatientForm({
           </div>
         )}
 
-        {currentStep === 12 && (
+        {currentStep === REGULAR_BOOKING_STEPS.CONFIRMATION && (
           <BookingRegularReviewSection
             items={reviewItems}
             onJumpToStep={handleJumpToStep}
@@ -489,7 +490,11 @@ export function BookingRegularPatientForm({
           onClick={handleBack}
           className='px-4 py-2 rounded-xl text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors'
         >
-          {isEditingFromReview ? 'Batal' : currentStep === 1 ? 'Tutup' : 'Kembali'}
+          {isEditingFromReview
+            ? 'Batal'
+            : currentStep === REGULAR_BOOKING_STEPS.TARGET_PATIENT
+              ? 'Tutup'
+              : 'Kembali'}
         </button>
 
         <button

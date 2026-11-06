@@ -39,7 +39,9 @@ export async function getAdminAppointments(
   };
 
   if (filters.status) {
-    queryParams.status = Array.isArray(filters.status) ? filters.status[0] : filters.status;
+    queryParams.status = Array.isArray(filters.status)
+      ? filters.status.join(',')
+      : filters.status;
   }
 
   if (filters.poliklinikId) {

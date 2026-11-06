@@ -65,9 +65,10 @@ export function RegularIdentitySection({
   const occupation = isChild && !rawOccupation ? 'Belum Bekerja' : rawOccupation || '-';
   const phone = patient?.phone || '-';
   const email = patient?.email || '-';
-  const emergency = patient?.emergencyContactName
-    ? `${patient.emergencyContactName} (${patient.emergencyContactRelationship || 'Kontak'}) - ${patient.emergencyContactPhone || ''}`
-    : null;
+  const emergency =
+    patient?.emergencyContactName || patient?.emergencyContactPhone
+      ? `${patient?.emergencyContactName || '-'} (${patient?.emergencyContactRelationship || 'Kontak'}) - ${patient?.emergencyContactPhone || '-'}`
+      : null;
 
   const regionValues: PatientRegionValues = React.useMemo(
     () => ({
@@ -428,13 +429,21 @@ export function RegularIdentitySection({
               <PatientLineInput
                 id='read-emg-name'
                 label='Nama Kontak Darurat'
-                value={patient?.emergencyContactName || '-'}
+                value={
+                  regularFormData?.emergencyContactName ||
+                  patient?.emergencyContactName ||
+                  '-'
+                }
                 readOnly
               />
               <PatientLineInput
                 id='read-emg-phone'
                 label='No. Telp Kontak Darurat'
-                value={patient?.emergencyContactPhone || '-'}
+                value={
+                  regularFormData?.emergencyContactPhone ||
+                  patient?.emergencyContactPhone ||
+                  '-'
+                }
                 isMonospace
                 readOnly
               />

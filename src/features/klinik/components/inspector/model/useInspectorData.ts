@@ -85,9 +85,35 @@ export function useInspectorData(appointment: Appointment) {
       }
     }
 
+    const rawPatient = rawData?.patient;
     const patient: UnifiedInspectorPatient | undefined =
-      rawData?.patient ||
-      (patientRecord
+      rawPatient
+        ? {
+            ...rawPatient,
+            line1: rawPatient.line1 || patientRecord?.line1 || undefined,
+            provinceName: rawPatient.provinceName || patientRecord?.province_name || undefined,
+            provinceCode: rawPatient.provinceCode || patientRecord?.province_code || undefined,
+            regencyName: rawPatient.regencyName || patientRecord?.regency_name || undefined,
+            regencyCode: rawPatient.regencyCode || patientRecord?.regency_code || undefined,
+            districtName: rawPatient.districtName || patientRecord?.district_name || undefined,
+            districtCode: rawPatient.districtCode || patientRecord?.district_code || undefined,
+            villageName: rawPatient.villageName || patientRecord?.village_name || undefined,
+            villageCode: rawPatient.villageCode || patientRecord?.village_code || undefined,
+            emergencyContactName:
+              rawPatient.emergencyContactName ||
+              patientRecord?.emergencyContactName ||
+              patientRecord?.emergency_contact ||
+              undefined,
+            emergencyContactPhone:
+              rawPatient.emergencyContactPhone ||
+              patientRecord?.emergencyContactPhone ||
+              undefined,
+            emergencyContactRelationship:
+              rawPatient.emergencyContactRelationship ||
+              patientRecord?.emergencyContactRelationship ||
+              undefined
+          }
+        : (patientRecord
         ? {
             id: patientRecord.id,
             medicalRecordNumber: patientRecord.patient_id,

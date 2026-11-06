@@ -203,7 +203,7 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const initialColumnFilters: ColumnFiltersState = React.useMemo(() => {
     if (enableAdvancedFilter) return [];
 
-    return Object.entries(filterValues).reduce<ColumnFiltersState>((filters, [key, value]) => {
+    const urlFilters = Object.entries(filterValues).reduce<ColumnFiltersState>((filters, [key, value]) => {
       if (value !== null && value !== undefined && value !== '') {
         const colDef = filterableColumns.find((c) => c.id === key);
         const isArrayCol = Boolean(colDef?.meta?.options);
@@ -222,7 +222,17 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
       }
       return filters;
     }, []);
-  }, [filterValues, filterableColumns, enableAdvancedFilter]);
+
+    if (initialState?.columnFilters && initialState.columnFilters.length > 0) {
+      initialState.columnFilters.forEach((initFilter) => {
+        if (!urlFilters.some((f) => f.id === initFilter.id)) {
+          urlFilters.push(initFilter);
+        }
+      });
+    }
+
+    return urlFilters;
+  }, [filterValues, filterableColumns, enableAdvancedFilter, initialState?.columnFilters]);
 
   const [columnFilters, setColumnFilters] =
     React.useState<ColumnFiltersState>(initialColumnFilters);

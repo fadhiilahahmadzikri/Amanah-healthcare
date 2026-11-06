@@ -15,6 +15,14 @@ export const TERMINAL_STATUSES: AppointmentStatus[] = [
   APPOINTMENT_STATUS.LATE
 ];
 
+export const DEFAULT_ACTIVE_APPOINTMENT_STATUSES: AppointmentStatus[] = [
+  APPOINTMENT_STATUS.BOOKED,
+  APPOINTMENT_STATUS.WAITING,
+  APPOINTMENT_STATUS.IN_SERVICE,
+  APPOINTMENT_STATUS.CANCELLED,
+  APPOINTMENT_STATUS.LATE
+];
+
 export function isAppointmentTerminal(status?: AppointmentStatus | string | null): boolean {
   return AppointmentStatusDescriptor.from(status).isTerminal;
 }

@@ -206,6 +206,11 @@ export function getAppointmentColumns(
         variant: 'multiSelect' as const,
         options: APPOINTMENT_STATUS_OPTIONS
       },
+      filterFn: (row, id, filterValue: string[]) => {
+        if (!filterValue || filterValue.length === 0) return true;
+        const rowStatus = row.getValue(id) as string;
+        return filterValue.includes(rowStatus);
+      },
       enableColumnFilter: true,
       enableSorting: true,
       enableHiding: true

@@ -8,7 +8,10 @@ import { useDataTable } from '@/hooks/use-data-table';
 import { getSortingStateParser } from '@/lib/parsers';
 import { appointmentInfiniteQueryOptions } from '../api/queries';
 import { normalizeFilters, type AdminAppointment, type AppointmentFilters } from '../api/types';
-import { DEFAULT_APPOINTMENT_PAGE_LIMIT } from '../constants/options';
+import {
+  DEFAULT_APPOINTMENT_PAGE_LIMIT,
+  DEFAULT_ACTIVE_APPOINTMENT_STATUSES
+} from '../constants/options';
 import {
   useAppointmentDialogs,
   type AppointmentDialogType,
@@ -135,23 +138,24 @@ export function useAppointmentTable({
   }
 
   const hasFilters = [
-    querySearch && querySearch.length > 0,
-    params.status && params.status.length > 0,
-    params.poliklinikId,
-    queryPoli && queryPoli.length > 0,
-    queryService && queryService.length > 0,
-    formattedDate,
-    params.doctorId,
-    params.doctorName && params.doctorName.length > 0,
-    params.roomName && params.roomName.length > 0,
-    params.proposalStatus
+    Boolean(querySearch),
+    Boolean(params.status && params.status.length > 0),
+    Boolean(params.poliklinikId),
+    Boolean(queryPoli && queryPoli.length > 0),
+    Boolean(queryService && queryService.length > 0),
+    Boolean(formattedDate),
+    Boolean(params.doctorId),
+    Boolean(params.doctorName && params.doctorName.length > 0),
+    Boolean(params.roomName && params.roomName.length > 0),
+    Boolean(params.proposalStatus)
   ].some(Boolean);
 
   const filters: AppointmentFilters = normalizeFilters({
     page: 1,
     limit: DEFAULT_APPOINTMENT_PAGE_LIMIT,
     ...(querySearch && { search: querySearch }),
-    ...(params.status && params.status.length > 0 && { status: params.status }),
+    // Status is intentionally omitted from backend query to keep backend "lepas"
+    // and preserve full facet counts in TanStack Table client-side model
     ...(params.poliklinikId && { poliklinikId: params.poliklinikId }),
     ...(queryPoli && queryPoli.length > 0 && { poliklinikName: queryPoli }),
     ...(queryService && queryService.length > 0 && { serviceName: queryService }),
@@ -230,8 +234,10 @@ export function useAppointmentTable({
     pageCount: 1,
     shallow: true,
     debounceMs: 300,
+    manualFiltering: false,
     initialState: {
-      columnPinning: { left: ['select'], right: ['actions'] }
+      columnPinning: { left: ['select'], right: ['actions'] },
+      columnFilters: [{ id: 'status', value: params.status || DEFAULT_ACTIVE_APPOINTMENT_STATUSES }]
     },
     meta: {
       onAssignDoctor: dialogs.actions.openChangeDoctor,
@@ -247,7 +253,7 @@ export function useAppointmentTable({
   });
 
   const resetFilters = useCallback(() => {
-    table.resetColumnFilters();
+    table.setColumnFilters([{ id: 'status', value: DEFAULT_ACTIVE_APPOINTMENT_STATUSES }]);
     void setParams({
       search: null,
       status: null,

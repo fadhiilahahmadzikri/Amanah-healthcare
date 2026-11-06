@@ -5,6 +5,24 @@ import type {
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 
+export const REGULAR_BOOKING_STEPS = {
+  TARGET_PATIENT: 1,
+  FULL_NAME: 2,
+  NIK: 3,
+  MOTHER_NAME: 4,
+  BIRTH_INFO: 5,
+  GENDER: 6,
+  BLOOD_TYPE: 7,
+  PHONE: 8,
+  EMERGENCY_CONTACT: 9,
+  ADDRESS: 10,
+  OCCUPATION: 11,
+  CONFIRMATION: 12
+} as const;
+
+export type RegularBookingStepNumber =
+  (typeof REGULAR_BOOKING_STEPS)[keyof typeof REGULAR_BOOKING_STEPS];
+
 export interface UseBookingRegularPatientFormOptions {
   onSuccess: (newPatient: PatientAffiliationProfile) => void;
   onCancel: () => void;
@@ -22,12 +40,12 @@ export function getBookingStepMeta(
   relationshipLabel?: string
 ): PatientRegistrationStep {
   switch (step) {
-    case 1:
+    case REGULAR_BOOKING_STEPS.TARGET_PATIENT:
       return {
         title: 'Siapa yang akan berobat?',
         description: 'Pilih profil yang akan berkonsultasi ke klinik hari ini'
       };
-    case 2:
+    case REGULAR_BOOKING_STEPS.FULL_NAME:
       if (isSelf) {
         return {
           title: 'Data identitas diri',
@@ -38,7 +56,7 @@ export function getBookingStepMeta(
         title: `Nama lengkap ${relationshipLabel || 'pasien'}`,
         description: 'Masukkan nama lengkap pasien sesuai KTP atau kartu keluarga'
       };
-    case 3:
+    case REGULAR_BOOKING_STEPS.NIK:
       if (isSelf) {
         return {
           title: 'Nomor Induk Kependudukan',
@@ -49,17 +67,17 @@ export function getBookingStepMeta(
         title: `NIK ${relationshipLabel || 'pasien'}`,
         description: '16 digit NIK sesuai KTP atau KK untuk verifikasi rekam medis'
       };
-    case 4:
+    case REGULAR_BOOKING_STEPS.MOTHER_NAME:
       return {
         title: 'Nama ibu kandung',
         description: 'Data nama ibu kandung diperlukan untuk verifikasi identitas dan rekam medis'
       };
-    case 5:
+    case REGULAR_BOOKING_STEPS.BIRTH_INFO:
       return {
         title: 'Tempat dan tanggal lahir',
         description: 'Pastikan tempat dan tanggal lahir sesuai identitas resmi'
       };
-    case 6:
+    case REGULAR_BOOKING_STEPS.GENDER:
       if (isSelf) {
         return {
           title: 'Jenis kelamin Anda',
@@ -70,42 +88,35 @@ export function getBookingStepMeta(
         title: `Jenis kelamin ${relationshipLabel || 'pasien'}`,
         description: 'Pilih jenis kelamin sesuai identitas resmi'
       };
-    case 7:
+    case REGULAR_BOOKING_STEPS.BLOOD_TYPE:
       return {
         title: 'Golongan darah pasien',
         description:
           'Pilih jenis golongan darah pasien atau pilih Belum Tahu jika belum diperiksa'
       };
-    case 8:
+    case REGULAR_BOOKING_STEPS.PHONE:
       return {
         title: 'Nomor WhatsApp atau telepon',
         description:
           'Nomor aktif yang dapat dihubungi untuk konfirmasi antrean dan pengingat janji temu'
       };
-    case 9:
-      if (isSelf) {
-        return {
-          title: 'Kontak darurat kerabat (Opsional)',
-          description:
-            'Keluarga atau kerabat terdekat yang dapat dihubungi faskes dalam keadaan darurat medis'
-        };
-      }
+    case REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT:
       return {
-        title: 'Kontak darurat kerabat',
+        title: 'Punya kontak darurat?',
         description:
           'Keluarga atau kerabat terdekat yang dapat dihubungi faskes dalam keadaan darurat medis'
       };
-    case 10:
+    case REGULAR_BOOKING_STEPS.ADDRESS:
       return {
         title: 'Alamat domisili saat ini',
         description: 'Alamat tempat tinggal untuk rujukan dan data pasien'
       };
-    case 11:
+    case REGULAR_BOOKING_STEPS.OCCUPATION:
       return {
         title: 'Pekerjaan pasien',
         description: 'Pilih jenis pekerjaan atau kegiatan utama sehari-hari'
       };
-    case 12:
+    case REGULAR_BOOKING_STEPS.CONFIRMATION:
       return {
         title: 'Konfirmasi data pendaftaran',
         description: 'Periksa kembali kelengkapan data sebelum disimpan'

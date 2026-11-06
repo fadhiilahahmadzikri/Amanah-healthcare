@@ -18,6 +18,7 @@ import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-ref
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import {
   getBookingStepMeta,
+  REGULAR_BOOKING_STEPS,
   type UseBookingRegularPatientFormOptions
 } from './booking-regular-form-steps';
 
@@ -300,30 +301,30 @@ export function useBookingRegularPatientForm({
 
   const isCurrentStepValid = React.useMemo(() => {
     switch (currentStep) {
-      case 1:
+      case REGULAR_BOOKING_STEPS.TARGET_PATIENT:
         return Boolean(relationship);
-      case 2:
+      case REGULAR_BOOKING_STEPS.FULL_NAME:
         return fullName.trim().length >= 3;
-      case 3:
+      case REGULAR_BOOKING_STEPS.NIK:
         return (
           nik.length === 16 &&
           /^\d+$/.test(nik) &&
           nikStatus !== 'taken' &&
           nikStatus !== 'checking'
         );
-      case 4:
+      case REGULAR_BOOKING_STEPS.MOTHER_NAME:
         return motherName.trim().length >= 3;
-      case 5:
+      case REGULAR_BOOKING_STEPS.BIRTH_INFO:
         return placeOfBirth.trim().length >= 2 && Boolean(dateOfBirth);
-      case 6:
+      case REGULAR_BOOKING_STEPS.GENDER:
         return Boolean(gender);
-      case 7:
+      case REGULAR_BOOKING_STEPS.BLOOD_TYPE:
         return Boolean(bloodType && bloodType.trim().length > 0);
-      case 8: {
+      case REGULAR_BOOKING_STEPS.PHONE: {
         const cleanPhone = phone.replace(/\D/g, '');
         return cleanPhone.length >= 8 && cleanPhone.length <= 15;
       }
-      case 9: {
+      case REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT: {
         if (isSelf && !isEnteringManualEmergency) {
           return true;
         }
@@ -337,11 +338,11 @@ export function useBookingRegularPatientForm({
         }
         return cleanEmergencyPhone.length >= 8 && cleanEmergencyPhone.length <= 15;
       }
-      case 10:
+      case REGULAR_BOOKING_STEPS.ADDRESS:
         return Boolean(region.line1.trim());
-      case 11:
+      case REGULAR_BOOKING_STEPS.OCCUPATION:
         return Boolean(occupationCode);
-      case 12:
+      case REGULAR_BOOKING_STEPS.CONFIRMATION:
         return true;
       default:
         return false;
@@ -381,7 +382,11 @@ export function useBookingRegularPatientForm({
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
 
-    if (currentStep === 9 && isSelf && isEnteringManualEmergency) {
+    if (
+      currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT &&
+      isSelf &&
+      isEnteringManualEmergency
+    ) {
       setIsEnteringManualEmergency(false);
       isAnimatingRef.current = false;
       return;
@@ -467,12 +472,16 @@ export function useBookingRegularPatientForm({
       return;
     }
 
-    if (currentStep === 9 && isSelf && !isEnteringManualEmergency) {
+    if (
+      currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT &&
+      isSelf &&
+      !isEnteringManualEmergency
+    ) {
       handleSkipEmergencyContact();
       return;
     }
 
-    if (currentStep < 12) {
+    if (currentStep < REGULAR_BOOKING_STEPS.CONFIRMATION) {
       isAnimatingRef.current = true;
       setCurrentStep((prev) => prev + 1);
     } else {

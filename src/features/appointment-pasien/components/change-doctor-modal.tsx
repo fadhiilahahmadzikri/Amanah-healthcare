@@ -4,6 +4,16 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -55,6 +65,7 @@ export function ChangeDoctorModal({
   const [closeReason, setCloseReason] = useState('');
   const [rosterDoctor, setRosterDoctor] = useState<DoctorSchedule | null>(null);
   const [isRosterModalOpen, setIsRosterModalOpen] = useState(false);
+  const [alertDoctor, setAlertDoctor] = useState<DoctorCandidateItem | null>(null);
 
   const isAssignMode =
     !currentDoctorName || currentDoctorName === '-' || currentDoctorName === 'Belum di-assign';
@@ -76,6 +87,7 @@ export function ChangeDoctorModal({
       setSelectedGroupId(null);
       setShouldCloseOldSchedule(false);
       setCloseReason('');
+      setAlertDoctor(null);
     } else if (groups.length === 1 && !selectedGroupId) {
       setSelectedGroupId(groups[0].id);
     }
@@ -223,7 +235,7 @@ export function ChangeDoctorModal({
               {!isAssignMode && currentDoctorName && currentDoctorName !== '-'
                 ? `, saat ini ditangani oleh ${currentDoctorName}`
                 : ''}
-              .
+              {activeGroup ? ` • Kategori ${activeGroup.name}` : ''}.
               {onViewAppointment && (
                 <button
                   type='button'
@@ -327,18 +339,7 @@ export function ChangeDoctorModal({
             </div>
           ) : (
             <div className='space-y-2.5'>
-              {groups.length > 1 && (
-                <button
-                  type='button'
-                  onClick={() => setSelectedGroupId(null)}
-                  className='inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline cursor-pointer mb-1'
-                >
-                  <Icons.arrowLeft className='size-3.5' />
-                  <span>Kategori: {activeGroup?.name} (Ubah)</span>
-                </button>
-              )}
-
-              <div className='space-y-2 max-h-[250px] overflow-y-auto pr-1'>
+              <div className='space-y-2 max-h-[260px] overflow-y-auto pr-1'>
                 {activeGroup?.doctors.length === 0 ? (
                   <p className='text-xs text-muted-foreground text-center py-4'>
                     Tidak ada dokter di kategori ini yang tersedia.
@@ -352,7 +353,12 @@ export function ChangeDoctorModal({
                         key={doctor.id}
                         type='button'
                         aria-label={`Pilih dokter ${doctor.name}`}
-                        onClick={() => setSelectedDoctorId(doctor.id)}
+                        onClick={() => {
+                          setSelectedDoctorId(doctor.id);
+                          if (!isRostered && !doctor.isOnLeave) {
+                            setAlertDoctor(doctor);
+                          }
+                        }}
                         className={cn(
                           'w-full text-left relative flex items-center justify-between p-3 rounded-xl border transition-all cursor-pointer select-none',
                           isSelected
@@ -368,51 +374,41 @@ export function ChangeDoctorModal({
                               size={40}
                             />
                           </div>
-                          <div className='min-w-0 flex-1'>
-                            <div className='flex items-center gap-2 flex-wrap'>
-                              <h4 className='text-xs font-bold text-foreground truncate'>
-                                {doctor.name}
-                              </h4>
+                          <div className='min-w-0 flex-1 space-y-1'>
+                            <h4 className='text-xs sm:text-sm font-bold text-foreground truncate'>
+                              {doctor.name}
+                            </h4>
+                            <p className='text-[11px] text-muted-foreground truncate'>
+                              <span>{doctor.specialty || activeGroup.name}</span>
+                              {typeof doctor.currentQueueCount === 'number' && (
+                                <>
+                                  <span className='mx-1'>•</span>
+                                  <span className='font-medium text-foreground/80'>
+                                    {doctor.currentQueueCount} antrean aktif
+                                  </span>
+                                </>
+                              )}
+                            </p>
+                            <div className='flex items-center gap-1.5 flex-wrap pt-0.5'>
                               {doctor.isOnLeave ? (
                                 <span
-                                  className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 shrink-0'
+                                  className='inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 shrink-0'
                                   title={doctor.leaveReason || 'Sedang Cuti'}
                                 >
                                   Cuti
                                 </span>
                               ) : isRostered ? (
-                                <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 shrink-0'>
+                                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0'>
                                   Tersedia
                                 </span>
                               ) : (
-                                <div className='flex items-center gap-1.5 shrink-0'>
-                                  <span className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'>
-                                    Perlu Jadwal
-                                  </span>
-                                  <span
-                                    role='button'
-                                    tabIndex={0}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleOpenDoctorRoster(doctor);
-                                    }}
-                                    onKeyDown={(e) => {
-                                      if (e.key === 'Enter' || e.key === ' ') {
-                                        e.stopPropagation();
-                                        handleOpenDoctorRoster(doctor);
-                                      }
-                                    }}
-                                    className='inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 transition-colors cursor-pointer select-none'
-                                    title={`Buka atau atur jadwal kerja untuk ${doctor.name}`}
-                                  >
-                                    <Icons.settings className='size-3' />
-                                    <span>Buka Sesi</span>
-                                  </span>
-                                </div>
+                                <span className='inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0'>
+                                  Perlu Jadwal
+                                </span>
                               )}
                               {doctor.isReplacement && (
                                 <span
-                                  className='inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 shrink-0'
+                                  className='inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 shrink-0'
                                   title={
                                     doctor.replacingDoctorName
                                       ? `Menggantikan ${doctor.replacingDoctorName}`
@@ -424,29 +420,41 @@ export function ChangeDoctorModal({
                               )}
                               {doctor.attendanceWarning && !doctor.isOnLeave && (
                                 <span
-                                  className='inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20 shrink-0'
+                                  className='inline-flex items-center px-1.5 py-0.5 rounded-md text-[9.5px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 shrink-0'
                                   title={doctor.attendanceWarning}
                                 >
-                                  <Icons.alertCircle className='size-3 text-amber-600 dark:text-amber-400' />
-                                  <span>Belum Presensi</span>
+                                  Belum Presensi
                                 </span>
-                              )}
-                            </div>
-                            <div className='flex items-center gap-1.5 text-[11px] text-muted-foreground truncate mt-0.5'>
-                              <span>{doctor.specialty || activeGroup.name}</span>
-                              {typeof doctor.currentQueueCount === 'number' && (
-                                <>
-                                  <span>•</span>
-                                  <span className='font-medium text-foreground/75'>
-                                    {doctor.currentQueueCount} antrean aktif
-                                  </span>
-                                </>
                               )}
                             </div>
                           </div>
                         </div>
 
-                        <div className='flex items-center shrink-0 pl-2'>
+                        <div className='flex items-center gap-2 shrink-0 pl-2'>
+                          {!isRostered && !doctor.isOnLeave && (
+                            <span
+                              role='button'
+                              tabIndex={0}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenDoctorRoster(doctor);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === ' ') {
+                                  e.stopPropagation();
+                                  handleOpenDoctorRoster(doctor);
+                                }
+                              }}
+                              title={`Buka sesi jadwal untuk ${doctor.name}`}
+                              className='group/open-btn inline-flex items-center gap-1.5 h-7 px-2 rounded-full text-xs font-semibold bg-primary/10 hover:bg-primary/20 text-primary transition-all duration-200 cursor-pointer select-none'
+                            >
+                              <Icons.settings className='size-3.5 shrink-0' />
+                              <span className='max-w-0 overflow-hidden whitespace-nowrap opacity-0 group-hover/open-btn:max-w-20 group-hover/open-btn:opacity-100 transition-all duration-200 text-[11px] font-medium'>
+                                Buka Sesi
+                              </span>
+                            </span>
+                          )}
+
                           <div
                             className={cn(
                               'size-5 rounded-full border flex items-center justify-center shrink-0 transition-colors',
@@ -502,29 +510,27 @@ export function ChangeDoctorModal({
           )}
         </div>
 
-        <div className='flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-border/40'>
-          <div className='text-xs text-muted-foreground w-full sm:w-auto'>
-            {selectedDoctor && !isSelectedDoctorAvailable && (
-              <span className='text-amber-600 dark:text-amber-400 font-medium inline-flex items-center gap-1.5'>
-                <Icons.alertCircle className='size-3.5 shrink-0' />
-                <span>Dokter belum ada jadwal hari ini. Klik "Buka Sesi" untuk mengaktifkan.</span>
-              </span>
+        <div className='flex items-center justify-between gap-3 pt-3 border-t border-border/40'>
+          <div>
+            {currentStep === 'doctor' && groups.length > 1 && (
+              <Button
+                type='button'
+                variant='outline'
+                shape='pill'
+                size='default'
+                onClick={() => {
+                  setSelectedGroupId(null);
+                  setSelectedDoctorId(null);
+                }}
+                disabled={mutation.isPending}
+                className='px-5 text-xs font-medium'
+              >
+                Ubah Kategori
+              </Button>
             )}
           </div>
 
-          <div className='flex items-center gap-3 w-full sm:w-auto justify-end'>
-            <Button
-              type='button'
-              variant='outline'
-              shape='pill'
-              size='default'
-              onClick={onClose}
-              disabled={mutation.isPending}
-              className='px-6 font-medium'
-            >
-              Batal
-            </Button>
-
+          <div className='flex items-center gap-3'>
             {currentStep === 'doctor' && (
               <Button
                 type='submit'
@@ -532,7 +538,7 @@ export function ChangeDoctorModal({
                 shape='pill'
                 size='default'
                 disabled={!canSubmitDoctor}
-                className='px-7 font-semibold'
+                className='px-7 text-xs font-semibold'
               >
                 {mutation.isPending ? (
                   <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
@@ -545,6 +551,34 @@ export function ChangeDoctorModal({
           </div>
         </div>
       </form>
+
+      <AlertDialog open={Boolean(alertDoctor)} onOpenChange={(open) => !open && setAlertDoctor(null)}>
+        <AlertDialogContent className='sm:max-w-[420px] rounded-2xl'>
+          <AlertDialogHeader>
+            <AlertDialogTitle className='text-base font-bold'>
+              Dokter Belum Memiliki Jadwal
+            </AlertDialogTitle>
+            <AlertDialogDescription className='text-xs text-muted-foreground leading-relaxed'>
+              {alertDoctor?.name} belum memiliki jadwal praktik pada tanggal ini. Buka sesi untuk mengatur jadwal terlebih dahulu.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className='gap-2 sm:gap-2 pt-2'>
+            <AlertDialogCancel className='rounded-full text-xs font-medium'>
+              Tutup
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (alertDoctor) {
+                  handleOpenDoctorRoster(alertDoctor);
+                }
+              }}
+              className='rounded-full text-xs font-semibold'
+            >
+              Buka Sesi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {isRosterModalOpen && rosterDoctor && (
         <DoctorAssignmentModal

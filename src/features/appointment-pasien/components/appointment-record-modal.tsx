@@ -54,6 +54,12 @@ export function AppointmentRecordModal({
 
   const { canUpdateStatus, canCheckIn } = appointment.capabilities;
   const sessionLabel = appointment.sessionName ?? '';
+  const scheduledTime = appointment.scheduledStartTime
+    ? appointment.scheduledStartTime.slice(0, 5)
+    : '-';
+  const estimatedTime = appointment.estimatedStartAt
+    ? formatClinicTime(appointment.estimatedStartAt)
+    : scheduledTime;
 
   return (
     <ModalWrapper
@@ -216,7 +222,7 @@ export function AppointmentRecordModal({
                 Sesi & Estimasi
               </span>
               <span className='text-sm font-bold font-mono text-foreground block'>
-                {appointment.scheduledStartTime ?? '-'}
+                {estimatedTime}
               </span>
               {sessionLabel && (
                 <span className='text-[11px] text-muted-foreground block truncate mt-0.5'>
