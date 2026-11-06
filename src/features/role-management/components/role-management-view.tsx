@@ -24,7 +24,6 @@ export function RoleManagementView() {
     isRefetching,
     searchQuery,
     searchEngine,
-    tierFilter,
     audienceFilter,
     clinicalFilter,
     isCreateOpen,
@@ -54,8 +53,6 @@ export function RoleManagementView() {
           searchQuery={searchQuery}
           onSearchChange={actions.setSearchQuery}
           onOpenSearchDialog={searchEngine.open}
-          tierFilter={tierFilter}
-          onTierFilterChange={actions.setTierFilter}
           audienceFilter={audienceFilter}
           onAudienceFilterChange={actions.setAudienceFilter}
           clinicalFilter={clinicalFilter}

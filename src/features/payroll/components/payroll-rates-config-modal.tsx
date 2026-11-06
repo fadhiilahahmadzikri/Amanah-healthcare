@@ -307,11 +307,6 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                     <span className='font-mono text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-muted text-muted-foreground shrink-0'>
                       {role.code}
                     </span>
-                    {role.tier && (
-                      <span className='text-[10px] font-medium px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground uppercase border border-border/40 shrink-0'>
-                        {role.tier}
-                      </span>
-                    )}
                   </div>
 
                   <div className='flex items-center gap-2 shrink-0'>

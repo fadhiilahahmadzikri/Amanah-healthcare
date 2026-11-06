@@ -1,11 +1,11 @@
 import {
   AUDIENCE,
-  ROLE_TIER,
+  CLINICAL_MODULE_INFO,
   type AudienceType,
-  type RoleTierType
+  type ModuleInfo
 } from '@/core/auth/permissions.constants';
 
-export { AUDIENCE, ROLE_TIER };
+export { AUDIENCE, CLINICAL_MODULE_INFO, type ModuleInfo };
 
 export interface Permission {
   id: string;
@@ -15,10 +15,7 @@ export interface Permission {
   updatedAt?: string;
 }
 
-export type RoleTier = RoleTierType;
 export type RoleAudience = AudienceType;
-
-export const NO_PARENT_ROLE_SENTINEL = 'none';
 
 export interface ApplicationPage {
   id: string;
@@ -42,28 +39,22 @@ export interface Role {
   name: string;
   description?: string | null;
   isSystem: boolean;
-  parentRoleId?: string | null;
-  tier: RoleTier;
   audience: RoleAudience;
   isClinical: boolean;
   isActive?: boolean;
   isDefault?: boolean;
   createdAt?: string;
   updatedAt?: string;
-  parentRole?: Role | null;
   permissions?: Permission[];
   effectivePermissionCodes?: string[];
   userCount?: number;
   staffCount?: number;
-  children?: Role[];
 }
 
 export interface CreateRolePayload {
   code?: string;
   name: string;
   description?: string | null;
-  parentRoleId?: string | null;
-  tier?: RoleTier;
   audience?: RoleAudience;
   isClinical?: boolean;
   isActive?: boolean;
@@ -75,8 +66,6 @@ export interface CreateRolePayload {
 export interface UpdateRolePayload {
   name?: string;
   description?: string | null;
-  parentRoleId?: string | null;
-  tier?: RoleTier;
   audience?: RoleAudience;
   isClinical?: boolean;
   isActive?: boolean;

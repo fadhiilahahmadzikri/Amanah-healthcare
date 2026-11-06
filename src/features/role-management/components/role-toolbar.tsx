@@ -11,17 +11,13 @@ import {
 } from '@/shared/ui/responsive-facet-toolbox';
 import {
   AUDIENCE,
-  ROLE_TIER,
-  type AudienceType,
-  type RoleTierType
+  type AudienceType
 } from '@/core/auth/permissions.constants';
 
 export interface RoleToolbarProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onOpenSearchDialog?: () => void;
-  tierFilter: 'all' | RoleTierType;
-  onTierFilterChange: (value: 'all' | RoleTierType) => void;
   audienceFilter: 'all' | AudienceType;
   onAudienceFilterChange: (value: 'all' | AudienceType) => void;
   clinicalFilter: 'all' | 'clinical' | 'operational';
@@ -36,8 +32,6 @@ export function RoleToolbar({
   searchQuery,
   onSearchChange,
   onOpenSearchDialog,
-  tierFilter,
-  onTierFilterChange,
   audienceFilter,
   onAudienceFilterChange,
   clinicalFilter,
@@ -56,21 +50,6 @@ export function RoleToolbar({
 
   const facetGroups = React.useMemo<FacetGroupDefinition[]>(() => {
     return [
-      {
-        id: 'tier',
-        title: 'Tier',
-        icon: Icons.layers,
-        mode: 'single',
-        options: [
-          { label: 'Makro', value: ROLE_TIER.MACRO },
-          { label: 'Mikro', value: ROLE_TIER.MICRO }
-        ],
-        selectedValues: tierFilter !== 'all' ? [tierFilter] : [],
-        onSelect: (val) => onTierFilterChange(val === tierFilter ? 'all' : (val as RoleTierType)),
-        onReset: () => onTierFilterChange('all'),
-        popoverWidth: 'w-44',
-        resetLabel: 'Semua Tier'
-      },
       {
         id: 'audience',
         title: 'Audiens',
@@ -107,32 +86,27 @@ export function RoleToolbar({
       }
     ];
   }, [
-    tierFilter,
     audienceFilter,
     clinicalFilter,
-    onTierFilterChange,
     onAudienceFilterChange,
     onClinicalFilterChange
   ]);
 
   const isFiltered =
     Boolean(searchQuery.trim()) ||
-    tierFilter !== 'all' ||
     audienceFilter !== 'all' ||
     clinicalFilter !== 'all';
 
   const activeFilterCount = [
-    tierFilter !== 'all',
     audienceFilter !== 'all',
     clinicalFilter !== 'all'
   ].filter(Boolean).length;
 
   const handleResetAll = React.useCallback(() => {
     onSearchChange('');
-    onTierFilterChange('all');
     onAudienceFilterChange('all');
     onClinicalFilterChange('all');
-  }, [onSearchChange, onTierFilterChange, onAudienceFilterChange, onClinicalFilterChange]);
+  }, [onSearchChange, onAudienceFilterChange, onClinicalFilterChange]);
 
   return (
     <ResponsiveFacetToolbox

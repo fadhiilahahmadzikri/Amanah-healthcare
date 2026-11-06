@@ -209,13 +209,8 @@ export function RoleFormDialog({
 
             {state.currentStage === 3 && (
               <RoleHierarchyStep
-                tier={state.tier}
                 audience={state.audience}
-                parentRoleId={state.parentRoleId}
-                macroRoles={state.macroRoles}
-                onTierChange={actions.setTier}
                 onAudienceChange={actions.setAudience}
-                onParentRoleChange={actions.setParentRoleId}
                 disabled={
                   state.isSubmitting || role?.code === 'admin' || role?.code === 'super_admin'
                 }
@@ -235,15 +230,15 @@ export function RoleFormDialog({
             {state.currentStage === 5 && (
               <RolePermissionsStep
                 categories={state.categories}
-                activeCategory={state.activeCategory}
                 groupedPermissions={groupedPermissions}
                 selectedPermissionIds={state.selectedPermissionIds}
                 effectivePermissionCodes={state.effectivePermissionCodes}
                 permissionSearch={state.permissionSearch}
-                onSelectCategory={actions.setActiveCategory}
+                existingRoles={existingRoles}
                 onSearchChange={actions.setPermissionSearch}
                 onTogglePermission={actions.handleTogglePermission}
-                onSelectAllCategory={actions.handleSelectAllCategory}
+                onSetModulePermissions={actions.handleSetModulePermissions}
+                onCopyFromRole={actions.handleCopyFromRole}
                 disabled={state.isSubmitting}
               />
             )}
@@ -272,13 +267,8 @@ export function RoleFormDialog({
             {/* 3. Posisi Hierarki & Audiens */}
             <div className='pb-4 border-b border-border/40'>
               <RoleHierarchyStep
-                tier={state.tier}
                 audience={state.audience}
-                parentRoleId={state.parentRoleId}
-                macroRoles={state.macroRoles}
-                onTierChange={actions.setTier}
                 onAudienceChange={actions.setAudience}
-                onParentRoleChange={actions.setParentRoleId}
                 disabled={
                   state.isSubmitting || role?.code === 'admin' || role?.code === 'super_admin'
                 }
@@ -300,15 +290,15 @@ export function RoleFormDialog({
             <div>
               <RolePermissionsStep
                 categories={state.categories}
-                activeCategory={state.activeCategory}
                 groupedPermissions={groupedPermissions}
                 selectedPermissionIds={state.selectedPermissionIds}
                 effectivePermissionCodes={state.effectivePermissionCodes}
                 permissionSearch={state.permissionSearch}
-                onSelectCategory={actions.setActiveCategory}
+                existingRoles={existingRoles}
                 onSearchChange={actions.setPermissionSearch}
                 onTogglePermission={actions.handleTogglePermission}
-                onSelectAllCategory={actions.handleSelectAllCategory}
+                onSetModulePermissions={actions.handleSetModulePermissions}
+                onCopyFromRole={actions.handleCopyFromRole}
                 disabled={state.isSubmitting}
               />
             </div>

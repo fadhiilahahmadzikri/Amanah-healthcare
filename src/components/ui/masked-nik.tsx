@@ -26,18 +26,8 @@ export interface MaskedNikProps {
 }
 
 export function formatMaskedNik(raw?: string | null): string {
-  if (!raw) return '-';
-  const clean = raw.trim();
-  if (clean.length === 16) {
-    return `${clean.slice(0, 4)}••••••••${clean.slice(-4)}`;
-  }
-  if (clean.includes('•') || clean.includes('*')) {
-    return clean.replace(/\*/g, '•');
-  }
-  if (clean.length > 8) {
-    return `${clean.slice(0, 3)}••••••••${clean.slice(-3)}`;
-  }
-  return '••••••••';
+  if (!raw || !raw.trim()) return '-';
+  return '••••••••••••••••';
 }
 
 export const MaskedNik: React.FC<MaskedNikProps> = ({

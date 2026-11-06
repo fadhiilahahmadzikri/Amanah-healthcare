@@ -119,10 +119,8 @@ export interface RoleOption {
   id: string;
   code: string;
   name: string;
-  tier: string;
   isClinical: boolean;
   description?: string | null;
-  parentRoleId?: string | null;
 }
 
 export interface ClinicUnitOption {

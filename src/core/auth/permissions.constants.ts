@@ -23,13 +23,6 @@ export const NOTIFICATION_AUDIENCE = {
 export type NotificationAudience =
   (typeof NOTIFICATION_AUDIENCE)[keyof typeof NOTIFICATION_AUDIENCE];
 
-export const ROLE_TIER = {
-  MACRO: 'macro',
-  MICRO: 'micro'
-} as const;
-
-export type RoleTierType = (typeof ROLE_TIER)[keyof typeof ROLE_TIER];
-
 export const PERMISSIONS = {
   APP: {
     ACCESS: 'app:access'
@@ -134,3 +127,80 @@ export type PermissionCode =
   | (typeof PERMISSIONS.STAFF)[keyof typeof PERMISSIONS.STAFF]
   | (typeof PERMISSIONS.USERS)[keyof typeof PERMISSIONS.USERS]
   | '*';
+
+export interface ModuleInfo {
+  id: string;
+  title: string;
+  description: string;
+  viewCodes: string[];
+}
+
+export const CLINICAL_MODULE_INFO: Record<string, ModuleInfo> = {
+  appointments: {
+    id: 'appointments',
+    title: 'Janji Temu & Jadwal',
+    description: 'Reservasi janji temu, kalender jadwal dokter, dan ketersediaan sesi',
+    viewCodes: ['appointments:read', 'schedules:read']
+  },
+  queue: {
+    id: 'queue',
+    title: 'Pelayanan Antrean',
+    description: 'Panggilan tiket antrean, pemanggilan ulang, pelayanan, dan penyelesaian sesi',
+    viewCodes: ['queue:read']
+  },
+  records: {
+    id: 'records',
+    title: 'Rekam Medis & Diagnosis',
+    description: 'Pengisian diagnosis klinis ICD-10, resep obat, dan riwayat rekam medis',
+    viewCodes: ['records:read', 'patients:read']
+  },
+  patients: {
+    id: 'patients',
+    title: 'Pendaftaran & Data Pasien',
+    description: 'Pendaftaran pasien baru, identitas demografi, dan berkas pasien',
+    viewCodes: ['patients:read']
+  },
+  attendance: {
+    id: 'attendance',
+    title: 'Presensi & Kehadiran',
+    description: 'Pencatatan presensi masuk/pulang, rekap kehadiran, dan persetujuan cuti',
+    viewCodes: ['attendance:read', 'attendance:submit']
+  },
+  payroll: {
+    id: 'payroll',
+    title: 'Penggajian Klinik (Payroll)',
+    description: 'Slip gaji mandiri, rekap gaji klinik, kalkulasi, dan penguncian buku',
+    viewCodes: ['payroll:read_self']
+  },
+  chat: {
+    id: 'chat',
+    title: 'Pesan Konsultasi (Chat)',
+    description: 'Komunikasi dan pesan konsultasi daring dokter-pasien',
+    viewCodes: ['chat:read']
+  },
+  staff: {
+    id: 'staff',
+    title: 'Kepegawaian & Karyawan',
+    description: 'Direktori staf pegawai, undangan staf baru, dan status penugasan',
+    viewCodes: ['staff:read']
+  },
+  users: {
+    id: 'users',
+    title: 'Manajemen Akun Pengguna',
+    description: 'Daftar pengguna sistem, pencadangan akun, pemulihan, dan penghapusan',
+    viewCodes: ['users:read']
+  },
+  settings: {
+    id: 'settings',
+    title: 'Pengaturan Fasilitas & RBAC',
+    description: 'Pengaturan poliklinik, ruangan, peran hak akses, dan siaran pengumuman',
+    viewCodes: ['roles:read', 'pages:read', 'notifications:read', 'profile:read']
+  },
+  general: {
+    id: 'general',
+    title: 'Akses Aplikasi Umum',
+    description: 'Izin mendasar untuk masuk aplikasi (app:access) dan profil sendiri',
+    viewCodes: ['app:access', 'profile:read']
+  }
+};
+

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
-import { ClinicalHistoryTables, ClinicalHistoryTableSkeleton } from '@/features/klinik';
+import { MedicalHistoryListing, MedicalHistoryListingSkeleton } from '@/features/riwayat-medis';
 import { requireRouteAccess } from '@/lib/guard';
 
 export const metadata = {
@@ -14,10 +14,10 @@ export default async function ClinicalHistoryPage() {
     <PageContainer
       scrollable={false}
       pageTitle='Riwayat Medis'
-      pageDescription='Arsip riwayat pengisian formulir medis dan rekam kesehatan keluarga'
+      pageDescription='Catatan rekam jejak klinis, diagnosa, dan riwayat kunjungan kesehatan keluarga'
     >
-      <Suspense fallback={<ClinicalHistoryTableSkeleton />}>
-        <ClinicalHistoryTables />
+      <Suspense fallback={<MedicalHistoryListingSkeleton />}>
+        <MedicalHistoryListing />
       </Suspense>
     </PageContainer>
   );

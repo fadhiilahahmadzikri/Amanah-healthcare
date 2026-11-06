@@ -1,6 +1,6 @@
 import 'server-only';
 import type { UserId, TokenString, EmailAddress } from '@/core/types/branded';
-import type { AudienceType, RoleTierType } from '@/core/auth/permissions.constants';
+import type { AudienceType } from '@/core/auth/permissions.constants';
 
 export interface MedicalStaffProfile {
   readonly id: string;
@@ -33,7 +33,6 @@ export interface UserRole {
   readonly id: string | number;
   readonly code?: string;
   readonly name: string;
-  readonly tier?: RoleTierType;
   readonly audience?: AudienceType;
   readonly isClinical?: boolean;
 }

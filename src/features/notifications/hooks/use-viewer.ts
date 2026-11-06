@@ -9,7 +9,6 @@ export interface ViewerRole {
   readonly id?: string;
   readonly code: string;
   readonly name: string;
-  readonly tier?: 'macro' | 'micro';
   readonly audience?: AudienceType;
   readonly isClinical?: boolean;
 }

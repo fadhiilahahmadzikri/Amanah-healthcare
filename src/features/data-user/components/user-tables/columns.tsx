@@ -108,7 +108,9 @@ export function getUserColumns(): ColumnDef<UserItem>[] {
       accessorKey: 'phone',
       header: 'No. Telepon',
       cell: ({ row }) => (
-        <span className='text-xs text-muted-foreground font-mono'>{row.original.phone || '-'}</span>
+        <span className='text-xs text-muted-foreground font-mono'>
+          {row.original.phone || row.original.staffProfile?.phone || row.original.patientProfile?.phone || '-'}
+        </span>
       ),
       enableSorting: false
     },

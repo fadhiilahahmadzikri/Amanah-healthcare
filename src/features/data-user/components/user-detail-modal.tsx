@@ -50,7 +50,7 @@ export function UserDetailModal({
       setFormData({
         name: user.name || '',
         email: user.email || '',
-        phone: user.phone || '',
+        phone: user.phone || user.staffProfile?.phone || user.patientProfile?.phone || '',
         status: user.status === 'active' ? 'active' : 'inactive',
         roleIds: user.roles.map((r) => r.id),
       });
@@ -209,7 +209,7 @@ export function UserDetailModal({
                   setFormData({
                     name: user.name || '',
                     email: user.email || '',
-                    phone: user.phone || '',
+                    phone: user.phone || user.staffProfile?.phone || user.patientProfile?.phone || '',
                     status: user.status === 'active' ? 'active' : 'inactive',
                     roleIds: user.roles.map((r) => r.id),
                   });

@@ -14,15 +14,6 @@ export { AppointmentPagination } from './components/appointment-pagination';
 export { GuideView } from './components/guide-view';
 export { QueueView } from './components/queue-view';
 export { QueueViewSkeleton } from './components/queue-view-skeleton';
-export {
-  ClinicalHistoryTables,
-  ClinicalHistoryTableSkeleton,
-  ClinicalHistoryTables as ClinicalHistoryView
-} from './components/history/history-tables';
-export { useClinicalHistoryTable } from './model/useClinicalHistoryTable';
-export { useClinicalHistoryDialogs } from './model/useClinicalHistoryDialogs';
-export { useClinicalHistoryDynamicOptions } from './model/useClinicalHistoryDynamicOptions';
-export type { UseClinicalHistoryDynamicOptionsProps } from './model/useClinicalHistoryDynamicOptions';
 export { useAppointmentsView } from './model/useAppointmentsView';
 export { useAppointmentDynamicOptions } from './model/useAppointmentDynamicOptions';
 export type { UseAppointmentDynamicOptionsProps } from './model/useAppointmentDynamicOptions';

@@ -5,12 +5,9 @@ import { toast } from 'sonner';
 import { roleManagementApi } from '../api/role-management.api';
 import {
   AUDIENCE,
-  ROLE_TIER,
-  NO_PARENT_ROLE_SENTINEL,
   type Permission,
   type Role,
-  type RoleAudience,
-  type RoleTier
+  type RoleAudience
 } from '../types/role.types';
 import type { RoleCreateStage } from './useCreateRoleModal';
 
@@ -40,11 +37,7 @@ export function useRoleFormModal({
   const [code, setCode] = React.useState(role?.code || '');
   const [name, setName] = React.useState(role?.name || '');
   const [description, setDescription] = React.useState(role?.description || '');
-  const [tier, setTier] = React.useState<RoleTier>(role?.tier || ROLE_TIER.MACRO);
   const [audience, setAudience] = React.useState<RoleAudience>(role?.audience || AUDIENCE.INTERNAL);
-  const [parentRoleId, setParentRoleId] = React.useState<string>(
-    role?.parentRoleId || NO_PARENT_ROLE_SENTINEL
-  );
   const [isClinical, setIsClinical] = React.useState(Boolean(role?.isClinical));
   const [selectedPermissionIds, setSelectedPermissionIds] = React.useState<string[]>(() =>
     (role?.permissions || []).map((p) => p.id)
@@ -61,18 +54,14 @@ export function useRoleFormModal({
       setCode(role.code);
       setName(role.name);
       setDescription(role.description || '');
-      setTier(role.tier);
       setAudience(role.audience);
-      setParentRoleId(role.parentRoleId || NO_PARENT_ROLE_SENTINEL);
       setIsClinical(Boolean(role.isClinical));
       setSelectedPermissionIds((role.permissions || []).map((p) => p.id));
     } else {
       setCode('');
       setName('');
       setDescription('');
-      setTier(ROLE_TIER.MACRO);
       setAudience(AUDIENCE.INTERNAL);
-      setParentRoleId(NO_PARENT_ROLE_SENTINEL);
       setIsClinical(false);
       setSelectedPermissionIds([]);
     }
@@ -89,18 +78,14 @@ export function useRoleFormModal({
       setCode(role.code);
       setName(role.name);
       setDescription(role.description || '');
-      setTier(role.tier);
       setAudience(role.audience);
-      setParentRoleId(role.parentRoleId || NO_PARENT_ROLE_SENTINEL);
       setIsClinical(Boolean(role.isClinical));
       setSelectedPermissionIds((role.permissions || []).map((p) => p.id));
     } else {
       setCode('');
       setName('');
       setDescription('');
-      setTier(ROLE_TIER.MACRO);
       setAudience(AUDIENCE.INTERNAL);
-      setParentRoleId(NO_PARENT_ROLE_SENTINEL);
       setIsClinical(false);
       setSelectedPermissionIds([]);
     }
@@ -123,6 +108,30 @@ export function useRoleFormModal({
       }
     },
     [groupedPermissions, selectedPermissionIds]
+  );
+
+  const handleSetModulePermissions = React.useCallback(
+    (toAdd: string[], toRemove: string[]) => {
+      setSelectedPermissionIds((prev) => {
+        const withoutRemoved = prev.filter((id) => !toRemove.includes(id));
+        return Array.from(new Set([...withoutRemoved, ...toAdd]));
+      });
+    },
+    []
+  );
+
+  const handleBatchSelectPermissions = React.useCallback((ids: string[]) => {
+    setSelectedPermissionIds(ids);
+  }, []);
+
+  const handleCopyFromRole = React.useCallback(
+    (sourceRoleId: string) => {
+      const source = existingRoles.find((r) => r.id === sourceRoleId);
+      if (source && source.permissions) {
+        setSelectedPermissionIds(source.permissions.map((p) => p.id));
+      }
+    },
+    [existingRoles]
   );
 
   const isStage1Valid = React.useMemo(() => {
@@ -174,9 +183,7 @@ export function useRoleFormModal({
         await roleManagementApi.updateRole(role.id, {
           name: name.trim(),
           description: description.trim() || null,
-          tier,
           audience,
-          parentRoleId: parentRoleId !== NO_PARENT_ROLE_SENTINEL ? parentRoleId : null,
           isClinical
         });
 
@@ -190,9 +197,7 @@ export function useRoleFormModal({
           code: undefined,
           name: name.trim(),
           description: description.trim() || null,
-          tier,
           audience,
-          parentRoleId: parentRoleId !== NO_PARENT_ROLE_SENTINEL ? parentRoleId : null,
           isClinical,
           permissionIds: selectedPermissionIds
         });
@@ -216,10 +221,6 @@ export function useRoleFormModal({
     }
   };
 
-  const candidateParentRoles = React.useMemo(() => {
-    return existingRoles.filter((r) => r.tier === 'macro' && (!role || r.id !== role.id));
-  }, [existingRoles, role]);
-
   return {
     state: {
       isEditMode,
@@ -230,16 +231,13 @@ export function useRoleFormModal({
       code,
       name,
       description,
-      tier,
       audience,
-      parentRoleId,
       isClinical,
       selectedPermissionIds,
       effectivePermissionCodes: role?.effectivePermissionCodes || [],
       activeCategory,
       categories,
       permissionSearch,
-      macroRoles: candidateParentRoles,
       isStage1Valid,
       isCurrentStageValid
     },
@@ -250,14 +248,15 @@ export function useRoleFormModal({
       setCode,
       setName,
       setDescription,
-      setTier,
       setAudience,
-      setParentRoleId,
       setIsClinical,
       setActiveCategory: setSelectedCategory,
       setPermissionSearch,
       handleTogglePermission,
       handleSelectAllCategory,
+      handleSetModulePermissions,
+      handleBatchSelectPermissions,
+      handleCopyFromRole,
       handleSubmit,
       resetForm
     }

@@ -8,7 +8,7 @@ import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/
 import { roleManagementApi } from '../api/role-management.api';
 import { roleManagementKeys } from '../api/query-keys';
 import type { Permission, Role } from '../types/role.types';
-import type { AudienceType, RoleTierType } from '@/core/auth/permissions.constants';
+import type { AudienceType } from '@/core/auth/permissions.constants';
 
 export type UseStateSearchEngineReturn = ReturnType<typeof useStateSearchEngine>;
 
@@ -20,7 +20,6 @@ export interface UseRoleManagementViewResult {
   isRefetching: boolean;
   searchQuery: string;
   searchEngine: UseStateSearchEngineReturn;
-  tierFilter: 'all' | RoleTierType;
   audienceFilter: 'all' | AudienceType;
   clinicalFilter: 'all' | 'clinical' | 'operational';
   isCreateOpen: boolean;
@@ -31,7 +30,6 @@ export interface UseRoleManagementViewResult {
   togglingRoleId: string | null;
   actions: {
     setSearchQuery: (query: string) => void;
-    setTierFilter: (filter: 'all' | RoleTierType) => void;
     setAudienceFilter: (filter: 'all' | AudienceType) => void;
     setClinicalFilter: (filter: 'all' | 'clinical' | 'operational') => void;
     setIsCreateOpen: (open: boolean) => void;
@@ -47,7 +45,6 @@ export interface UseRoleManagementViewResult {
 export function useRoleManagementView(): UseRoleManagementViewResult {
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = React.useState('');
-  const [tierFilter, setTierFilter] = React.useState<'all' | RoleTierType>('all');
   const [audienceFilter, setAudienceFilter] = React.useState<'all' | AudienceType>('all');
   const [clinicalFilter, setClinicalFilter] = React.useState<'all' | 'clinical' | 'operational'>(
     'all'
@@ -128,17 +125,12 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
         if (!matchesQuery) return false;
       }
 
-      // 2. Tier Filter
-      if (tierFilter !== 'all' && role.tier !== tierFilter) {
-        return false;
-      }
-
-      // 3. Audience Filter
+      // 2. Audience Filter
       if (audienceFilter !== 'all' && role.audience !== audienceFilter) {
         return false;
       }
 
-      // 4. Clinical Filter
+      // 3. Clinical Filter
       if (clinicalFilter === 'clinical' && !role.isClinical) {
         return false;
       }
@@ -148,16 +140,16 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
 
       return true;
     });
-  }, [roles, searchQuery, tierFilter, audienceFilter, clinicalFilter]);
+  }, [roles, searchQuery, audienceFilter, clinicalFilter]);
 
   const indexItems = React.useMemo<SearchEngineResultItem[]>(() => {
     return roles.map((role) => ({
       id: `role-${role.id}`,
       title: role.name,
-      subtitle: `${role.tier === 'macro' ? 'Makro' : 'Mikro'} • ${role.audience === 'external' ? 'Eksternal' : 'Internal'}${role.isClinical ? ' • Klinis' : ''}`,
+      subtitle: `${role.audience === 'external' ? 'Eksternal' : 'Internal'}${role.isClinical ? ' • Klinis' : ''}`,
       category: 'Peran',
       icon: Icons.users,
-      queryValue: `${role.name} ${role.tier === 'macro' ? 'makro' : 'mikro'} ${role.audience === 'external' ? 'eksternal' : 'internal'}`
+      queryValue: `${role.name} ${role.audience === 'external' ? 'eksternal' : 'internal'}${role.isClinical ? ' klinis' : ''}`
     }));
   }, [roles]);
 
@@ -177,7 +169,6 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
     isRefetching,
     searchQuery,
     searchEngine,
-    tierFilter,
     audienceFilter,
     clinicalFilter,
     isCreateOpen,
@@ -188,7 +179,6 @@ export function useRoleManagementView(): UseRoleManagementViewResult {
     togglingRoleId,
     actions: {
       setSearchQuery,
-      setTierFilter,
       setAudienceFilter,
       setClinicalFilter,
       setIsCreateOpen,

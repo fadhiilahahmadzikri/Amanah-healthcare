@@ -294,7 +294,6 @@ export function InviteStaffModal(props: InviteStaffModalProps) {
                               <span className='truncate font-medium text-foreground'>{r.name}</span>
                               <span className='text-[10px] text-muted-foreground'>
                                 {r.isClinical ? 'Praktisi Klinis' : 'Staf Operasional'}
-                                {r.tier ? ` • Tingkat ${r.tier}` : ''}
                               </span>
                             </div>
                             {isSelected && (

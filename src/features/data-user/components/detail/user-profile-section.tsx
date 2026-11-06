@@ -64,6 +64,12 @@ export function UserProfileSection({ user }: UserProfileSectionProps) {
                 {staff.primaryUnitName || '-'}
               </span>
             </div>
+            {staff.phone && (
+              <div className='py-2 flex items-center justify-between'>
+                <span className='text-muted-foreground'>No. Telepon / WhatsApp</span>
+                <span className='font-mono font-medium text-foreground'>{staff.phone}</span>
+              </div>
+            )}
           </>
         ) : patient ? (
           <>
@@ -73,6 +79,12 @@ export function UserProfileSection({ user }: UserProfileSectionProps) {
                 {patient.medicalRecordNumber}
               </span>
             </div>
+            {patient.phone && (
+              <div className='py-2 flex items-center justify-between'>
+                <span className='text-muted-foreground'>No. Telepon / WhatsApp</span>
+                <span className='font-mono font-medium text-foreground'>{patient.phone}</span>
+              </div>
+            )}
             <div className='py-2 flex items-center justify-between'>
               <span className='text-muted-foreground'>Golongan Darah</span>
               <span className='font-semibold text-foreground'>

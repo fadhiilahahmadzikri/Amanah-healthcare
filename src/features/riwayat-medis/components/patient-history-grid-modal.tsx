@@ -26,6 +26,7 @@ import { INDONESIAN_MONTH_NAMES } from '@/components/ui/custom-month-picker';
 import { MaskedNik } from '@/components/ui/masked-nik';
 import { cn } from '@/lib/utils';
 import type { Patient } from '@/features/data-pasien/api/types';
+import { PatientModal } from '@/features/data-pasien/components/patient-modal';
 import { patientAppointmentHistoryQueryOptions } from '../api/queries';
 import type { HistoricalPatientAppointment } from '../api/types';
 
@@ -48,8 +49,10 @@ export function PatientHistoryGridModal({
 
   const [selectedMonth, setSelectedMonth] = useState<string>(currentMonthIso);
   const [isAllMonths, setIsAllMonths] = useState<boolean>(false);
+  const [selectedService, setSelectedService] = useState<string>('all');
   const [isMonthPopoverOpen, setIsMonthPopoverOpen] = useState<boolean>(false);
   const [selectedAppointmentId, setSelectedAppointmentId] = useState<string | null>(null);
+  const [isPatientDetailOpen, setIsPatientDetailOpen] = useState<boolean>(false);
 
   // Parse viewing year & month for floating Popover
   const { selectedYear, selectedMonthIndex } = useMemo(() => {
@@ -97,14 +100,33 @@ export function PatientHistoryGridModal({
     return historyData?.data || [];
   }, [historyData?.data]);
 
-  // 2. Filter visits by month or all
+  // Derive unique clinical services dynamically from patient's appointment records
+  const availableServices = useMemo(() => {
+    return Array.from(
+      new Set(
+        appointments
+          .map((a) => a.poliklinikName)
+          .filter((name): name is string => Boolean(name && name.trim()))
+      )
+    ).sort();
+  }, [appointments]);
+
+  // 2. Filter visits by month and/or service
   const filteredAppointments = useMemo(() => {
-    if (isAllMonths) return appointments;
     return appointments.filter((apt) => {
-      if (!apt.scheduledDate) return false;
-      return apt.scheduledDate.startsWith(selectedMonth);
+      if (!isAllMonths) {
+        if (!apt.scheduledDate || !apt.scheduledDate.startsWith(selectedMonth)) {
+          return false;
+        }
+      }
+      if (selectedService !== 'all') {
+        if (apt.poliklinikName !== selectedService) {
+          return false;
+        }
+      }
+      return true;
     });
-  }, [appointments, isAllMonths, selectedMonth]);
+  }, [appointments, isAllMonths, selectedMonth, selectedService]);
 
   // 3. Query selected appointment detail for the Level 2 modal
   const { data: selectedAdminAppointment } = useQuery({
@@ -161,36 +183,19 @@ export function PatientHistoryGridModal({
                 <AvatarFallback />
               </Avatar>
 
-              <div className='flex flex-col min-w-0 flex-1'>
-                <div className='flex items-center gap-2 flex-wrap'>
+              <div className='flex flex-col min-w-0 flex-1 justify-center'>
+                <div className='flex items-center gap-2.5 flex-wrap'>
                   <h3 className='text-base sm:text-lg font-bold text-foreground truncate tracking-tight'>
                     {fullName}
                   </h3>
-                  <span className='font-mono text-xs font-semibold px-2 py-0.5 rounded-md bg-muted text-foreground border border-border/40'>
-                    {rmNumber}
-                  </span>
-                  {gender && (
-                    <span className='text-[11px] px-2 py-0.5 font-medium rounded bg-muted/60 text-muted-foreground'>
-                      {gender}
-                    </span>
-                  )}
-                </div>
-                <div className='flex items-center gap-2 text-xs font-mono text-muted-foreground mt-0.5 flex-wrap'>
-                  <div className='flex items-center gap-1.5'>
-                    <span>NIK:</span>
-                    <MaskedNik
-                      nik={patient.nik}
-                      maskedNik={patient.masked_nik}
-                      patientId={patient.id}
-                      size='sm'
-                    />
-                  </div>
-                  {patient.phone && (
-                    <>
-                      <span>•</span>
-                      <span>Telp: {patient.phone}</span>
-                    </>
-                  )}
+                  <button
+                    type='button'
+                    onClick={() => setIsPatientDetailOpen(true)}
+                    className='text-xs font-semibold text-primary underline underline-offset-4 decoration-primary/50 hover:decoration-primary inline-flex items-center gap-1 cursor-pointer transition-colors'
+                  >
+                    <span>Lihat Detail</span>
+                    <Icons.externalLink className='size-3 stroke-[2.2]' />
+                  </button>
                 </div>
               </div>
             </div>
@@ -222,8 +227,29 @@ export function PatientHistoryGridModal({
               </span>
             </div>
 
-            {/* Filter Bulan dengan Floating Popover (Bebas Efek Dorong Bawah) */}
-            <div className='flex items-center gap-2 self-end sm:self-auto'>
+            {/* Filter Layanan & Filter Bulan dengan Floating Popover */}
+            <div className='flex items-center gap-2 self-end sm:self-auto flex-wrap'>
+              {availableServices.length > 0 && (
+                <Select value={selectedService} onValueChange={setSelectedService}>
+                  <SelectTrigger className='h-9 w-[160px] border border-border/70 bg-card text-xs font-medium rounded-xl cursor-pointer shadow-2xs'>
+                    <SelectValue placeholder='Semua Layanan' />
+                  </SelectTrigger>
+                  <SelectContent className='z-[90]'>
+                    <SelectItem value='all' className='text-xs font-medium cursor-pointer'>
+                      Semua Layanan ({appointments.length})
+                    </SelectItem>
+                    {availableServices.map((serviceName) => {
+                      const count = appointments.filter((a) => a.poliklinikName === serviceName).length;
+                      return (
+                        <SelectItem key={serviceName} value={serviceName} className='text-xs cursor-pointer'>
+                          {serviceName} ({count})
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              )}
+
               <Button
                 type='button'
                 variant={isAllMonths ? 'default' : 'outline'}
@@ -442,6 +468,16 @@ export function PatientHistoryGridModal({
           appointment={adaptedAppointment}
           isHistoryMode={true}
           onClose={() => setSelectedAppointmentId(null)}
+        />
+      )}
+
+      {/* Modal Detail Pasien: Membuka PatientModal dari data-pasien secara modular */}
+      {isPatientDetailOpen && (
+        <PatientModal
+          patient={patient}
+          isOpen={isPatientDetailOpen}
+          onClose={() => setIsPatientDetailOpen(false)}
+          initialMode='view'
         />
       )}
     </>

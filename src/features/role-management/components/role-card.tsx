@@ -155,15 +155,6 @@ export function RoleCard({
               </Button>
             </div>
           </div>
-
-          {role.parentRole && (
-            <div className='flex items-center justify-between text-xs'>
-              <span className='text-muted-foreground'>Peran Induk:</span>
-              <span className='font-medium text-foreground truncate max-w-[140px]'>
-                {role.parentRole.name}
-              </span>
-            </div>
-          )}
         </CardContent>
 
         <CardFooter className='px-4 py-3 border-t bg-muted/10 flex items-center justify-between gap-2 flex-wrap'>
