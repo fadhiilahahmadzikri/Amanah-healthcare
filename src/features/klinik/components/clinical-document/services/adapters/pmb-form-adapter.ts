@@ -3,6 +3,7 @@ import type { Appointment } from '../../../../api/types';
 import type { FormJsonSchema } from '../../../../constants/medical-appointment-types';
 import type { PmbFormData, DiseaseRecord } from '../../types';
 import { formatClinicDate } from '@/lib/date-format';
+import { formatMaskedNik } from '@/components/ui/masked-nik';
 import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 import { getInactiveFieldIds, formatGender } from './clinical-adapter-helpers';
 
@@ -26,6 +27,7 @@ export function adaptToPmbFormData(
     ? formatClinicDate(rawMarriageDate, { style: 'human_full' })
     : '';
   const motherNik = isFieldActive('motherNik') ? (m?.motherNik || p?.nik || '') : '';
+  const maskedMotherNik = motherNik ? formatMaskedNik(motherNik) : '';
   const rawMotherBirthDate = isFieldActive('motherBirthDate') ? (m?.motherBirthDate || p?.birthDate) : undefined;
   const motherBirthDate = rawMotherBirthDate
     ? formatClinicDate(rawMotherBirthDate, { style: 'human_full' })
@@ -37,6 +39,7 @@ export function adaptToPmbFormData(
   const partnerName = isFieldActive('partnerName') ? (m?.husbandProfile?.fullName || m?.partnerName || '') : '';
   const partnerAge = isFieldActive('partnerAge') ? (m?.husbandProfile?.age || m?.partnerAge ? `${m?.husbandProfile?.age || m?.partnerAge} tahun` : '') : '';
   const partnerNik = isFieldActive('partnerNik') ? (m?.husbandProfile?.nik || m?.partnerNik || '') : '';
+  const maskedPartnerNik = partnerNik ? formatMaskedNik(partnerNik) : '';
   const rawPartnerBirthDate = isFieldActive('partnerBirthDate') ? (m?.husbandProfile?.birthDate || m?.partnerBirthDate) : undefined;
   const partnerBirthDate = rawPartnerBirthDate
     ? formatClinicDate(rawPartnerBirthDate, { style: 'human_full' })
@@ -207,13 +210,13 @@ export function adaptToPmbFormData(
 
   const motherRows: [string, string | undefined][][] = [
     [['Nama Ibu :', motherName], ['Tgl Lahir / Umur :', motherBirthAndAge]],
-    [['NIK Ibu :', motherNik], ['Pekerjaan / Pendidikan :', motherJobAndEdu]],
+    [['NIK Ibu :', maskedMotherNik], ['Pekerjaan / Pendidikan :', motherJobAndEdu]],
     [['Agama / Gol. Darah :', motherReligionAndBlood], ['No. Telp / WA :', m?.phoneNumber || p?.phone || '']]
   ];
 
   const husbandRows: [string, string | undefined][][] = [
     [['Nama Suami :', partnerName], ['Pernikahan Ke :', marriageOrder]],
-    [['NIK Suami :', partnerNik], ['Tgl Menikah :', marriageDate]],
+    [['NIK Suami :', maskedPartnerNik], ['Tgl Menikah :', marriageDate]],
     [['Tgl Lahir / Umur :', partnerBirthAndAge], ['Pekerjaan / Pendidikan :', partnerJobAndEdu]],
     [['Gol. Darah Suami :', partnerBlood ? `Gol. ${partnerBlood}` : ''], ['No. HP Suami :', partnerPhone]]
   ];
@@ -245,9 +248,9 @@ export function adaptToPmbFormData(
     identity: {
       topRowValues: [
         [motherName, marriageOrder, marriageDate],
-        [motherNik, motherBirthDate, motherJob],
+        [maskedMotherNik, motherBirthDate, motherJob],
         [partnerName, motherAge, motherEducation],
-        [partnerNik, partnerBirthDate, partnerJob],
+        [maskedPartnerNik, partnerBirthDate, partnerJob],
         [partnerPhone, partnerAge, partnerEducation]
       ],
       fullRowValues: fullRows,

@@ -27,6 +27,13 @@ export interface MaskedNikProps {
 
 export function formatMaskedNik(raw?: string | null): string {
   if (!raw || !raw.trim()) return '-';
+  const clean = raw.trim();
+  if (clean.includes('*') || clean.includes('•')) {
+    return clean;
+  }
+  if (clean.length >= 8) {
+    return `${clean.slice(0, 4)}••••••••${clean.slice(-4)}`;
+  }
   return '••••••••••••••••';
 }
 

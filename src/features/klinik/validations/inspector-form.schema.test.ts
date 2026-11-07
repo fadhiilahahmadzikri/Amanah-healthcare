@@ -80,6 +80,17 @@ describe('Inspector Form Zod Validation', () => {
       expect(res.errors.partnerNik).toBe('NIK suami harus berupa 16 digit angka');
     });
 
+    it('should reject when motherNik and partnerNik are identical', () => {
+      const res = validateMaternalForm({
+        motherName: 'Siti Aminah',
+        motherNik: '3201234567890001',
+        partnerNik: '3201234567890001',
+        currentComplaints: 'Kontrol kehamilan'
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.partnerNik).toBe('NIK Suami tidak boleh sama dengan NIK Ibu');
+    });
+
     it('should accurately calculate error counts across all 4 tabs', () => {
       const mockErrors = {
         motherName: 'Nama wajib diisi',

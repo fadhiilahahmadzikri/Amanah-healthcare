@@ -3,6 +3,7 @@ import type { Appointment } from '../../../../api/types';
 import type { FormJsonSchema } from '../../../../constants/medical-appointment-types';
 import type { ImunisasiFormData, VaccineRowData } from '../../types';
 import { formatClinicDate } from '@/lib/date-format';
+import { formatMaskedNik } from '@/components/ui/masked-nik';
 import {
   getInactiveFieldIds,
   VACCINE_SCHEDULE_DEFINITIONS
@@ -107,7 +108,7 @@ export function adaptToImunisasiFormData(
       recordDigits
     },
     identity: {
-      leftValues: [childName, childNik, childBirthDate, phone],
+      leftValues: [childName, childNik ? formatMaskedNik(childNik) : '', childBirthDate, phone],
       rightValues: [fatherName, motherName, address, '']
     },
     preTable: {

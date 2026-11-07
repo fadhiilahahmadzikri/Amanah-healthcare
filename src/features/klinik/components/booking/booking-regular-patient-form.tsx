@@ -240,7 +240,7 @@ export function BookingRegularPatientForm({
         </p>
       </div>
 
-      {errorMessage && (
+      {errorMessage && currentStep !== REGULAR_BOOKING_STEPS.NIK && (
         <div className='p-2.5 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-xs'>
           {errorMessage}
         </div>

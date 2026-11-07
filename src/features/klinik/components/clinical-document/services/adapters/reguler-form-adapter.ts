@@ -4,6 +4,7 @@ import type { FormJsonSchema } from '../../../../constants/medical-appointment-t
 import type { RegulerFormData } from '../../types';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { formatClinicDate } from '@/lib/date-format';
+import { formatMaskedNik } from '@/components/ui/masked-nik';
 import { getInactiveFieldIds, formatGender } from './clinical-adapter-helpers';
 
 /**
@@ -61,7 +62,7 @@ export function adaptToRegulerFormData(
     doctorName: appointment?.doctor_name || '',
     scheduledTime: appointment?.scheduled_start_time || data.scheduledStartTime ? `${appointment?.scheduled_start_time || data.scheduledStartTime} WIB` : '',
     identity: {
-      nik: p?.nik || '',
+      nik: p?.nik ? formatMaskedNik(p.nik) : '',
       fullName: p?.fullName || '',
       gender: formatGender(p?.gender),
       birthDate: bDate ? formatClinicDate(bDate, { style: 'human_full' }) : '',

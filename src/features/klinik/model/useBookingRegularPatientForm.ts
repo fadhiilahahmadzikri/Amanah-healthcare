@@ -559,7 +559,6 @@ export function useBookingRegularPatientForm({
       onSuccess(newPatient);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal menyimpan profil pasien';
-      setErrorMessage(msg);
       const appErr = err as any;
       const errorCode =
         appErr?.problemDetails?.code ||
@@ -567,13 +566,17 @@ export function useBookingRegularPatientForm({
         appErr?.problemDetails?.errors?.[0]?.code;
 
       if (errorCode === 'NIK_ALREADY_REGISTERED' || errorCode === 'DUPLICATE_NIK') {
+        setErrorMessage(null);
         setNikError('Periksa kembali nomor identitas Anda.');
         setCurrentStep(3);
         toast.error(
           'Gagal memproses pendaftaran. Mohon periksa kembali kelengkapan identitas Anda atau hubungi admin klinik.'
         );
         return;
-      } else if (
+      }
+
+      setErrorMessage(msg);
+      if (
         errorCode === 'PRIMARY_PROFILE_EXISTS' ||
         errorCode === 'RELATIONSHIP_LIMIT_REACHED'
       ) {

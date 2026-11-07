@@ -240,6 +240,24 @@ export function refineHphtDate(
   }
 }
 
+export function refineNikUniqueness(
+  data: {
+    motherNik?: string | null;
+    partnerNik?: string | null;
+  },
+  ctx: z.RefinementCtx
+) {
+  const mNik = data.motherNik?.trim();
+  const pNik = data.partnerNik?.trim();
+  if (mNik && pNik && mNik === pNik) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'NIK Suami tidak boleh sama dengan NIK Ibu',
+      path: ['partnerNik']
+    });
+  }
+}
+
 export const maternalFormZodSchema = z
   .object({
     motherName: z.string().min(1, 'Nama lengkap ibu wajib diisi'),
@@ -345,7 +363,8 @@ export const maternalFormZodSchema = z
   })
   .superRefine(refineObstetricCounts)
   .superRefine(refineMarriageDate)
-  .superRefine(refineHphtDate);
+  .superRefine(refineHphtDate)
+  .superRefine(refineNikUniqueness);
 
 export interface MaternalValidationResult {
   isValid: boolean;
@@ -446,6 +465,16 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
         errors[field] = issue.message;
       }
     });
+  }
+
+  // Cross-field validation: motherNik vs partnerNik uniqueness
+  if (
+    data.motherNik &&
+    data.partnerNik &&
+    data.motherNik.trim() !== '' &&
+    data.motherNik.trim() === data.partnerNik.trim()
+  ) {
+    errors.partnerNik = 'NIK Suami tidak boleh sama dengan NIK Ibu';
   }
 
   // Cross-field validation: diagnosisYear must not precede mother's birth year

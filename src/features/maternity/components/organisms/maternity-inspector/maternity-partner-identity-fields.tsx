@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { Icons } from '@/components/icons';
+import { MaskedNik } from '@/components/ui/masked-nik';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
@@ -30,6 +32,7 @@ export function MaternityPartnerIdentityFields({
   occupationOptions,
   bloodTypeOptions
 }: MaternityPartnerIdentityFieldsProps) {
+  const [showNik, setShowNik] = React.useState(false);
   if (isEditing && onIntakeFieldChange) {
     return (
       <div className='space-y-4'>
@@ -69,6 +72,22 @@ export function MaternityPartnerIdentityFields({
             placeholder='16 digit NIK...'
             maxLength={16}
             isMonospace
+            isMasked={!showNik}
+            trailingIcon={
+              <button
+                type='button'
+                onClick={() => setShowNik((prev) => !prev)}
+                className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+                tabIndex={-1}
+              >
+                {showNik ? (
+                  <Icons.eyeOff className='size-4 text-primary' />
+                ) : (
+                  <Icons.eye className='size-4 text-muted-foreground' />
+                )}
+              </button>
+            }
           />
 
           <CustomDatePicker
@@ -203,13 +222,15 @@ export function MaternityPartnerIdentityFields({
       />
 
       <div className='grid grid-cols-2 gap-4'>
-        <PatientLineInput
-          id='view-husband-nik'
-          label='NIK Suami (16 Digit)'
-          value={intake?.partnerNik || ''}
-          isMonospace
-          readOnly
-        />
+        <div className='space-y-1'>
+          <span className='text-[11px] font-medium text-muted-foreground block'>
+            NIK Suami (16 Digit)
+          </span>
+          <MaskedNik
+            nik={intake?.partnerNik}
+            allowUnmask={true}
+          />
+        </div>
         <PatientLineInput
           id='view-husband-birthdate'
           label='Tanggal Lahir Suami'
