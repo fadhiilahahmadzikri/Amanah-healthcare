@@ -19,6 +19,7 @@ export interface AppointmentMobileCardsProps {
   onUpdateStatus: (appointment: AdminAppointment) => void;
   onQrCheckIn: (appointment: AdminAppointment) => void;
   onReschedule: (appointment: AdminAppointment) => void;
+  onCancel?: (appointment: AdminAppointment) => void;
   onViewDetail: (appointment: AdminAppointment) => void;
   onViewTimeline?: (appointment: AdminAppointment) => void;
   onOpenActionDrawer?: (appointment: AdminAppointment) => void;
@@ -34,6 +35,7 @@ export function AppointmentMobileCards({
   onUpdateStatus,
   onQrCheckIn,
   onReschedule,
+  onCancel,
   onViewDetail,
   onViewTimeline,
   onOpenActionDrawer,
@@ -131,7 +133,7 @@ export function AppointmentMobileCards({
           onViewRecord={onRowClick}
           onViewTimeline={onViewTimeline}
           onViewPatientDetail={onViewDetail}
-          onCancel={onViewDetail}
+          onCancel={onCancel || onViewDetail}
         />
       )}
     </>

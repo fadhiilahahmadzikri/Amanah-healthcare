@@ -17,6 +17,7 @@ export interface BookingConfirmationStepProps {
   visitType: CanonicalVisitType | string;
   complaint: string;
   mode?: 'create' | 'reschedule';
+  strategy?: 'proposal' | 'direct';
   audience?: AudienceType;
   reason?: string;
   onReasonChange?: (reason: string) => void;
@@ -32,13 +33,15 @@ export function BookingConfirmationStep({
   visitType,
   complaint,
   mode = 'create',
+  strategy,
   audience,
   reason,
   onReasonChange,
   appointmentCount
 }: BookingConfirmationStepProps) {
   const isReschedule = mode === 'reschedule';
-  const isInternalProposal = isReschedule && audience === AUDIENCE.INTERNAL;
+  const isInternalProposal =
+    isReschedule && audience === AUDIENCE.INTERNAL && strategy !== 'direct';
   const displaySession = sessionLabel || session || '';
   const displayServiceName = selectedService?.name ?? '';
   const displayPatientName = selectedPatient?.fullName ?? '';

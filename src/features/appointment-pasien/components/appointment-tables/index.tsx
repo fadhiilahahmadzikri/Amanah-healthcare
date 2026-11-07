@@ -31,6 +31,11 @@ import { AppointmentCheckInQrModal } from '../appointment-check-in-qr-modal';
 import { ChangeDoctorModal } from '../change-doctor-modal';
 import { ChangeRoomModal } from '../change-room-modal';
 import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
+import { AppointmentCancellationModal } from '../appointment-cancellation-modal';
+import {
+  AppointmentActionInterceptModal,
+  type AppointmentActionStrategy
+} from '../appointment-action-intercept-modal';
 import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { AppointmentMobileCards } from '../appointment-mobile-cards';
 import { AppointmentActionDrawer } from '../appointment-action-drawer';
@@ -56,6 +61,10 @@ export function AppointmentTable() {
   const [dateParam] = useQueryState('date', parseAsString);
   const [actionDrawerAppointment, setActionDrawerAppointment] =
     React.useState<AdminAppointment | null>(null);
+  const [rowRescheduleStrategy, setRowRescheduleStrategy] =
+    React.useState<AppointmentActionStrategy | null>(null);
+  const [rowCancelStrategy, setRowCancelStrategy] =
+    React.useState<AppointmentActionStrategy | null>(null);
   const { data: navigationData } = useSuspenseQuery(
     queueNavigationQueryOptions({ date: dateParam || undefined })
   );
@@ -260,7 +269,7 @@ export function AppointmentTable() {
         onViewRecord={appointmentTable.actions.openRecordDetail}
         onViewTimeline={appointmentTable.actions.openTimeline}
         onViewPatientDetail={appointmentTable.actions.openDetail}
-        onCancel={appointmentTable.actions.openDetail}
+        onCancel={appointmentTable.actions.openCancel}
       />
 
       <AppointmentStatusModal
@@ -314,7 +323,23 @@ export function AppointmentTable() {
         onViewPatientDetail={appointmentTable.actions.openPatientDetailFromQr}
       />
 
+      {/* 1. SINGLE ROW RESCHEDULE INTERCEPT MODAL */}
       {appointmentTable.selectedAppointment && (
+        <AppointmentActionInterceptModal
+          isOpen={appointmentTable.isRescheduleOpen && rowRescheduleStrategy === null}
+          actionType='reschedule'
+          appointmentCount={1}
+          patientName={appointmentTable.selectedAppointment.patientName}
+          onSelectStrategy={(strategy) => setRowRescheduleStrategy(strategy)}
+          onClose={() => {
+            setRowRescheduleStrategy(null);
+            appointmentTable.actions.closeReschedule();
+          }}
+        />
+      )}
+
+      {/* 2. SINGLE ROW RESCHEDULE MODAL */}
+      {appointmentTable.selectedAppointment && rowRescheduleStrategy !== null && (
         <ReservationModal
           isOpen={appointmentTable.isRescheduleOpen}
           context={{
@@ -323,15 +348,56 @@ export function AppointmentTable() {
             serviceName: appointmentTable.selectedAppointment.layananName ?? undefined,
             poliklinikId: appointmentTable.selectedAppointment.poliklinikId ?? undefined,
             mode: 'reschedule',
+            rescheduleStrategy: rowRescheduleStrategy,
             audience: AUDIENCE.INTERNAL,
             appointmentId: String(appointmentTable.selectedAppointment.id),
             currentDate: appointmentTable.selectedAppointment.scheduledDate,
             currentSession: appointmentTable.selectedAppointment.session ?? undefined,
             queueNumber: appointmentTable.selectedAppointment.queueNumber
           }}
-          onClose={appointmentTable.actions.closeReschedule}
-          onSuccess={() => {
+          onClose={() => {
+            setRowRescheduleStrategy(null);
             appointmentTable.actions.closeReschedule();
+          }}
+          onSuccess={() => {
+            setRowRescheduleStrategy(null);
+            appointmentTable.actions.closeReschedule();
+            queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
+          }}
+        />
+      )}
+
+      {/* 3. SINGLE ROW CANCEL INTERCEPT MODAL */}
+      {appointmentTable.selectedAppointment && (
+        <AppointmentActionInterceptModal
+          isOpen={appointmentTable.isCancelOpen && rowCancelStrategy === null}
+          actionType='cancel'
+          appointmentCount={1}
+          patientName={appointmentTable.selectedAppointment.patientName}
+          onSelectStrategy={(strategy) => setRowCancelStrategy(strategy)}
+          onClose={() => {
+            setRowCancelStrategy(null);
+            appointmentTable.actions.closeCancel();
+          }}
+        />
+      )}
+
+      {/* 4. SINGLE ROW CANCELLATION MODAL */}
+      {appointmentTable.selectedAppointment && rowCancelStrategy !== null && (
+        <AppointmentCancellationModal
+          isOpen={appointmentTable.isCancelOpen}
+          appointmentIds={[appointmentTable.selectedAppointment.id]}
+          appointmentCount={1}
+          patientName={appointmentTable.selectedAppointment.patientName}
+          bookingCode={appointmentTable.selectedAppointment.bookingCode || undefined}
+          strategy={rowCancelStrategy}
+          onClose={() => {
+            setRowCancelStrategy(null);
+            appointmentTable.actions.closeCancel();
+          }}
+          onSuccess={() => {
+            setRowCancelStrategy(null);
+            appointmentTable.actions.closeCancel();
             queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
           }}
         />
@@ -437,6 +503,7 @@ export function AppointmentTable() {
             onUpdateStatus={appointmentTable.actions.openStatus}
             onQrCheckIn={appointmentTable.actions.openQr}
             onReschedule={appointmentTable.actions.openReschedule}
+            onCancel={appointmentTable.actions.openCancel}
             onViewDetail={appointmentTable.actions.openDetail}
             onViewTimeline={appointmentTable.actions.openTimeline}
             onOpenActionDrawer={setActionDrawerAppointment}

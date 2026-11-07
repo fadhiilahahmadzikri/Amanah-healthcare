@@ -26,6 +26,7 @@ export interface AppointmentTableMeta {
   onUpdateStatus?: (item: AdminAppointment) => void;
   onQrCheckIn?: (item: AdminAppointment) => void;
   onReschedule?: (item: AdminAppointment) => void;
+  onCancel?: (item: AdminAppointment) => void;
   onViewDetail?: (item: AdminAppointment) => void;
   onViewPatientDetail?: (item: AdminAppointment) => void;
   onViewMilestone?: (item: AdminAppointment) => void;
@@ -40,6 +41,7 @@ export interface CellActionProps {
   onUpdateStatus?: (item: AdminAppointment) => void;
   onQrCheckIn?: (item: AdminAppointment) => void;
   onReschedule?: (item: AdminAppointment) => void;
+  onCancel?: (item: AdminAppointment) => void;
   onViewDetail?: (item: AdminAppointment) => void;
   onViewPatientDetail?: (item: AdminAppointment) => void;
   onViewMilestone?: (item: AdminAppointment) => void;
@@ -53,6 +55,7 @@ export function CellAction({
   onUpdateStatus: propOnUpdateStatus,
   onQrCheckIn: propOnQrCheckIn,
   onReschedule: propOnReschedule,
+  onCancel: propOnCancel,
   onViewDetail: propOnViewDetail,
   onViewPatientDetail: propOnViewPatientDetail,
   onViewMilestone: propOnViewMilestone
@@ -66,6 +69,7 @@ export function CellAction({
   const onUpdateStatus = propOnUpdateStatus ?? meta?.onUpdateStatus;
   const onQrCheckIn = propOnQrCheckIn ?? meta?.onQrCheckIn;
   const onReschedule = propOnReschedule ?? meta?.onReschedule;
+  const onCancel = propOnCancel ?? meta?.onCancel;
   const onViewDetail = propOnViewDetail ?? meta?.onViewDetail;
   const onViewPatientDetail = propOnViewPatientDetail ?? meta?.onViewPatientDetail;
   const onViewMilestone = propOnViewMilestone ?? meta?.onViewMilestone;
@@ -256,7 +260,11 @@ export function CellAction({
             <DropdownMenuItem
               onSelect={(e) => {
                 e.preventDefault();
-                onViewDetail?.(data);
+                if (onCancel) {
+                  onCancel(data);
+                } else {
+                  onViewDetail?.(data);
+                }
               }}
               className='cursor-pointer text-xs gap-2 text-destructive focus:text-destructive'
             >

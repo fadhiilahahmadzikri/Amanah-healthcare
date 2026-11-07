@@ -11,6 +11,10 @@ import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { ReservationModal } from '@/features/klinik/components/reservation/reservation-modal';
 import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { AppointmentCancellationModal } from './appointment-cancellation-modal';
+import {
+  AppointmentActionInterceptModal,
+  type AppointmentActionStrategy
+} from './appointment-action-intercept-modal';
 import { ChangeDoctorModal } from './change-doctor-modal';
 import { ChangeRoomModal } from './change-room-modal';
 import { useBulkAppointmentOperations } from '../hooks/useBulkAppointmentOperations';
@@ -43,6 +47,23 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [isRevertModalOpen, setIsRevertModalOpen] = useState(false);
   const [revertReason, setRevertReason] = useState('');
+
+  // Intercept Strategy State
+  const [isInterceptModalOpen, setIsInterceptModalOpen] = useState(false);
+  const [interceptAction, setInterceptAction] = useState<'reschedule' | 'cancel'>('reschedule');
+  const [rescheduleStrategy, setRescheduleStrategy] =
+    useState<AppointmentActionStrategy>('proposal');
+  const [cancelStrategy, setCancelStrategy] = useState<AppointmentActionStrategy>('proposal');
+
+  const handleSelectStrategy = (strategy: AppointmentActionStrategy) => {
+    if (interceptAction === 'reschedule') {
+      setRescheduleStrategy(strategy);
+      setIsRescheduleModalOpen(true);
+    } else {
+      setCancelStrategy(strategy);
+      setIsCancelModalOpen(true);
+    }
+  };
 
   if (selectedCount === 0) {
     return null;
@@ -101,16 +122,19 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
           type='button'
           variant='outline'
           size='sm'
-          onClick={() => setIsRescheduleModalOpen(true)}
-          disabled={bulkOps.isProposingReschedule}
+          onClick={() => {
+            setInterceptAction('reschedule');
+            setIsInterceptModalOpen(true);
+          }}
+          disabled={bulkOps.isProposingReschedule || bulkOps.isRescheduling}
           className='h-8 text-xs font-semibold px-2.5 gap-1.5 rounded-lg border-border/80 hover:bg-accent'
         >
-          {bulkOps.isProposingReschedule ? (
+          {bulkOps.isProposingReschedule || bulkOps.isRescheduling ? (
             <Icons.spinner className='size-3.5 animate-spin text-primary' />
           ) : (
             <Icons.calendar className='size-3.5 text-primary' />
           )}
-          <span>Ajukan Jadwal Ulang</span>
+          <span>Jadwalkan Ulang ({selectedCount})</span>
         </Button>
 
         {/* 4. Bulk Cancel */}
@@ -118,16 +142,19 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
           type='button'
           variant='destructive'
           size='sm'
-          onClick={() => setIsCancelModalOpen(true)}
-          disabled={bulkOps.isProposingCancel}
+          onClick={() => {
+            setInterceptAction('cancel');
+            setIsInterceptModalOpen(true);
+          }}
+          disabled={bulkOps.isProposingCancel || bulkOps.isCancelling}
           className='h-8 text-xs font-semibold px-2.5 gap-1.5 rounded-lg'
         >
-          {bulkOps.isProposingCancel ? (
+          {bulkOps.isProposingCancel || bulkOps.isCancelling ? (
             <Icons.spinner className='size-3.5 animate-spin' />
           ) : (
             <Icons.alertCircle className='size-3.5' />
           )}
-          <span>Ajukan Batal ({selectedCount})</span>
+          <span>Batalkan ({selectedCount})</span>
         </Button>
 
         {/* 5. Bulk Revert Proposal (Tarik Perubahan) - Kondisional jika ada yang bersatus persetujuan */}
@@ -149,6 +176,15 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
           </Button>
         )}
       </div>
+
+      {/* INTERCEPT MODAL: PILIH METODE (PROPOSAL VS DIRECT) */}
+      <AppointmentActionInterceptModal
+        isOpen={isInterceptModalOpen}
+        actionType={interceptAction}
+        appointmentCount={selectedCount}
+        onSelectStrategy={handleSelectStrategy}
+        onClose={() => setIsInterceptModalOpen(false)}
+      />
 
       {/* MODAL 1: TUGASKAN DOKTER (REUSE ChangeDoctorModal) */}
       <ChangeDoctorModal
@@ -179,6 +215,7 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
         isOpen={isRescheduleModalOpen}
         context={{
           mode: 'reschedule',
+          rescheduleStrategy,
           appointmentIds,
           appointmentCount: selectedCount,
           audience: AUDIENCE.INTERNAL
@@ -190,11 +227,12 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
         }}
       />
 
-      {/* MODAL 4: AJUKAN PEMBATALAN (APPOINTMENT CANCELLATION MODAL) */}
+      {/* MODAL 4: PEMBATALAN (APPOINTMENT CANCELLATION MODAL) */}
       <AppointmentCancellationModal
         isOpen={isCancelModalOpen}
         appointmentIds={appointmentIds}
         appointmentCount={selectedCount}
+        strategy={cancelStrategy}
         onClose={() => setIsCancelModalOpen(false)}
         onSuccess={() => {
           table.resetRowSelection();
@@ -218,7 +256,8 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
                 Tarik Perubahan ({eligibleRevertCount} Antrean)
               </h3>
               <p className='text-xs text-muted-foreground'>
-                Membatalkan persetujuan perubahan (revert settlement) dan mengembalikan jadwal ke kondisi semula.
+                Membatalkan persetujuan perubahan (revert settlement) dan mengembalikan jadwal ke
+                kondisi semula.
               </p>
             </div>
           </div>
@@ -230,7 +269,9 @@ export function AppointmentBulkActions({ table, onRefresh }: AppointmentBulkActi
                 Dampak Penarikan Perubahan:
               </div>
               <ul className='list-disc pl-4 space-y-1'>
-                <li>Pembatalan yang disetujui akan diaktifkan kembali menjadi antrean terjadwal.</li>
+                <li>
+                  Pembatalan yang disetujui akan diaktifkan kembali menjadi antrean terjadwal.
+                </li>
                 <li>Jadwal ulang yang disetujui akan dikembalikan ke tanggal dan sesi asalnya.</li>
                 <li>Pasien akan otomatis mendapatkan notifikasi pembatalan perubahan ini.</li>
               </ul>

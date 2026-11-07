@@ -15,7 +15,9 @@ import {
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import {
   rescheduleAppointmentAction,
-  bulkProposeRescheduleAppointments
+  bulkRescheduleAppointments,
+  bulkProposeRescheduleAppointments,
+  proposeRescheduleAppointment
 } from '@/features/appointment-pasien/api/service';
 import { appointmentKeys } from '@/features/appointment-pasien/api/queries';
 import { BookingDateStep } from '../booking/booking-date-step';
@@ -34,8 +36,6 @@ import { useClinicTimeConfig } from '@/features/klinik/model/useClinicTimeConfig
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { AUDIENCE, PERMISSIONS, type AudienceType } from '@/core/auth/permissions.constants';
-import { AppError } from '@/core/errors/app-error';
-import type { ProblemDetails } from '@/core/errors/problem-details';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -59,6 +59,7 @@ export interface ReservationContext {
   sourceIntakeId?: string;
   medicalFlow?: MedicalAppointmentFlow;
   mode?: 'create' | 'reschedule';
+  rescheduleStrategy?: 'proposal' | 'direct';
   appointmentId?: string;
   appointmentIds?: string[];
   appointmentCount?: number;
@@ -169,7 +170,8 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
   };
 
   const handleFinalSubmit = async (withOverCapacityConsent?: boolean | React.MouseEvent) => {
-    const isConsent = typeof withOverCapacityConsent === 'boolean' ? withOverCapacityConsent : false;
+    const isConsent =
+      typeof withOverCapacityConsent === 'boolean' ? withOverCapacityConsent : false;
     try {
       setIsSubmitting(true);
 
@@ -194,72 +196,103 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
           throw new Error('Sesi dinas tujuan wajib dipilih');
         }
 
-        const isBulk = effectiveIds.length > 1;
-
-        if (!isBulk) {
-          const res = await rescheduleAppointmentAction(effectiveIds[0], {
-            target_date: dateStr,
-            session: session,
-            target_session: session,
-            target_session_id: validSessionId
-          });
-
-          toast.success(res?.message || 'Janji temu berhasil dijadwalkan ulang');
-          void queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
-          void queryClient.invalidateQueries({ queryKey: ['appointments'] });
-          void queryClient.invalidateQueries({ queryKey: ['patient-appointments'] });
-          void queryClient.invalidateQueries({ queryKey: ['my-appointments'] });
-          void queryClient.invalidateQueries({ queryKey: ['schedules'] });
-          void queryClient.invalidateQueries({ queryKey: ['queue-navigation'] });
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('clinic:appointment_updated'));
-          }
-
-          const appointmentData = res?.data;
-          const uiApt: Appointment = {
-            id: effectiveIds[0],
-            booking_code: appointmentData?.bookingCode ?? '',
-            patient_name: appointmentData?.patientName ?? '',
-            patient_email: '',
-            patient_avatar: '',
-            doctor_name: appointmentData?.doctorName || '',
-            doctor_specialty: appointmentData?.doctorSpecialty || '',
-            poliklinik_name: appointmentData?.poliklinikName || '',
-            room_name: appointmentData?.roomName || '',
-            room_location: appointmentData?.roomLocation || '',
-            scheduled_start_time: appointmentData?.scheduledStartTime || undefined,
-            scheduled_end_time: appointmentData?.scheduledEndTime || undefined,
-            date: appointmentData?.appointmentDate ?? '',
-            time: session,
-            complaint: appointmentData?.complaint || '',
-            status: APPOINTMENT_STATUS.BOOKED,
-            visit_type: VISIT_TYPE.NEW_VISIT,
-            service: appointmentData?.layananName || '',
-            created_at: appointmentData?.createdAt ? String(appointmentData.createdAt) : '',
-            queue_number: appointmentData?.queueNumber
-              ? String(appointmentData.queueNumber)
-              : undefined
-          };
-
-          onSuccess?.(uiApt);
-          onClose();
-          return;
-        }
+        const isProposal =
+          context.rescheduleStrategy === 'proposal' ||
+          (context.rescheduleStrategy === undefined && isInternalAdmin);
 
         const effectiveReason = reason.trim() || 'Penyesuaian jadwal operasional klinik';
 
-        await bulkProposeRescheduleAppointments({
-          appointmentIds: effectiveIds,
-          targetDate: dateStr,
-          targetSessionId: validSessionId,
-          reason: effectiveReason
-        });
+        if (isProposal) {
+          if (effectiveIds.length === 1) {
+            const res = await proposeRescheduleAppointment(effectiveIds[0], {
+              targetDate: dateStr,
+              targetSessionId: validSessionId,
+              reason: effectiveReason
+            });
+            toast.success(
+              res?.message ||
+                'Usulan perubahan jadwal berhasil diajukan ke pasien (menunggu persetujuan).'
+            );
+          } else {
+            const res = await bulkProposeRescheduleAppointments({
+              appointmentIds: effectiveIds,
+              targetDate: dateStr,
+              targetSessionId: validSessionId,
+              reason: effectiveReason
+            });
+            const batchRes = res as unknown as {
+              data?: Array<{ id: string; success: boolean; proposalId?: string; message?: string }>;
+            };
+            const results = Array.isArray(batchRes?.data) ? batchRes.data : [];
+            const succeededCount =
+              results.length > 0 ? results.filter((r) => r.success).length : effectiveIds.length;
+            const failedCount = results.length > 0 ? results.filter((r) => !r.success).length : 0;
 
-        toast.success(
-          effectiveIds.length > 1
-            ? `Berhasil mengajukan perubahan jadwal ke ${effectiveIds.length} pasien (menunggu persetujuan).`
-            : 'Usulan perubahan jadwal berhasil diajukan ke pasien (menunggu persetujuan).'
-        );
+            if (failedCount === 0) {
+              toast.success(
+                `Berhasil mengajukan perubahan jadwal ke ${succeededCount} pasien (menunggu persetujuan).`
+              );
+            } else {
+              toast.warning(
+                `Selesai: ${succeededCount} berhasil diajukan, ${failedCount} gagal diproses.`
+              );
+            }
+          }
+        } else {
+          // Direct Override (eksekusi langsung)
+          if (effectiveIds.length === 1) {
+            const res = await rescheduleAppointmentAction(effectiveIds[0], {
+              target_date: dateStr,
+              session: session,
+              target_session: session,
+              target_session_id: validSessionId
+            });
+
+            toast.success(res?.message || 'Janji temu berhasil dijadwalkan ulang');
+            const appointmentData = res?.data;
+            const uiApt: Appointment = {
+              id: effectiveIds[0],
+              booking_code: appointmentData?.bookingCode ?? '',
+              patient_name: appointmentData?.patientName ?? '',
+              patient_email: '',
+              patient_avatar: '',
+              doctor_name: appointmentData?.doctorName || '',
+              doctor_specialty: appointmentData?.doctorSpecialty || '',
+              poliklinik_name: appointmentData?.poliklinikName || '',
+              room_name: appointmentData?.roomName || '',
+              room_location: appointmentData?.roomLocation || '',
+              scheduled_start_time: appointmentData?.scheduledStartTime || undefined,
+              scheduled_end_time: appointmentData?.scheduledEndTime || undefined,
+              date: appointmentData?.appointmentDate ?? '',
+              time: session,
+              complaint: appointmentData?.complaint || '',
+              status: APPOINTMENT_STATUS.BOOKED,
+              visit_type: VISIT_TYPE.NEW_VISIT,
+              service: appointmentData?.layananName || '',
+              created_at: appointmentData?.createdAt ? String(appointmentData.createdAt) : '',
+              queue_number: appointmentData?.queueNumber
+                ? String(appointmentData.queueNumber)
+                : undefined
+            };
+            onSuccess?.(uiApt);
+          } else {
+            const res = await bulkRescheduleAppointments({
+              appointmentIds: effectiveIds,
+              targetDate: dateStr,
+              session: session,
+              reason: effectiveReason
+            });
+            const succeededCount = res?.data?.succeededCount ?? effectiveIds.length;
+            const failedCount = res?.data?.failedCount ?? 0;
+            if (failedCount === 0) {
+              toast.success(`Berhasil menjadwalkan ulang ${succeededCount} antrean.`);
+            } else {
+              toast.warning(
+                `Selesai: ${succeededCount} berhasil dijadwalkan ulang, ${failedCount} gagal.`
+              );
+            }
+          }
+        }
 
         void queryClient.invalidateQueries({ queryKey: appointmentKeys.all });
         void queryClient.invalidateQueries({ queryKey: ['appointments'] });
@@ -411,6 +444,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                 visitType={VISIT_TYPE.NEW_VISIT}
                 complaint={context.complaint || ''}
                 mode={context.mode || 'create'}
+                strategy={context.rescheduleStrategy}
                 audience={effectiveAudience}
                 reason={reason}
                 onReasonChange={setReason}
@@ -502,9 +536,11 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                       ? 'Memproses...'
                       : 'Memproses antrean...'
                     : isReschedule
-                      ? isInternalAdmin
-                        ? 'Ajukan Jadwal Ulang'
-                        : 'Konfirmasi Jadwal Baru'
+                      ? context?.rescheduleStrategy === 'direct'
+                        ? 'Terapkan Jadwal Sekarang'
+                        : isInternalAdmin
+                          ? 'Ajukan Jadwal Ulang'
+                          : 'Konfirmasi Jadwal Baru'
                       : 'Buat Janji Temu'}
                 </Button>
               )}

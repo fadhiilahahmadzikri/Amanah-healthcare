@@ -12,6 +12,7 @@ export type AppointmentDialogType =
   | 'changeRoom'
   | 'qr'
   | 'reschedule'
+  | 'cancel'
   | null;
 
 export interface UseAppointmentDialogsResult {
@@ -25,6 +26,7 @@ export interface UseAppointmentDialogsResult {
   isChangeRoomOpen: boolean;
   isQrOpen: boolean;
   isRescheduleOpen: boolean;
+  isCancelOpen: boolean;
   actions: {
     openRecordDetail: (appointment: AdminAppointment) => void;
     closeRecordDetail: () => void;
@@ -42,6 +44,8 @@ export interface UseAppointmentDialogsResult {
     closeQr: () => void;
     openReschedule: (appointment: AdminAppointment) => void;
     closeReschedule: () => void;
+    openCancel: (appointment: AdminAppointment) => void;
+    closeCancel: () => void;
     // Cross-dialog transitions
     openPatientDetailFromRecord: () => void;
     openTimelineFromRecord: () => void;
@@ -175,6 +179,21 @@ export function useAppointmentDialogs(): UseAppointmentDialogsResult {
     }
   };
 
+  const openCancel = (appointment: AdminAppointment) => {
+    setSelectedAppointment(appointment);
+    setReturnToRecord(false);
+    setActiveDialog('cancel');
+  };
+
+  const closeCancel = () => {
+    if (returnToRecord) {
+      setReturnToRecord(false);
+      setActiveDialog('recordDetail');
+    } else {
+      setActiveDialog(null);
+    }
+  };
+
   // Cross-dialog transitions from record detail modal
   const openPatientDetailFromRecord = () => {
     setReturnToRecord(true);
@@ -226,6 +245,7 @@ export function useAppointmentDialogs(): UseAppointmentDialogsResult {
     isChangeRoomOpen: activeDialog === 'changeRoom',
     isQrOpen: activeDialog === 'qr',
     isRescheduleOpen: activeDialog === 'reschedule',
+    isCancelOpen: activeDialog === 'cancel',
     actions: {
       openRecordDetail,
       closeRecordDetail,
@@ -243,6 +263,8 @@ export function useAppointmentDialogs(): UseAppointmentDialogsResult {
       closeQr,
       openReschedule,
       closeReschedule,
+      openCancel,
+      closeCancel,
       openPatientDetailFromRecord,
       openTimelineFromRecord,
       openPatientDetailFromQr,

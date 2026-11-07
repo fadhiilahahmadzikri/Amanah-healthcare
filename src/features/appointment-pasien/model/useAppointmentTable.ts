@@ -39,6 +39,7 @@ export interface UseAppointmentTableResult {
   isChangeRoomOpen: boolean;
   isQrOpen: boolean;
   isRescheduleOpen: boolean;
+  isCancelOpen: boolean;
   isLoading: boolean;
   isPending: boolean;
   isError: boolean;
@@ -80,6 +81,8 @@ export interface UseAppointmentTableResult {
     closeQr: () => void;
     openReschedule: (appointment: AdminAppointment) => void;
     closeReschedule: () => void;
+    openCancel: (appointment: AdminAppointment) => void;
+    closeCancel: () => void;
     openPatientDetailFromRecord: () => void;
     openTimelineFromRecord: () => void;
     openPatientDetailFromMilestone: () => void;
@@ -245,6 +248,7 @@ export function useAppointmentTable({
       onUpdateStatus: dialogs.actions.openStatus,
       onQrCheckIn: dialogs.actions.openQr,
       onReschedule: dialogs.actions.openReschedule,
+      onCancel: dialogs.actions.openCancel,
       onViewDetail: dialogs.actions.openPatientDetail,
       onViewPatientDetail: dialogs.actions.openPatientDetail,
       onViewRecord: dialogs.actions.openRecordDetail,
@@ -284,6 +288,7 @@ export function useAppointmentTable({
     isChangeRoomOpen: dialogs.isChangeRoomOpen,
     isQrOpen: dialogs.isQrOpen,
     isRescheduleOpen: dialogs.isRescheduleOpen,
+    isCancelOpen: dialogs.isCancelOpen,
     isLoading: infiniteQuery.isLoading,
     isPending: infiniteQuery.isPending,
     isError: infiniteQuery.isError,
@@ -327,6 +332,8 @@ export function useAppointmentTable({
       closeQr: dialogs.actions.closeQr,
       openReschedule: dialogs.actions.openReschedule,
       closeReschedule: dialogs.actions.closeReschedule,
+      openCancel: dialogs.actions.openCancel,
+      closeCancel: dialogs.actions.closeCancel,
       openPatientDetailFromRecord: dialogs.actions.openPatientDetailFromRecord,
       openTimelineFromRecord: dialogs.actions.openTimelineFromRecord,
       openPatientDetailFromMilestone: dialogs.actions.openPatientDetailFromRecord,

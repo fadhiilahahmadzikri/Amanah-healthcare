@@ -39,9 +39,7 @@ export async function getAdminAppointments(
   };
 
   if (filters.status) {
-    queryParams.status = Array.isArray(filters.status)
-      ? filters.status.join(',')
-      : filters.status;
+    queryParams.status = Array.isArray(filters.status) ? filters.status.join(',') : filters.status;
   }
 
   if (filters.poliklinikId) {
@@ -488,6 +486,40 @@ export async function revertAppointmentProposal(
 ): Promise<{ success: boolean; message: string }> {
   return await clientFetch<{ success: boolean; message: string }>(
     `/api/v1/admin/appointments/${appointmentId}/revert-proposal`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ reason })
+    }
+  );
+}
+
+export interface ProposeReschedulePayload {
+  targetDate: string;
+  targetSessionId: string;
+  targetDoctorId?: string;
+  targetRoomId?: string;
+  reason: string;
+}
+
+export async function proposeRescheduleAppointment(
+  appointmentId: string,
+  payload: ProposeReschedulePayload
+): Promise<{ message: string; proposalId: string }> {
+  return await clientFetch<{ message: string; proposalId: string }>(
+    `/api/v1/admin/appointments/${appointmentId}/propose-reschedule`,
+    {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }
+  );
+}
+
+export async function proposeCancellationAppointment(
+  appointmentId: string,
+  reason: string
+): Promise<{ message: string; proposalId: string }> {
+  return await clientFetch<{ message: string; proposalId: string }>(
+    `/api/v1/admin/appointments/${appointmentId}/propose-cancel`,
     {
       method: 'POST',
       body: JSON.stringify({ reason })
