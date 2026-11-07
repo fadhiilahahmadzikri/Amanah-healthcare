@@ -24,13 +24,12 @@ describe('Role-Based Portal Routing & RBAC Architecture', () => {
       expect((ROUTES as any).dashboardPatient).toBeUndefined();
     });
 
-    it('identifies protected prefixes strictly as /admin, /klinik, and /patient-registration', () => {
+    it('identifies protected prefixes strictly as /admin and /klinik', () => {
       expect(isProtectedRoute('/admin')).toBe(true);
       expect(isProtectedRoute('/admin/appointment-pasien')).toBe(true);
       expect(isProtectedRoute('/admin/jadwal-dokter')).toBe(true);
       expect(isProtectedRoute('/klinik')).toBe(true);
       expect(isProtectedRoute('/klinik/antrean')).toBe(true);
-      expect(isProtectedRoute('/patient-registration')).toBe(true);
 
       // Public and legacy routes are not protected prefixes
       expect(isProtectedRoute('/')).toBe(false);

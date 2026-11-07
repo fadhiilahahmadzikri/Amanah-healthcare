@@ -3,6 +3,32 @@ import { defaultHttpObservability } from '@/core/observability/adapters/http/nex
 import { ALL_AUTH_COOKIE_NAMES } from '@/core/auth/auth.constants';
 import { isProtectedRoute, ROUTES, safeRedirect } from '@/core/routes';
 
+let aliasCache: { data: Record<string, string>; expiresAt: number } | null = null;
+
+async function getDynamicRouteAliases(): Promise<Record<string, string>> {
+  const now = Date.now();
+  if (aliasCache && aliasCache.expiresAt > now) {
+    return aliasCache.data;
+  }
+  const baseUrl = process.env.API_BASE_URL;
+  if (!baseUrl) {
+    return aliasCache?.data || {};
+  }
+  try {
+    const res = await fetch(`${baseUrl}/api/v1/admin/pages/routes/aliases`, {
+      next: { revalidate: 30 }
+    });
+    if (res.ok) {
+      const data = (await res.json()) as Record<string, string>;
+      aliasCache = { data, expiresAt: now + 30000 };
+      return data;
+    }
+  } catch {
+    // Upstream network error
+  }
+  return aliasCache?.data || {};
+}
+
 export default async function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const isApi = pathname.startsWith('/api');
@@ -83,9 +109,16 @@ export default async function proxy(request: NextRequest) {
     return response;
   }
 
-  // 4. Forward request with injected x-pathname and correlation headers
+  // 4. Dynamic Route Alias Rewriting from Database
+  const dynamicAliases = await getDynamicRouteAliases();
+  const physicalTarget = dynamicAliases[pathname];
+
+  // 5. Forward request with injected x-pathname and correlation headers
   const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('x-pathname', pathname);
+  requestHeaders.set('x-pathname', physicalTarget || pathname);
+  if (physicalTarget) {
+    requestHeaders.set('x-alias-pathname', pathname);
+  }
 
   if (obsContext) {
     requestHeaders.set('x-request-id', obsContext.requestId);
@@ -98,13 +131,19 @@ export default async function proxy(request: NextRequest) {
     requestHeaders.set('authorization', `Bearer ${rawAccessToken}`);
   }
 
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders
-    }
-  });
+  const response = physicalTarget
+    ? NextResponse.rewrite(new URL(physicalTarget + search, request.url), {
+        request: {
+          headers: requestHeaders
+        }
+      })
+    : NextResponse.next({
+        request: {
+          headers: requestHeaders
+        }
+      });
 
-  // 5. Enforce anti-caching on protected routes
+  // 6. Enforce anti-caching on protected routes
   if (isProtected) {
     response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
     response.headers.set('Pragma', 'no-cache');

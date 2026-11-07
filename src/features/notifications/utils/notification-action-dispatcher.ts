@@ -14,7 +14,7 @@ export interface ActionPayloadContext {
   appointmentId?: string | null;
 }
 
-const PATIENT_ROUTE_ALLOWLIST = ['/klinik', '/patient-registration'];
+const PATIENT_ROUTE_ALLOWLIST = ['/klinik'];
 
 const CLINIC_ROUTE_ALLOWLIST = ['/admin'];
 

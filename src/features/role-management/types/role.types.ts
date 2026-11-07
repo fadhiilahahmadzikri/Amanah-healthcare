@@ -23,6 +23,7 @@ export interface ApplicationPage {
   name: string;
   description?: string | null;
   routePath: string;
+  customAlias?: string | null;
   parentPageId?: string | null;
   audience: RoleAudience;
   isEnabled: boolean;

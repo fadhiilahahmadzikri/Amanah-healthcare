@@ -33,7 +33,22 @@ export const ROUTES = {
 } as const;
 
 export const REDIRECT_PARAM = 'redirect';
-export const PROTECTED_PREFIXES = ['/admin', '/klinik', '/patient-registration'] as const;
+export const PORTAL_PREFIXES = {
+  [AUDIENCE.INTERNAL]: ROUTES.admin,
+  [AUDIENCE.EXTERNAL]: '/klinik'
+} as const;
+
+export function getPortalPrefix(audience?: AudienceType | string | null): string {
+  if (audience === AUDIENCE.EXTERNAL) {
+    return PORTAL_PREFIXES[AUDIENCE.EXTERNAL];
+  }
+  return PORTAL_PREFIXES[AUDIENCE.INTERNAL];
+}
+
+export const PROTECTED_PREFIXES = [
+  PORTAL_PREFIXES[AUDIENCE.INTERNAL],
+  PORTAL_PREFIXES[AUDIENCE.EXTERNAL]
+] as const;
 
 export function isProtectedRoute(pathname: string): boolean {
   return PROTECTED_PREFIXES.some(

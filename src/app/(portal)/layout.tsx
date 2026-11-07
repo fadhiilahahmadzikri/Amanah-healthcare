@@ -7,14 +7,14 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { ChatwootWidget } from '@/components/chatwoot/chatwoot-widget';
 import { AutoWebPushSync } from '@/features/notifications';
 import { isRouteAuthorized } from '@/lib/rbac/route-manifest';
-import { filterNavGroupsByAccess } from '@/lib/rbac/navigation';
+import { mapPageTreeToNavGroups } from '@/lib/rbac/navigation';
 import { AuthorizationProvider } from '@/lib/rbac/auth-context';
-import { navGroups } from '@/config/nav-config';
+import { getServerPageTree } from '@/server/dal/page-tree.dal';
 import type { Metadata } from 'next';
 import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireSession } from '@/server/auth/session.dal';
-import { ROUTES, getRoleLandingPath } from '@/core/routes';
+import { ROUTES, getRoleLandingPath, PORTAL_PREFIXES } from '@/core/routes';
 
 export const metadata: Metadata = {
   title: 'Amanah Healthcare Portal',
@@ -47,8 +47,9 @@ export default async function PortalLayout({ children }: { children: React.React
   }
 
   // Enforce Dynamic Page Registry & CMS Kill-Switch at Layout Boundary
+  const portalRoot = PORTAL_PREFIXES[audience];
   const isLandingOrPortalRoot =
-    pathname === landingPath || pathname === '/admin' || pathname === '/klinik';
+    pathname === landingPath || pathname === portalRoot;
 
   const isAllowedByPageRegistry =
     !user.accessibleRoutes ||
@@ -59,11 +60,11 @@ export default async function PortalLayout({ children }: { children: React.React
     redirect(landingPath);
   }
 
-  // Pre-filter navigation groups on the server for Zero-Flicker Hydration
-  const authorizedNavGroups = filterNavGroupsByAccess(
-    navGroups,
+  // Fetch canonical database application pages (SSOT)
+  const pageTree = await getServerPageTree(audience);
+  const authorizedNavGroups = mapPageTreeToNavGroups(
+    pageTree,
     audience,
-    user.permissions,
     user.accessibleRoutes
   );
 
@@ -76,7 +77,6 @@ export default async function PortalLayout({ children }: { children: React.React
       initialRole={userRole}
       initialAudience={audience}
       initialNavGroups={authorizedNavGroups}
-      allNavGroups={navGroups}
     >
       <KBar>
         <SidebarProvider defaultOpen={defaultOpen}>

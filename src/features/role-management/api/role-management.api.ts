@@ -75,6 +75,7 @@ export const roleManagementApi = {
     name: string;
     description?: string | null;
     routePath?: string;
+    customAlias?: string | null;
     parentPageId?: string | null;
     audience?: string;
     icon?: string;
@@ -94,6 +95,7 @@ export const roleManagementApi = {
       displayOrder?: number;
       parentPageId?: string | null;
       routePath?: string;
+      customAlias?: string | null;
       isEnabled?: boolean;
     }
   ): Promise<ApplicationPage> =>
@@ -105,5 +107,16 @@ export const roleManagementApi = {
   deletePage: (pageId: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/pages/${pageId}`, {
       method: 'DELETE'
-    })
+    }),
+
+  detachChildren: (pageId: string): Promise<{ success: boolean; detachedCount: number }> =>
+    clientFetch<{ success: boolean; detachedCount: number }>(
+      `/api/v1/admin/pages/${pageId}/detach-children`,
+      {
+        method: 'POST'
+      }
+    ),
+
+  getRouteAliases: (): Promise<Record<string, string>> =>
+    clientFetch<Record<string, string>>('/api/v1/admin/pages/routes/aliases')
 };

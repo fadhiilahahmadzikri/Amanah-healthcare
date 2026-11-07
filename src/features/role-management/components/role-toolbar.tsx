@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
+import { FolderPlus, Layers } from 'lucide-react';
 import { useSidebar } from '@/components/ui/sidebar';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import {
@@ -25,6 +26,8 @@ export interface RoleToolbarProps {
   onRefresh: () => void;
   isRefetching: boolean;
   onAddClick?: () => void;
+  onAddCategoryClick?: () => void;
+  onManagePagesClick?: () => void;
   isCompact?: boolean;
 }
 
@@ -39,6 +42,8 @@ export function RoleToolbar({
   onRefresh,
   isRefetching,
   onAddClick,
+  onAddCategoryClick,
+  onManagePagesClick,
   isCompact: isCompactProp
 }: RoleToolbarProps) {
   const { state: sidebarState } = useSidebar();
@@ -133,6 +138,38 @@ export function RoleToolbar({
             <Icons.refresh className={`size-3.5 ${isRefetching ? 'animate-spin' : ''}`} />
             {!isCompact && <span>Segarkan</span>}
           </Button>
+
+          {onManagePagesClick && (
+            <Button
+              type='button'
+              variant='outline'
+              size={isCompact ? 'icon' : 'sm'}
+              onClick={onManagePagesClick}
+              className={
+                isCompact ? 'size-8 rounded-md shrink-0' : 'h-8 text-xs font-medium gap-1.5'
+              }
+              title='Kelola Halaman'
+            >
+              <Layers className='size-3.5' />
+              {!isCompact && <span>Kelola Halaman</span>}
+            </Button>
+          )}
+
+          {onAddCategoryClick && (
+            <Button
+              type='button'
+              variant='outline'
+              size={isCompact ? 'icon' : 'sm'}
+              onClick={onAddCategoryClick}
+              className={
+                isCompact ? 'size-8 rounded-md shrink-0' : 'h-8 text-xs font-medium gap-1.5'
+              }
+              title='Tambah Kategori'
+            >
+              <FolderPlus className='size-3.5' />
+              {!isCompact && <span>Tambah Kategori</span>}
+            </Button>
+          )}
 
           {onAddClick && (
             <Button

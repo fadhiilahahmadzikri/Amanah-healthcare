@@ -1,5 +1,5 @@
 import type { NavGroup, NavItem } from '@/types';
-import type { AudienceType } from '@/core/auth/permissions.constants';
+import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
 import { navGroups as baselineNavGroups } from '@/config/nav-config';
 
 const shortcutMap = new Map<string, [string, string]>();
@@ -94,6 +94,7 @@ export interface DynamicPageNode {
   name: string;
   description?: string | null;
   routePath: string;
+  customAlias?: string | null;
   parentPageId?: string | null;
   audience: string;
   isEnabled: boolean;
@@ -124,31 +125,46 @@ export function mapPageTreeToNavGroups(
     const rawChildren = parent.children || [];
     const validChildren = rawChildren
       .filter((c) => c.isEnabled)
-      .filter((c) => !allowedRouteSet || c.routePath === '#' || allowedRouteSet.has(c.routePath))
+      .filter(
+        (c) =>
+          !allowedRouteSet ||
+          c.routePath === '#' ||
+          allowedRouteSet.has(c.routePath) ||
+          (c.customAlias && allowedRouteSet.has(c.customAlias))
+      )
       .toSorted((a, b) => a.displayOrder - b.displayOrder);
 
     if (validChildren.length > 0) {
+      const parentUrl = parent.customAlias || parent.routePath || '#';
       items.push({
         title: parent.name,
-        url: parent.routePath || '#',
+        url: parentUrl,
         icon: parent.icon || 'folder',
-        shortcut: shortcutMap.get(parent.routePath),
+        shortcut: shortcutMap.get(parent.routePath) || shortcutMap.get(parentUrl),
         isActive: true,
-        items: validChildren.map((c) => ({
-          title: c.name,
-          url: c.routePath,
-          icon: c.icon || 'file',
-          shortcut: shortcutMap.get(c.routePath),
-          description: c.description || undefined
-        }))
+        items: validChildren.map((c) => {
+          const childUrl = c.customAlias || c.routePath;
+          return {
+            title: c.name,
+            url: childUrl,
+            icon: c.icon || 'file',
+            shortcut: shortcutMap.get(c.routePath) || shortcutMap.get(childUrl),
+            description: c.description || undefined
+          };
+        })
       });
     } else if (parent.routePath && parent.routePath !== '#') {
-      if (!allowedRouteSet || allowedRouteSet.has(parent.routePath)) {
+      const parentUrl = parent.customAlias || parent.routePath;
+      if (
+        !allowedRouteSet ||
+        allowedRouteSet.has(parent.routePath) ||
+        (parent.customAlias && allowedRouteSet.has(parent.customAlias))
+      ) {
         items.push({
           title: parent.name,
-          url: parent.routePath,
+          url: parentUrl,
           icon: parent.icon || 'file',
-          shortcut: shortcutMap.get(parent.routePath),
+          shortcut: shortcutMap.get(parent.routePath) || shortcutMap.get(parentUrl),
           description: parent.description || undefined
         });
       }
@@ -157,7 +173,7 @@ export function mapPageTreeToNavGroups(
 
   return [
     {
-      label: audience === 'internal' ? 'Amanah Admin' : 'Klinik',
+      label: audience === AUDIENCE.INTERNAL ? 'Amanah Admin' : 'Klinik',
       items
     }
   ];

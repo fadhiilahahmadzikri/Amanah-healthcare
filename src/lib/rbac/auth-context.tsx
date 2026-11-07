@@ -5,13 +5,12 @@ import type { NavGroup } from '@/types';
 import { useSession } from '@/lib/auth-client';
 import { useQuery } from '@tanstack/react-query';
 import {
-  filterNavGroupsByAccess,
   mapPageTreeToNavGroups,
   type DynamicPageNode
 } from './navigation';
 import { roleManagementApi } from '@/features/role-management/api/role-management.api';
 import { roleManagementKeys } from '@/features/role-management/api/query-keys';
-import { AUDIENCE, type AudienceType } from '@/core/auth/permissions.constants';
+import type { AudienceType } from '@/core/auth/permissions.constants';
 
 export type AuthStatus = 'unknown' | 'allow' | 'deny';
 
@@ -46,7 +45,6 @@ export interface AuthorizationProviderProps {
   initialRole?: string | null;
   initialAudience?: AudienceType | null;
   initialNavGroups: NavGroup[];
-  allNavGroups?: NavGroup[];
 }
 
 /**
@@ -59,16 +57,22 @@ export function AuthorizationProvider({
   initialUser,
   initialRole,
   initialAudience,
-  initialNavGroups,
-  allNavGroups
+  initialNavGroups
 }: AuthorizationProviderProps) {
   const [user, setUser] = React.useState<AuthUser | null>(initialUser);
   const [role, setRole] = React.useState<string | null>(initialRole ?? initialUser?.role ?? null);
-  const [audience, setAudience] = React.useState<AudienceType | null>(
-    initialAudience ?? initialUser?.audience ?? null
-  );
+  const [audience, setAudience] = React.useState<AudienceType | null>(initialAudience ?? null);
   const [navGroups, setNavGroups] = React.useState<NavGroup[]>(initialNavGroups);
   const [status, setStatus] = React.useState<AuthStatus>(initialUser ? 'allow' : 'unknown');
+
+  // Reactively project dynamic database application pages (SSOT) into navGroups
+  const { data: pageTree } = useQuery({
+    queryKey: roleManagementKeys.pageTree(audience!),
+    queryFn: () => roleManagementApi.getPageTree(audience!),
+    enabled: Boolean(audience),
+    staleTime: 1000 * 30,
+    refetchOnWindowFocus: true
+  });
 
   // Passive background session synchronization to keep state fresh without causing hydration waterfalls
   const { data: clientSession, isPending } = useSession();
@@ -89,11 +93,7 @@ export function AuthorizationProvider({
         permissions?: string[];
       };
 
-      const resolvedAudience: AudienceType =
-        clientUser.audience ??
-        initialAudience ??
-        initialUser?.audience ??
-        (clientUser.role === 'admin' ? AUDIENCE.INTERNAL : AUDIENCE.EXTERNAL);
+      const resolvedAudience = clientUser.audience ?? initialAudience ?? null;
       const permissions =
         clientUser.permissions && clientUser.permissions.length > 0
           ? clientUser.permissions
@@ -118,7 +118,7 @@ export function AuthorizationProvider({
           image: clientUser.image,
           role: clientUser.role,
           banned: clientUser.banned,
-          audience: resolvedAudience,
+          audience: resolvedAudience ?? undefined,
           permissions
         };
       });
@@ -127,15 +127,16 @@ export function AuthorizationProvider({
       setAudience(resolvedAudience);
       setStatus('allow');
 
-      if (allNavGroups && allNavGroups.length > 0) {
-        setNavGroups(
-          filterNavGroupsByAccess(
-            allNavGroups,
-            resolvedAudience,
-            permissions,
-            initialUser?.accessibleRoutes
-          )
+      // Preserve dynamic database order SSOT: keep dynamic groups synchronized with latest permissions
+      if (resolvedAudience && pageTree && pageTree.length > 0) {
+        const dynamicGroups = mapPageTreeToNavGroups(
+          pageTree as DynamicPageNode[],
+          resolvedAudience,
+          initialUser?.accessibleRoutes
         );
+        if (dynamicGroups.length > 0) {
+          setNavGroups(dynamicGroups);
+        }
       }
     } else if (clientSession === null && !initialUser) {
       // Explicitly unauthenticated on client
@@ -145,30 +146,20 @@ export function AuthorizationProvider({
       setStatus('deny');
       setNavGroups([]);
     }
-  }, [clientSession, isPending, allNavGroups, initialUser, initialAudience]);
-
-  const activeAudience = audience ?? initialAudience ?? AUDIENCE.INTERNAL;
-
-  // Reactively project dynamic database application pages (SSOT) into navGroups
-  const { data: pageTree } = useQuery({
-    queryKey: roleManagementKeys.pageTree(activeAudience),
-    queryFn: () => roleManagementApi.getPageTree(activeAudience),
-    enabled: status === 'allow' && Boolean(activeAudience),
-    staleTime: 1000 * 60 * 5,
-  });
+  }, [clientSession, isPending, initialUser, initialAudience, pageTree]);
 
   React.useEffect(() => {
-    if (pageTree && pageTree.length > 0 && activeAudience) {
+    if (pageTree && pageTree.length > 0 && audience) {
       const dynamicGroups = mapPageTreeToNavGroups(
         pageTree as DynamicPageNode[],
-        activeAudience,
-        user?.accessibleRoutes
+        audience,
+        user?.accessibleRoutes ?? initialUser?.accessibleRoutes
       );
       if (dynamicGroups.length > 0) {
         setNavGroups(dynamicGroups);
       }
     }
-  }, [pageTree, activeAudience, user?.accessibleRoutes]);
+  }, [pageTree, audience, user?.accessibleRoutes, initialUser?.accessibleRoutes]);
 
   const can = React.useCallback(
     (permission: string): boolean => {

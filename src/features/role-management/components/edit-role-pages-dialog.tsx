@@ -7,6 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Switch } from '@/components/ui/switch';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Icons } from '@/components/icons';
+import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { roleManagementApi } from '../api/role-management.api';
@@ -170,19 +171,6 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
               Tentukan halaman aplikasi yang diizinkan untuk diakses oleh peran ini.
             </p>
           </div>
-          {canManage && (
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              shape='pill'
-              onClick={() => setIsNewCategoryOpen(true)}
-              className='h-7 text-xs gap-1.5'
-            >
-              <Icons.plus className='size-3.5' />
-              Tambah Kategori
-            </Button>
-          )}
         </div>
 
         {/* Scrollable Content with 3-Column Grid */}
@@ -217,21 +205,23 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
                         onCheckedChange={(checked) => handleToggleGroup(parent, Boolean(checked))}
                         disabled={!canManage}
                       />
+                      <ShiftIconDisplay
+                        icon={parent.icon}
+                        fallback={parent.name.charAt(0)}
+                        size='sm'
+                        bare
+                        className='shrink-0 text-muted-foreground'
+                      />
                       <div className='min-w-0'>
-                        <div className='flex items-center gap-2 flex-wrap'>
+                        <div className='flex items-center gap-2'>
                           <label
                             htmlFor={`parent-select-${parent.id}`}
                             className='font-semibold text-xs sm:text-sm text-foreground cursor-pointer select-none'
                           >
                             {parent.name}
                           </label>
-                          <span className='font-mono text-[10px] text-muted-foreground px-1.5 py-0.2 rounded border bg-muted/40'>
-                            {parent.slug}
-                          </span>
                           {!parent.isEnabled && (
-                            <span className='text-[10px] font-semibold text-destructive px-1.5 py-0.2 rounded bg-destructive/10'>
-                              Nonaktif di CMS
-                            </span>
+                            <span className='text-[11px] text-muted-foreground italic'>(Nonaktif)</span>
                           )}
                         </div>
                         {parent.description && (
@@ -244,7 +234,7 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
 
                     {/* Master Switch and Edit for Parent Group */}
                     {canManage && (
-                      <div className='flex items-center gap-1.5 pl-3 shrink-0'>
+                      <div className='flex items-center gap-1 pl-3 shrink-0'>
                         <Button
                           type='button'
                           variant='ghost'
@@ -255,9 +245,8 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
                         >
                           <Icons.edit className='size-3.5' />
                         </Button>
-                        <div className='h-3 w-px bg-border/60 mx-0.5' />
-                        <span className='text-[11px] text-muted-foreground'>Saklar CMS</span>
                         <Switch
+                          className='scale-80'
                           checked={parent.isEnabled}
                           onCheckedChange={(val) =>
                             togglePageMutation.mutate({ pageId: parent.id, isEnabled: val })
@@ -278,52 +267,39 @@ function EditRolePagesForm({ role, open, onClose, canManage }: EditRolePagesForm
                         <div
                           key={child.id}
                           className={cn(
-                            'flex items-start justify-between p-2.5 rounded-xl border transition-colors select-none gap-2',
+                            'flex items-center justify-between px-3 py-2 rounded-xl border transition-colors select-none gap-2',
                             isAssigned
                               ? 'bg-primary/5 border-primary/40'
                               : 'bg-muted/10 border-border/70 hover:bg-muted/20',
                             !isChildEffectivelyEnabled && 'opacity-60'
                           )}
                         >
-                          <div className='flex items-start gap-2 flex-1 min-w-0'>
+                          <div className='flex items-center gap-2.5 flex-1 min-w-0'>
                             <Checkbox
                               id={`page-${child.id}`}
                               checked={isAssigned}
                               onCheckedChange={() => handleToggleSelectPage(parent, child.id)}
                               disabled={!canManage}
-                              className='mt-0.5 shrink-0'
+                              className='shrink-0'
                             />
-                            <div className='space-y-1 min-w-0 flex-1'>
-                              <label
-                                htmlFor={`page-${child.id}`}
-                                className='text-xs font-semibold text-foreground cursor-pointer block truncate leading-tight'
-                              >
-                                {child.name}
-                              </label>
-                              <div className='font-mono text-[10px] text-muted-foreground truncate'>
-                                {child.routePath}
-                              </div>
-                              <div>
-                                {!child.isEnabled ? (
-                                  <span className='inline-block text-[9px] font-semibold text-destructive px-1 rounded bg-destructive/10'>
-                                    Nonaktif
-                                  </span>
-                                ) : !parent.isEnabled ? (
-                                  <span className='inline-block text-[9px] font-medium text-muted-foreground px-1 rounded bg-muted'>
-                                    Induk Nonaktif
-                                  </span>
-                                ) : (
-                                  <span className='inline-block text-[9px] font-semibold text-emerald-700 dark:text-emerald-300 px-1 rounded bg-emerald-50 dark:bg-emerald-950/30'>
-                                    Aktif
-                                  </span>
-                                )}
-                              </div>
-                            </div>
+                            <ShiftIconDisplay
+                              icon={child.icon}
+                              fallback={child.name.charAt(0)}
+                              size='sm'
+                              bare
+                              className='shrink-0 text-muted-foreground'
+                            />
+                            <label
+                              htmlFor={`page-${child.id}`}
+                              className='text-xs font-medium text-foreground cursor-pointer block truncate leading-tight flex-1 select-none'
+                            >
+                              {child.name}
+                            </label>
                           </div>
 
                           {/* Individual Child CMS Toggle & Edit */}
                           {canManage && (
-                            <div className='shrink-0 pt-0.5 flex items-center gap-1'>
+                            <div className='shrink-0 flex items-center gap-1'>
                               <Button
                                 type='button'
                                 variant='ghost'

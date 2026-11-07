@@ -32,15 +32,17 @@ export default function KBar({ children }: { children: React.ReactNode }) {
           : null;
 
       const childActions =
-        navItem.items?.map((childItem) => ({
-          id: `${childItem.title.toLowerCase()}Action`,
-          name: childItem.title,
-          shortcut: childItem.shortcut,
-          keywords: childItem.title.toLowerCase(),
-          section: navItem.title,
-          subtitle: `Go to ${childItem.title}`,
-          perform: () => navigateTo(childItem.url)
-        })) ?? [];
+        navItem.items
+          ?.filter((childItem) => Boolean(childItem.url && childItem.url !== '#'))
+          .map((childItem) => ({
+            id: `${childItem.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${childItem.url.replace(/[^a-z0-9]/g, '-')}-action`,
+            name: childItem.title,
+            shortcut: childItem.shortcut,
+            keywords: `${childItem.title.toLowerCase()} ${navItem.title.toLowerCase()}`,
+            section: navItem.title,
+            subtitle: `Go to ${childItem.title}`,
+            perform: () => navigateTo(childItem.url)
+          })) ?? [];
 
       return baseAction ? [baseAction, ...childActions] : childActions;
     });

@@ -13,6 +13,8 @@ import { RoleCard } from './role-card';
 import { CreateRoleDialog } from './create-role-dialog';
 import { EditRolePermissionsDialog } from './edit-role-permissions-dialog';
 import { EditRolePagesDialog } from './edit-role-pages-dialog';
+import { ManageApplicationPagesDialog } from './manage-application-pages-dialog';
+import { EditPageModal } from './edit-page-modal';
 import { DeleteRoleDialog } from './delete-role-dialog';
 
 export function RoleManagementView() {
@@ -37,6 +39,8 @@ export function RoleManagementView() {
 
   const { can } = useAuthContext();
   const canManageRoles = can(PERMISSIONS.ROLES.MANAGE);
+  const [isNewCategoryOpen, setIsNewCategoryOpen] = React.useState(false);
+  const [isManagePagesOpen, setIsManagePagesOpen] = React.useState(false);
 
   return (
     <div className='flex flex-1 min-h-0 flex-col gap-3.5 font-sans h-full overflow-hidden select-none'>
@@ -60,6 +64,8 @@ export function RoleManagementView() {
           onRefresh={actions.handleRefresh}
           isRefetching={isRefetching}
           onAddClick={canManageRoles ? () => actions.setIsCreateOpen(true) : undefined}
+          onAddCategoryClick={canManageRoles ? () => setIsNewCategoryOpen(true) : undefined}
+          onManagePagesClick={canManageRoles ? () => setIsManagePagesOpen(true) : undefined}
         />
       </div>
 
@@ -137,6 +143,23 @@ export function RoleManagementView() {
           if (!open) actions.setManagingPagesRole(null);
         }}
         canManage={canManageRoles}
+      />
+
+      {/* Global Application Pages CMS Manager Dialog */}
+      <ManageApplicationPagesDialog
+        open={isManagePagesOpen}
+        onOpenChange={setIsManagePagesOpen}
+        canManage={canManageRoles}
+      />
+
+      {/* Create New Category Modal */}
+      <EditPageModal
+        open={isNewCategoryOpen}
+        onClose={() => setIsNewCategoryOpen(false)}
+        isNewCategory={true}
+        audience={audienceFilter === 'all' ? 'internal' : audienceFilter}
+        parentCategories={[]}
+        page={null}
       />
 
       {/* Delete Confirmation Alert */}

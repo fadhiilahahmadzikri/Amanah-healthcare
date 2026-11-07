@@ -234,14 +234,6 @@ export const routeManifest: RouteRule[] = [
     audience: AUDIENCE.EXTERNAL,
     requiredPermission: PERMISSIONS.APP.ACCESS,
     description: 'Portal Pasien (Antrean, Janji Temu, Profil, Panduan)'
-  },
-  {
-    pattern: '/patient-registration',
-    match: 'prefix',
-    visibility: 'protected',
-    audience: AUDIENCE.EXTERNAL,
-    requiredPermission: PERMISSIONS.PATIENTS.REGISTER,
-    description: 'Pendaftaran Pasien Baru'
   }
 ];
 
@@ -290,8 +282,7 @@ export function isRouteAuthorized(
     // Fail-Closed: unknown route inside protected zone is denied
     if (
       pathname.startsWith('/admin') ||
-      pathname.startsWith('/klinik') ||
-      pathname.startsWith('/patient-registration')
+      pathname.startsWith('/klinik')
     ) {
       return { allowed: false, reason: 'forbidden' };
     }
