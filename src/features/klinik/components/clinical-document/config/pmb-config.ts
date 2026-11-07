@@ -84,7 +84,7 @@ export const defaultPmbConfig: PmbFormConfig = {
   obstetri: {
     title: 'RIWAYAT OBSTETRI',
     pregnancyFields: ['G', 'P', 'Ab', 'Ah'],
-    columns: [520, 1550, 1500, 560, 620, 1240, 1720, 1950, 1206],
+    columns: [435, 760, 1250, 490, 600, 1520, 1740, 1900, 2171],
     headers: [
       'No',
       'Tahun Lahir',

@@ -109,17 +109,24 @@ export interface DiseaseRecord {
   notes?: string;
 }
 
+export interface PmbIdentityData {
+  topRowValues?: (string | undefined)[][];
+  fullRowValues?: (string | undefined)[];
+  locationValues?: (string | undefined)[];
+  measurementValues?: (string | undefined)[][];
+  motherRows?: [string, string | undefined][][];
+  husbandRows?: [string, string | undefined][][];
+  addressRows?: [string, string | undefined][];
+  locationRows?: [string, string | undefined][];
+  physicalRows?: [string, string | undefined][];
+}
+
 export interface PmbFormData {
   header?: {
     allergy?: string;
     rmAncCode?: string;
   };
-  identity?: {
-    topRowValues?: (string | undefined)[][];
-    fullRowValues?: (string | undefined)[];
-    locationValues?: (string | undefined)[];
-    measurementValues?: (string | undefined)[][];
-  };
+  identity?: PmbIdentityData;
   anamnesa?: {
     promptValues?: (string | undefined)[];
     riskChecked?: Record<string, boolean>;

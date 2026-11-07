@@ -151,82 +151,215 @@ export async function exportPmbDocx(
   ];
 
   // 2. Build Identity
-  const identityColumns = cfg.identity.columns;
   const identitySize = cfg.typography.identity;
   const identityRows: TableRow[] = [];
+  let identityColumns = cfg.identity.columns;
 
-  for (const [rowIndex, values] of cfg.identity.topRows.entries()) {
-    identityRows.push(
-      row(
-        values.map((value, index) => {
-          if (index % 2 === 0) {
-            return textCell(value, identityColumns[index], { size: identitySize });
-          }
-          return lineCell('', identityColumns[index], {
-            size: identitySize,
-            value: data?.identity?.topRowValues?.[rowIndex]?.[(index - 1) / 2]
-          });
-        }),
-        265
-      )
-    );
-  }
+  if (data?.identity?.motherRows && data?.identity?.husbandRows) {
+    identityColumns = [1630, 3800, 1630, 3806];
 
-  for (const [rowIndex, label] of cfg.identity.fullRows.entries()) {
+    // Sub-section A
     identityRows.push(
       row(
         [
-          textCell(label, identityColumns[0], { size: identitySize }),
-          lineCell('', columnWidth(identityColumns, 1, 5), {
-            columnSpan: 5,
-            size: identitySize,
-            value: data?.identity?.fullRowValues?.[rowIndex]
+          textCell('A. IDENTITAS IBU (ISTRI)', cfg.page.contentWidth, {
+            bold: true,
+            size: 7.0,
+            columnSpan: 4
           })
         ],
-        265
+        240
       )
     );
-  }
 
-  // Location record cells
-  const groupStarts = [0, 2, 4];
-  const locationCells = cfg.identity.locationLabels.map((label, index) => {
-    const isFirst = index === 0;
-    const isLast = index === cfg.identity.locationLabels.length - 1;
-    return lineCell(label, columnWidth(identityColumns, groupStarts[index], 2), {
-      columnSpan: 2,
-      size: identitySize,
-      value: data?.identity?.locationValues?.[index],
-      borders: {
-        top: border(),
-        bottom: border(),
-        left: isFirst ? border() : noBorder(),
-        right: isLast ? border() : noBorder()
-      }
-    });
-  });
-  identityRows.push(row(locationCells, 285));
+    for (const pair of data.identity.motherRows) {
+      identityRows.push(
+        row(
+          [
+            textCell(pair[0]?.[0] || '', identityColumns[0], { size: identitySize }),
+            lineCell('', identityColumns[1], { size: identitySize, value: pair[0]?.[1] }),
+            textCell(pair[1]?.[0] || '', identityColumns[2], { size: identitySize }),
+            lineCell('', identityColumns[3], { size: identitySize, value: pair[1]?.[1] })
+          ],
+          265
+        )
+      );
+    }
 
-  // Measurement rows
-  const measurementSpans = [2, 2, 1, 1];
-  const measurementStarts = [0, 2, 4, 5];
-  for (const [rowIndex, measurementRow] of cfg.identity.measurementRows.entries()) {
+    // Sub-section B
     identityRows.push(
       row(
-        measurementRow.map((label, index) =>
-          lineCell(
-            label,
-            columnWidth(identityColumns, measurementStarts[index], measurementSpans[index]),
-            {
-              columnSpan: measurementSpans[index],
-              size: identitySize,
-              value: data?.identity?.measurementValues?.[rowIndex]?.[index]
-            }
-          )
-        ),
-        265
+        [
+          textCell('B. IDENTITAS SUAMI & DATA PERNIKAHAN', cfg.page.contentWidth, {
+            bold: true,
+            size: 7.0,
+            columnSpan: 4
+          })
+        ],
+        240
       )
     );
+
+    for (const pair of data.identity.husbandRows) {
+      identityRows.push(
+        row(
+          [
+            textCell(pair[0]?.[0] || '', identityColumns[0], { size: identitySize }),
+            lineCell('', identityColumns[1], { size: identitySize, value: pair[0]?.[1] }),
+            textCell(pair[1]?.[0] || '', identityColumns[2], { size: identitySize }),
+            lineCell('', identityColumns[3], { size: identitySize, value: pair[1]?.[1] })
+          ],
+          265
+        )
+      );
+    }
+
+    // Sub-section C
+    identityRows.push(
+      row(
+        [
+          textCell('C. ALAMAT & LOKASI REGISTRASI', cfg.page.contentWidth, {
+            bold: true,
+            size: 7.0,
+            columnSpan: 4
+          })
+        ],
+        240
+      )
+    );
+
+    for (const addr of data.identity.addressRows || []) {
+      identityRows.push(
+        row(
+          [
+            textCell(addr[0], identityColumns[0], { size: identitySize }),
+            lineCell('', identityColumns[1] + identityColumns[2] + identityColumns[3], {
+              columnSpan: 3,
+              size: identitySize,
+              value: addr[1]
+            })
+          ],
+          265
+        )
+      );
+    }
+
+    if (data.identity.locationRows && data.identity.locationRows.length > 0) {
+      const locWidths = [3622, 3622, 3622];
+      identityRows.push(
+        row(
+          data.identity.locationRows.map((loc, lIdx) =>
+            lineCell(loc[0], locWidths[lIdx], {
+              size: identitySize,
+              value: loc[1],
+              columnSpan: lIdx === 2 ? 2 : 1
+            })
+          ),
+          265
+        )
+      );
+    }
+
+    // Sub-section D
+    identityRows.push(
+      row(
+        [
+          textCell('D. PEMERIKSAAN FISIK KLINIS IBU (ANTROPOMETRI)', cfg.page.contentWidth, {
+            bold: true,
+            size: 7.0,
+            columnSpan: 4
+          })
+        ],
+        240
+      )
+    );
+
+    if (data.identity.physicalRows && data.identity.physicalRows.length > 0) {
+      const physWidths = [2173, 2173, 2173, 2173, 2174];
+      identityRows.push(
+        row(
+          data.identity.physicalRows.map((item, pIdx) =>
+            lineCell(item[0], physWidths[pIdx], {
+              size: identitySize,
+              value: item[1]
+            })
+          ),
+          265
+        )
+      );
+    }
+  } else {
+    for (const [rowIndex, values] of cfg.identity.topRows.entries()) {
+      identityRows.push(
+        row(
+          values.map((value, index) => {
+            if (index % 2 === 0) {
+              return textCell(value, identityColumns[index], { size: identitySize });
+            }
+            return lineCell('', identityColumns[index], {
+              size: identitySize,
+              value: data?.identity?.topRowValues?.[rowIndex]?.[(index - 1) / 2]
+            });
+          }),
+          265
+        )
+      );
+    }
+
+    for (const [rowIndex, label] of cfg.identity.fullRows.entries()) {
+      identityRows.push(
+        row(
+          [
+            textCell(label, identityColumns[0], { size: identitySize }),
+            lineCell('', columnWidth(identityColumns, 1, 5), {
+              columnSpan: 5,
+              size: identitySize,
+              value: data?.identity?.fullRowValues?.[rowIndex]
+            })
+          ],
+          265
+        )
+      );
+    }
+
+    const groupStarts = [0, 2, 4];
+    const locationCells = cfg.identity.locationLabels.map((label, index) => {
+      const isFirst = index === 0;
+      const isLast = index === cfg.identity.locationLabels.length - 1;
+      return lineCell(label, columnWidth(identityColumns, groupStarts[index], 2), {
+        columnSpan: 2,
+        size: identitySize,
+        value: data?.identity?.locationValues?.[index],
+        borders: {
+          top: border(),
+          bottom: border(),
+          left: isFirst ? border() : noBorder(),
+          right: isLast ? border() : noBorder()
+        }
+      });
+    });
+    identityRows.push(row(locationCells, 285));
+
+    const measurementSpans = [2, 2, 1, 1];
+    const measurementStarts = [0, 2, 4, 5];
+    for (const [rowIndex, measurementRow] of cfg.identity.measurementRows.entries()) {
+      identityRows.push(
+        row(
+          measurementRow.map((label, index) =>
+            lineCell(
+              label,
+              columnWidth(identityColumns, measurementStarts[index], measurementSpans[index]),
+              {
+                columnSpan: measurementSpans[index],
+                size: identitySize,
+                value: data?.identity?.measurementValues?.[rowIndex]?.[index]
+              }
+            )
+          ),
+          265
+        )
+      );
+    }
   }
 
   const identityChildren = [
@@ -292,7 +425,7 @@ export async function exportPmbDocx(
         textCell(header, cfg.obstetri.columns[index], {
           alignment: AlignmentType.CENTER,
           bold: true,
-          size: 6.8
+          size: 7.0
         })
       ),
       255
@@ -304,12 +437,13 @@ export async function exportPmbDocx(
     const sampleRow = sourceObstetri[rowIndex] || [];
     obstetriTableRows.push(
       row(
-        cfg.obstetri.columns.map((width, columnIndex) =>
-          textCell(sampleRow[columnIndex] || '', width, {
-            alignment: columnIndex === 0 ? AlignmentType.CENTER : undefined,
-            size: 6.8
-          })
-        ),
+        cfg.obstetri.columns.map((width, columnIndex) => {
+          const isCentered = columnIndex <= 4;
+          return textCell(sampleRow[columnIndex] || '', width, {
+            alignment: isCentered ? AlignmentType.CENTER : AlignmentType.LEFT,
+            size: 7.0
+          });
+        }),
         680
       )
     );

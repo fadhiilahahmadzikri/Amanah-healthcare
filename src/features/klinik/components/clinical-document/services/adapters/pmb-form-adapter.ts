@@ -198,6 +198,45 @@ export function adaptToPmbFormData(
     });
   }
 
+  // Structured separated identity rows for clean zero-distraction layout
+  const motherBirthAndAge = [motherBirthDate, motherAge].filter(Boolean).join(' / ');
+  const partnerBirthAndAge = [partnerBirthDate, partnerAge].filter(Boolean).join(' / ');
+  const motherJobAndEdu = [motherJob, motherEducation].filter(Boolean).join(' / ');
+  const partnerJobAndEdu = [partnerJob, partnerEducation].filter(Boolean).join(' / ');
+  const motherReligionAndBlood = [m?.religion, motherBlood ? `Gol. ${motherBlood}` : ''].filter(Boolean).join(' / ');
+
+  const motherRows: [string, string | undefined][][] = [
+    [['Nama Ibu :', motherName], ['Tgl Lahir / Umur :', motherBirthAndAge]],
+    [['NIK Ibu :', motherNik], ['Pekerjaan / Pendidikan :', motherJobAndEdu]],
+    [['Agama / Gol. Darah :', motherReligionAndBlood], ['No. Telp / WA :', m?.phoneNumber || p?.phone || '']]
+  ];
+
+  const husbandRows: [string, string | undefined][][] = [
+    [['Nama Suami :', partnerName], ['Pernikahan Ke :', marriageOrder]],
+    [['NIK Suami :', partnerNik], ['Tgl Menikah :', marriageDate]],
+    [['Tgl Lahir / Umur :', partnerBirthAndAge], ['Pekerjaan / Pendidikan :', partnerJobAndEdu]],
+    [['Gol. Darah Suami :', partnerBlood ? `Gol. ${partnerBlood}` : ''], ['No. HP Suami :', partnerPhone]]
+  ];
+
+  const addressRows: [string, string | undefined][] = [
+    ['Alamat Domisili :', resolvedDomicileAddress],
+    ['Alamat KTP :', m?.identityCardAddress || p?.address || '']
+  ];
+
+  const locationRows: [string, string | undefined][] = [
+    ['Dasawisma :', m?.dasawisma || ''],
+    ['Posyandu :', m?.posyandu || ''],
+    ['Puskesmas :', m?.puskesmas || '']
+  ];
+
+  const physicalRows: [string, string | undefined][] = [
+    ['TB :', tb],
+    ['BB Awal :', bbAwal],
+    ['LiLA :', lila],
+    ['IMT Awal :', imt],
+    ['Status TT :', tetanus]
+  ];
+
   return {
     header: {
       allergy: m?.allergyInfo || '',
@@ -213,7 +252,12 @@ export function adaptToPmbFormData(
       ],
       fullRowValues: fullRows,
       locationValues,
-      measurementValues
+      measurementValues,
+      motherRows,
+      husbandRows,
+      addressRows,
+      locationRows,
+      physicalRows
     },
     anamnesa: {
       promptValues: [hpht, hpl, uk, keluhan],

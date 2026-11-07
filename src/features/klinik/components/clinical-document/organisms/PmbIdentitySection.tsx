@@ -4,19 +4,145 @@ import { FormText } from '../atoms/FormText';
 import { DottedLine } from '../atoms/DottedLine';
 import { LocationRecordFields } from '../molecules/LocationRecordFields';
 import { MeasurementFields } from '../molecules/MeasurementFields';
-import type { PmbIdentityConfig } from '../types';
+import type { PmbIdentityConfig, PmbIdentityData } from '../types';
 
 export interface PmbIdentitySectionProps {
   config: PmbIdentityConfig;
-  data?: {
-    topRowValues?: (string | undefined)[][];
-    fullRowValues?: (string | undefined)[];
-    locationValues?: (string | undefined)[];
-    measurementValues?: (string | undefined)[][];
-  };
+  data?: PmbIdentityData;
 }
 
 export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, data }) => {
+  // If structured separated identity rows are provided, render clean zero-distraction layout
+  if (data?.motherRows && data?.husbandRows) {
+    const colWidths = [15.0, 35.0, 15.0, 35.0];
+
+    return (
+      <div className='w-full mb-1'>
+        <SectionHeader title='IDENTITAS' beforeGapPx={4} afterGapPx={1} />
+
+        <table className='w-full border-collapse border border-black table-fixed bg-white'>
+          <colgroup>
+            {colWidths.map((w, i) => (
+              <col key={i} style={{ width: `${w}%` }} />
+            ))}
+          </colgroup>
+          <tbody>
+            {/* SUB-SECTION A: IDENTITAS IBU */}
+            <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
+              <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
+                <FormText customPt={6.8} bold>
+                  A. IDENTITAS IBU (ISTRI)
+                </FormText>
+              </td>
+            </tr>
+            {data.motherRows.map((pair, rIdx) => (
+              <tr key={`mother-${rIdx}`} className='h-[17px]'>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <FormText customPt={6.6}>{pair[0]?.[0] || ''}</FormText>
+                </td>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <DottedLine value={pair[0]?.[1]} customPt={6.6} minHeight='13px' />
+                </td>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <FormText customPt={6.6}>{pair[1]?.[0] || ''}</FormText>
+                </td>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <DottedLine value={pair[1]?.[1]} customPt={6.6} minHeight='13px' />
+                </td>
+              </tr>
+            ))}
+
+            {/* SUB-SECTION B: IDENTITAS SUAMI & DATA PERNIKAHAN */}
+            <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
+              <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
+                <FormText customPt={6.8} bold>
+                  B. IDENTITAS SUAMI & DATA PERNIKAHAN
+                </FormText>
+              </td>
+            </tr>
+            {data.husbandRows.map((pair, rIdx) => (
+              <tr key={`husband-${rIdx}`} className='h-[17px]'>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <FormText customPt={6.6}>{pair[0]?.[0] || ''}</FormText>
+                </td>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <DottedLine value={pair[0]?.[1]} customPt={6.6} minHeight='13px' />
+                </td>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <FormText customPt={6.6}>{pair[1]?.[0] || ''}</FormText>
+                </td>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <DottedLine value={pair[1]?.[1]} customPt={6.6} minHeight='13px' />
+                </td>
+              </tr>
+            ))}
+
+            {/* SUB-SECTION C: ALAMAT & LOKASI REGISTRASI */}
+            <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
+              <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
+                <FormText customPt={6.8} bold>
+                  C. ALAMAT & LOKASI REGISTRASI
+                </FormText>
+              </td>
+            </tr>
+            {data.addressRows?.map((row, rIdx) => (
+              <tr key={`addr-${rIdx}`} className='h-[17px]'>
+                <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <FormText customPt={6.6}>{row[0]}</FormText>
+                </td>
+                <td colSpan={3} className='border border-black px-[2px] py-[0.5px] align-middle'>
+                  <DottedLine value={row[1]} customPt={6.6} minHeight='13px' />
+                </td>
+              </tr>
+            ))}
+            {data.locationRows && data.locationRows.length > 0 && (
+              <tr className='h-[17px]'>
+                <td colSpan={4} className='border border-black px-[4px] py-[0.5px] align-middle'>
+                  <div className='flex items-center justify-between w-full gap-4'>
+                    {data.locationRows.map((loc, lIdx) => (
+                      <div key={`loc-${lIdx}`} className='flex items-center gap-1.5 flex-1 min-w-0'>
+                        <FormText customPt={6.6} className='shrink-0'>{loc[0]}</FormText>
+                        <div className='flex-1 min-w-0'>
+                          <DottedLine value={loc[1]} customPt={6.6} minHeight='13px' />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            )}
+
+            {/* SUB-SECTION D: PEMERIKSAAN FISIK AWAL (ANTROPOMETRI) */}
+            <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
+              <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
+                <FormText customPt={6.8} bold>
+                  D. PEMERIKSAAN FISIK KLINIS IBU (ANTROPOMETRI)
+                </FormText>
+              </td>
+            </tr>
+            {data.physicalRows && data.physicalRows.length > 0 && (
+              <tr className='h-[17px]'>
+                <td colSpan={4} className='border border-black px-[4px] py-[0.5px] align-middle'>
+                  <div className='flex items-center justify-between w-full gap-2'>
+                    {data.physicalRows.map((item, pIdx) => (
+                      <div key={`phys-${pIdx}`} className='flex items-center gap-1 flex-1 min-w-0'>
+                        <FormText customPt={6.6} className='shrink-0'>{item[0]}</FormText>
+                        <div className='flex-1 min-w-0'>
+                          <DottedLine value={item[1]} customPt={6.6} minHeight='13px' />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
+  }
+
+  // Legacy fallback
   const colWidths = [11.50, 26.69, 14.26, 10.12, 14.73, 22.70];
 
   return (

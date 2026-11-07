@@ -78,66 +78,69 @@ export async function exportPmbExcel(
   r6.getCell(7).font = { size: 9 };
   applyRowBorders(r6, 1, 8);
 
-  // Section I: IDENTITAS
+  // Section I: IDENTITAS IBU, SUAMI & WILAYAH
   let currentLine = 8;
-  addSectionHeader(ws, currentLine, 'I. IDENTITAS IBU & SUAMI', 8);
+  addSectionHeader(ws, currentLine, 'I.A. IDENTITAS IBU (ISTRI)', 8);
 
   const topRows = data?.identity?.topRowValues || [];
   const fullRows = data?.identity?.fullRowValues || [];
   const locations = data?.identity?.locationValues || [];
   const measurements = data?.identity?.measurementValues || [];
 
-  const fourFieldRows = [
-    ['Nama Ibu', topRows[0]?.[0] || '', 'Pernikahan Ke', parseNativeNumber(topRows[0]?.[1])],
-    ['NIK Ibu', topRows[1]?.[0] || '', 'Tanggal Menikah', topRows[0]?.[2] || ''],
-    ['Tanggal Lahir Ibu', topRows[1]?.[1] || '', 'Nama Suami', topRows[2]?.[0] || ''],
-    ['Umur Ibu', parseNativeNumber(topRows[2]?.[1]), 'NIK Suami', topRows[3]?.[0] || ''],
-    ['Pekerjaan Ibu', topRows[1]?.[2] || '', 'Tanggal Lahir Suami', topRows[3]?.[1] || ''],
-    ['Pendidikan Ibu', topRows[2]?.[2] || '', 'Umur Suami', parseNativeNumber(topRows[4]?.[1])],
-    ['Golongan Darah Ibu', measurements[0]?.[3] || '', 'Pekerjaan Suami', topRows[3]?.[2] || ''],
-    [
-      'Tinggi Badan (TB)',
-      parseNativeNumber(measurements[0]?.[0]),
-      'Pendidikan Suami',
-      topRows[4]?.[2] || ''
-    ],
-    [
-      'Berat Badan Sebelum Hamil (BB)',
-      parseNativeNumber(measurements[1]?.[0]),
-      'Golongan Darah Suami',
-      measurements[1]?.[3] || ''
-    ],
-    [
-      'LILA',
-      parseNativeNumber(measurements[0]?.[1]),
-      'Status Imunisasi TT',
-      measurements[0]?.[2] || ''
-    ],
-    ['IMT Awal', parseNativeNumber(measurements[1]?.[1]), 'Dasawisma', locations[0] || ''],
-    ['Posyandu', locations[1] || '', 'Puskesmas', locations[2] || '']
+  const motherFieldRows = [
+    ['Nama Ibu', data?.identity?.motherRows?.[0]?.[0]?.[1] || topRows[0]?.[0] || ''],
+    ['NIK Ibu', data?.identity?.motherRows?.[1]?.[0]?.[1] || topRows[1]?.[0] || ''],
+    ['Tanggal Lahir / Umur', data?.identity?.motherRows?.[0]?.[1]?.[1] || topRows[1]?.[1] || ''],
+    ['Pekerjaan / Pendidikan', data?.identity?.motherRows?.[1]?.[1]?.[1] || topRows[1]?.[2] || ''],
+    ['Agama / Golongan Darah', data?.identity?.motherRows?.[2]?.[0]?.[1] || fullRows[0] || ''],
+    ['Nomor Telepon / WA', data?.identity?.motherRows?.[2]?.[1]?.[1] || fullRows[3] || '']
   ];
 
-  fourFieldRows.forEach((rowPair) => {
+  motherFieldRows.forEach((item) => {
     currentLine += 1;
-    addFourFieldRow(
-      ws,
-      currentLine,
-      String(rowPair[0]),
-      rowPair[1],
-      String(rowPair[2]),
-      rowPair[3]
-    );
+    addFullFieldRow(ws, currentLine, item[0], item[1]);
   });
 
-  const fullFieldRows = [
-    ['Agama', fullRows[0] || ''],
-    ['Alamat Domisili', fullRows[1] || ''],
-    ['Alamat KTP', fullRows[2] || ''],
-    ['Nomor Telepon / WA', fullRows[3] || ''],
-    ['Nomor Telepon Suami', topRows[4]?.[0] || '']
+  currentLine += 1;
+  addSectionHeader(ws, currentLine, 'I.B. IDENTITAS SUAMI & DATA PERNIKAHAN', 8);
+
+  const husbandFieldRows = [
+    ['Nama Suami', data?.identity?.husbandRows?.[0]?.[0]?.[1] || topRows[2]?.[0] || ''],
+    ['NIK Suami', data?.identity?.husbandRows?.[1]?.[0]?.[1] || topRows[3]?.[0] || ''],
+    ['Tanggal Lahir / Umur', data?.identity?.husbandRows?.[2]?.[0]?.[1] || topRows[3]?.[1] || ''],
+    ['Pekerjaan / Pendidikan', data?.identity?.husbandRows?.[2]?.[1]?.[1] || topRows[3]?.[2] || ''],
+    ['Golongan Darah Suami', data?.identity?.husbandRows?.[3]?.[0]?.[1] || measurements[1]?.[3] || ''],
+    ['Nomor Telepon Suami', data?.identity?.husbandRows?.[3]?.[1]?.[1] || topRows[4]?.[0] || ''],
+    ['Pernikahan Ke', data?.identity?.husbandRows?.[0]?.[1]?.[1] || topRows[0]?.[1] || ''],
+    ['Tanggal Menikah', data?.identity?.husbandRows?.[1]?.[1]?.[1] || topRows[0]?.[2] || '']
   ];
 
-  fullFieldRows.forEach((item) => {
+  husbandFieldRows.forEach((item) => {
+    currentLine += 1;
+    addFullFieldRow(ws, currentLine, item[0], item[1]);
+  });
+
+  currentLine += 1;
+  addSectionHeader(ws, currentLine, 'I.C. ALAMAT & PEMERIKSAAN FISIK AWAL', 8);
+
+  const locSummary = [
+    data?.identity?.locationRows?.[0]?.[1] || locations[0],
+    data?.identity?.locationRows?.[1]?.[1] || locations[1],
+    data?.identity?.locationRows?.[2]?.[1] || locations[2]
+  ].filter(Boolean).join(' | ');
+
+  const physSummary =
+    data?.identity?.physicalRows?.map((p) => `${p[0]} ${p[1]}`).join('  |  ') ||
+    `TB: ${measurements[0]?.[0]}  |  BB: ${measurements[1]?.[0]}  |  LiLA: ${measurements[0]?.[1]}  |  IMT: ${measurements[1]?.[1]}`;
+
+  const otherFieldRows = [
+    ['Alamat Domisili', data?.identity?.addressRows?.[0]?.[1] || fullRows[1] || ''],
+    ['Alamat KTP', data?.identity?.addressRows?.[1]?.[1] || fullRows[2] || ''],
+    ['Dasawisma / Posyandu / Puskesmas', locSummary],
+    ['Pengukuran Fisik Klinis Ibu', physSummary]
+  ];
+
+  otherFieldRows.forEach((item) => {
     currentLine += 1;
     addFullFieldRow(ws, currentLine, item[0], item[1]);
   });
@@ -299,7 +302,7 @@ export async function exportPmbExcel(
       for (let c = 1; c <= 8; c += 1) {
         row.getCell(c).font = { name: 'Calibri', size: 9 };
         if (c > 2) {
-          row.getCell(c).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+          row.getCell(c).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1 };
         }
       }
       applyRowBorders(row, 1, 8);
