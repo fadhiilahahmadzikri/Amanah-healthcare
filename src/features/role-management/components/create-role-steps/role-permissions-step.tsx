@@ -51,6 +51,42 @@ export function RolePermissionsStep({
     setExpandedModules((prev) => ({ ...prev, [cat]: !prev[cat] }));
   };
 
+  const searchQuery = permissionSearch?.trim().toLowerCase() || '';
+  const isSearching = searchQuery.length > 0;
+  const cleanQuery = searchQuery.replace(/[:\s]+$/, '');
+
+  const isPermissionMatch = React.useCallback(
+    (p: Permission): boolean => {
+      if (!isSearching) return true;
+      const code = p.code.toLowerCase();
+      const desc = (p.description || '').toLowerCase();
+      return (
+        code.includes(searchQuery) ||
+        (cleanQuery.length > 0 && code.includes(cleanQuery)) ||
+        desc.includes(searchQuery) ||
+        (cleanQuery.length > 0 && desc.includes(cleanQuery))
+      );
+    },
+    [isSearching, searchQuery, cleanQuery]
+  );
+
+  const visibleCategories = React.useMemo(() => {
+    if (!isSearching) return categories;
+    return categories.filter((cat) => {
+      const perms = groupedPermissions[cat] || [];
+      const moduleInfo = CLINICAL_MODULE_INFO[cat];
+      const title = (moduleInfo?.title || cat).toLowerCase();
+      const isModMatch =
+        title.includes(searchQuery) ||
+        (cleanQuery.length > 0 && title.includes(cleanQuery)) ||
+        cat.toLowerCase().includes(searchQuery) ||
+        (cleanQuery.length > 0 && cat.toLowerCase().includes(cleanQuery));
+
+      if (isModMatch) return true;
+      return perms.some(isPermissionMatch);
+    });
+  }, [categories, groupedPermissions, isSearching, searchQuery, cleanQuery, isPermissionMatch]);
+
   // Determine access level for a module
   const getModuleAccessLevel = React.useCallback(
     (cat: string): ModuleAccessLevel => {
@@ -194,94 +230,105 @@ export function RolePermissionsStep({
 
       {/* Modules List with 3-Level Access Selectors & Accordions */}
       <div className='border rounded-xl overflow-hidden bg-card divide-y divide-border/60 max-h-80 overflow-y-auto pr-0.5'>
-        {categories.map((cat) => {
-          const perms = groupedPermissions[cat] || [];
-          const moduleInfo = CLINICAL_MODULE_INFO[cat];
-          const title = moduleInfo?.title || cat.charAt(0).toUpperCase() + cat.slice(1);
-          const description = moduleInfo?.description || `Pengaturan izin untuk kategori ${cat}`;
-          const currentLevel = getModuleAccessLevel(cat);
-          const isExpanded = Boolean(expandedModules[cat]);
+        {visibleCategories.length === 0 ? (
+          <div className='p-8 text-center text-xs text-muted-foreground bg-muted/5'>
+            <p className='font-medium text-foreground'>Tidak ada izin atau modul yang cocok</p>
+            <p className='text-[11px] text-muted-foreground mt-1'>
+              Tidak ditemukan izin yang cocok dengan kata kunci &quot;{permissionSearch}&quot;.
+            </p>
+          </div>
+        ) : (
+          visibleCategories.map((cat) => {
+            const perms = groupedPermissions[cat] || [];
+            const moduleInfo = CLINICAL_MODULE_INFO[cat];
+            const title = moduleInfo?.title || cat.charAt(0).toUpperCase() + cat.slice(1);
+            const description = moduleInfo?.description || `Pengaturan izin untuk kategori ${cat}`;
+            const currentLevel = getModuleAccessLevel(cat);
 
-          const filteredPerms = permissionSearch?.trim()
-            ? perms.filter(
-                (p) =>
-                  p.code.toLowerCase().includes(permissionSearch.toLowerCase()) ||
-                  p.description?.toLowerCase().includes(permissionSearch.toLowerCase())
-              )
-            : perms;
+            const filteredPerms = isSearching ? perms.filter(isPermissionMatch) : perms;
+            const isExpanded = isSearching ? filteredPerms.length > 0 : Boolean(expandedModules[cat]);
 
-          return (
-            <div key={cat} className='p-3 space-y-2.5 transition-colors hover:bg-muted/10'>
-              <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2'>
-                {/* Module Title & Description */}
-                <div className='space-y-0.5 max-w-sm'>
-                  <div className='flex items-center gap-2'>
-                    <h4 className='text-xs sm:text-sm font-semibold text-foreground'>{title}</h4>
-                    {currentLevel === 'custom' && (
-                      <Badge variant='outline' className='text-[10px] h-4 px-1.5 text-amber-600 border-amber-300'>
-                        Kustom
-                      </Badge>
-                    )}
+            return (
+              <div key={cat} className='p-3 space-y-2.5 transition-colors hover:bg-muted/10'>
+                <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-2'>
+                  {/* Module Title & Description */}
+                  <div className='space-y-0.5 max-w-sm'>
+                    <div className='flex items-center gap-2'>
+                      <h4 className='text-xs sm:text-sm font-semibold text-foreground'>{title}</h4>
+                      {isSearching && (
+                        <Badge variant='secondary' className='text-[10px] h-4 px-1.5 font-normal'>
+                          {filteredPerms.length} cocok
+                        </Badge>
+                      )}
+                      {currentLevel === 'custom' && (
+                        <Badge variant='outline' className='text-[10px] h-4 px-1.5 text-amber-600 border-amber-300'>
+                          Kustom
+                        </Badge>
+                      )}
+                    </div>
+                    <p className='text-[11px] text-muted-foreground leading-normal'>{description}</p>
                   </div>
-                  <p className='text-[11px] text-muted-foreground leading-normal'>{description}</p>
+
+                  {/* 3-Level Access Selector */}
+                  <div className='flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/60 shrink-0 self-start sm:self-auto'>
+                    <button
+                      type='button'
+                      disabled={disabled}
+                      onClick={() => handleApplyAccessLevel(cat, 'none')}
+                      className={cn(
+                        'px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer',
+                        currentLevel === 'none'
+                          ? 'bg-card text-foreground shadow-2xs font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      Tidak Ada
+                    </button>
+
+                    <button
+                      type='button'
+                      disabled={disabled}
+                      onClick={() => handleApplyAccessLevel(cat, 'view')}
+                      className={cn(
+                        'px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer',
+                        currentLevel === 'view'
+                          ? 'bg-primary/10 text-primary shadow-2xs font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      Hanya Lihat
+                    </button>
+
+                    <button
+                      type='button'
+                      disabled={disabled}
+                      onClick={() => handleApplyAccessLevel(cat, 'manage')}
+                      className={cn(
+                        'px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer',
+                        currentLevel === 'manage'
+                          ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      )}
+                    >
+                      Kelola Penuh
+                    </button>
+                  </div>
                 </div>
 
-                {/* 3-Level Access Selector */}
-                <div className='flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/60 shrink-0 self-start sm:self-auto'>
+                {/* Collapsible toggle for fine-grained permissions */}
+                <div className='pt-0.5'>
                   <button
                     type='button'
-                    disabled={disabled}
-                    onClick={() => handleApplyAccessLevel(cat, 'none')}
-                    className={cn(
-                      'px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer',
-                      currentLevel === 'none'
-                        ? 'bg-card text-foreground shadow-2xs font-semibold'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
+                    onClick={() => toggleExpand(cat)}
+                    className='text-[11px] font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer'
                   >
-                    Tidak Ada
+                    <Icons.chevronRight className={cn('size-3 transition-transform', isExpanded && 'rotate-90')} />
+                    <span>
+                      {isExpanded
+                        ? 'Sembunyikan detail izin'
+                        : `Lihat detail izin (${isSearching ? `${filteredPerms.length} dari ${perms.length}` : perms.length})`}
+                    </span>
                   </button>
-
-                  <button
-                    type='button'
-                    disabled={disabled}
-                    onClick={() => handleApplyAccessLevel(cat, 'view')}
-                    className={cn(
-                      'px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer',
-                      currentLevel === 'view'
-                        ? 'bg-primary/10 text-primary shadow-2xs font-semibold'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    Hanya Lihat
-                  </button>
-
-                  <button
-                    type='button'
-                    disabled={disabled}
-                    onClick={() => handleApplyAccessLevel(cat, 'manage')}
-                    className={cn(
-                      'px-2.5 py-1 rounded-md text-[11px] font-medium transition-all cursor-pointer',
-                      currentLevel === 'manage'
-                        ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
-                  >
-                    Kelola Penuh
-                  </button>
-                </div>
-              </div>
-
-              {/* Collapsible toggle for fine-grained permissions */}
-              <div className='pt-0.5'>
-                <button
-                  type='button'
-                  onClick={() => toggleExpand(cat)}
-                  className='text-[11px] font-medium text-muted-foreground hover:text-foreground flex items-center gap-1 cursor-pointer'
-                >
-                  <Icons.chevronRight className={cn('size-3 transition-transform', isExpanded && 'rotate-90')} />
-                  <span>{isExpanded ? 'Sembunyikan detail izin' : `Lihat detail izin (${perms.length})`}</span>
-                </button>
 
                 {isExpanded && (
                   <div className='mt-2 pl-4 border-l-2 border-border/70 space-y-1.5'>
@@ -324,7 +371,8 @@ export function RolePermissionsStep({
               </div>
             </div>
           );
-        })}
+        })
+      )}
       </div>
     </div>
   );
