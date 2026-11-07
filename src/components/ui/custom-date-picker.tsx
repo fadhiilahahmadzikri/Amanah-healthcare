@@ -114,7 +114,21 @@ export function CustomDatePicker({
 
   const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(false);
-    setTypedValue(null);
+    if (typedValue !== null) {
+      const parts = typedValue.split('/');
+      const day = parts[0] || '';
+      const month = parts[1] || '';
+      const year = parts[2] || '';
+      if (day.length === 2 && month.length === 2 && year.length === 4) {
+        // Complete date, already committed in handleInputChange
+      } else if (typedValue.trim() === '') {
+        onChange('', undefined);
+      } else {
+        // Incomplete partial date: reset to avoid invalid masked state
+        onChange('', undefined);
+      }
+      setTypedValue(null);
+    }
     onBlur?.(e);
   };
 
@@ -135,15 +149,17 @@ export function CustomDatePicker({
     if (e.key === 'Backspace' && selectionStart === selectionEnd && selectionStart !== null) {
       if (selectionStart === 3 && currentVal[2] === '/') {
         e.preventDefault();
-        const nextVal = currentVal.slice(0, 1) + currentVal.slice(2);
-        cursorRef.current = 1;
+        const remainder = currentVal.slice(3);
+        const nextVal = remainder ? currentVal.slice(0, 1) + '/' + remainder : currentVal.slice(0, 2);
+        cursorRef.current = remainder ? 1 : 2;
         setTypedValue(nextVal);
         return;
       }
       if (selectionStart === 6 && currentVal[5] === '/') {
         e.preventDefault();
-        const nextVal = currentVal.slice(0, 4) + currentVal.slice(5);
-        cursorRef.current = 4;
+        const remainder = currentVal.slice(6);
+        const nextVal = remainder ? currentVal.slice(0, 4) + '/' + remainder : currentVal.slice(0, 5);
+        cursorRef.current = remainder ? 4 : 5;
         setTypedValue(nextVal);
         return;
       }
@@ -173,14 +189,30 @@ export function CustomDatePicker({
     const raw = input.value;
     const cursor = input.selectionStart ?? raw.length;
 
+    if (raw.trim() === '') {
+      cursorRef.current = 0;
+      setTypedValue('');
+      onChange('', undefined);
+      return;
+    }
+
     // Segment based parsing to preserve Day, Month, Year independence
-    const parts = raw.split('/');
+    let parts = raw.split('/');
     let day = (parts[0] || '').replace(/\D/g, '').slice(0, 2);
     let month = (parts[1] || '').replace(/\D/g, '').slice(0, 2);
     let year = (parts[2] || '').replace(/\D/g, '').slice(0, 4);
 
-    // If user pasted or typed continuous digits without slashes (e.g. '23082004')
-    if (parts.length === 1 && raw.replace(/\D/g, '').length > 2) {
+    // If user pasted an ISO date (e.g. '2004-08-23')
+    if (raw.includes('-')) {
+      const isoParts = raw.split('-');
+      if (isoParts.length === 3 && isoParts[0].length === 4) {
+        day = isoParts[2].replace(/\D/g, '').slice(0, 2);
+        month = isoParts[1].replace(/\D/g, '').slice(0, 2);
+        year = isoParts[0].replace(/\D/g, '').slice(0, 4);
+        parts = [day, month, year];
+      }
+    } else if (parts.length === 1 && raw.replace(/\D/g, '').length > 2) {
+      // If user pasted or typed continuous digits without slashes (e.g. '23082004')
       const allDigits = raw.replace(/\D/g, '').slice(0, 8);
       day = allDigits.slice(0, 2);
       month = allDigits.slice(2, 4);
@@ -330,21 +362,15 @@ export function CustomDatePicker({
           }}
         >
           <input
+            ref={inputRef}
             id={id}
             type='text'
             aria-label={ariaLabel}
             value={inputValue}
             onChange={handleInputChange}
+            onFocus={handleInputFocus}
             onBlur={handleInputBlur}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                (e.target as HTMLInputElement).blur();
-                if (isOpen) {
-                  animateClose(() => setIsOpen(false));
-                }
-              }
-            }}
+            onKeyDown={handleKeyDown}
             onClick={(e) => {
               e.stopPropagation();
               if (!isOpen) {
@@ -403,6 +429,7 @@ export function CustomDatePicker({
             value={value}
             onChange={(isoStr, dateObj) => {
               onChange(isoStr, dateObj);
+              setTypedValue(null);
               animateClose(() => setIsOpen(false));
             }}
             minYear={minYear}
@@ -450,21 +477,15 @@ export function CustomDatePicker({
         }}
       >
         <input
+          ref={inputRef}
           id={id}
           type='text'
           aria-label={ariaLabel}
           value={inputValue}
           onChange={handleInputChange}
+          onFocus={handleInputFocus}
           onBlur={handleInputBlur}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              (e.target as HTMLInputElement).blur();
-              if (isOpen) {
-                animateClose(() => setIsOpen(false));
-              }
-            }
-          }}
+          onKeyDown={handleKeyDown}
           onClick={(e) => {
             e.stopPropagation();
             if (!isOpen) {
@@ -502,6 +523,7 @@ export function CustomDatePicker({
           value={value}
           onChange={(isoStr, dateObj) => {
             onChange(isoStr, dateObj);
+            setTypedValue(null);
             animateClose(() => setIsOpen(false));
           }}
           minYear={minYear}

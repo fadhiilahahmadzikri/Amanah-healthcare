@@ -211,9 +211,9 @@ export function StaffProfileModal(props: StaffProfileModalProps) {
                     />
                   ) : (
                     <div className='space-y-1.5'>
-                      <label className='text-xs font-medium text-muted-foreground block'>
+                      <span className='text-xs font-medium text-muted-foreground block'>
                         NIK KTP (16 Digit)
-                      </label>
+                      </span>
                       <div className='h-9 flex items-center px-3 rounded-md border border-input bg-muted/40 font-mono text-xs'>
                         <MaskedNik
                           nik={form.formData.nationalId}
