@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import PageContainer from '@/components/layout/page-container';
 import { UnifiedChatWorkspace } from './chat-workspace';
 import { useAdminChat } from '../hooks/use-admin-chat';
+import { useChatFaviconSync } from '../hooks/use-chat-favicon-sync';
 import { useChatStore } from '../utils/store';
 
 function ChatParamSync() {
@@ -22,6 +23,7 @@ function ChatParamSync() {
 }
 
 export default function ChatViewPage() {
+  useChatFaviconSync();
   const { sendMessage, closeConversation, isClientTyping, sendTyping } = useAdminChat();
 
   return (

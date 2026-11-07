@@ -151,7 +151,7 @@ export function ManageApplicationPagesDialog({
   // Atomic bulk action mutation with deterministic DB-backed Undo
   const bulkMutation = useMutation({
     mutationFn: (payload: {
-      action: 'move' | 'detach' | 'toggle_status' | 'reorder' | 'restore';
+      action: 'move' | 'detach' | 'toggle_status' | 'reorder' | 'restore' | 'delete';
       pageIds: string[];
       targetParentId?: string | null;
       isEnabled?: boolean;
@@ -177,10 +177,12 @@ export function ManageApplicationPagesDialog({
             ? `Berhasil melepaskan ${count} halaman menjadi mandiri`
             : variables.action === 'reorder'
             ? `Urutan halaman berhasil diperbarui`
+            : variables.action === 'delete'
+            ? `Berhasil menghapus ${count} folder kategori`
             : `Berhasil memperbarui status ${count} halaman`;
 
         toast.success(actionLabel, {
-          action: {
+          action: variables.action === 'delete' ? undefined : {
             label: 'Urungkan',
             onClick: () => {
               bulkMutation.mutate({
@@ -209,6 +211,24 @@ export function ManageApplicationPagesDialog({
     }
   });
 
+  // Mutation to delete single parent category
+  const deletePageMutation = useMutation({
+    mutationFn: (pageId: string) => roleManagementApi.deletePage(pageId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: roleManagementKeys.pageTree('internal') });
+      queryClient.invalidateQueries({ queryKey: roleManagementKeys.pageTree('external') });
+      queryClient.invalidateQueries({ queryKey: roleManagementKeys.roles() });
+      toast.success('Folder kategori berhasil dihapus');
+    },
+    onError: (err: unknown) => {
+      const errorMsg =
+        (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+        (err as { message?: string })?.message ||
+        'Gagal menghapus kategori';
+      toast.error(errorMsg);
+    }
+  });
+
   // Mutation to detach all children from a category
   const detachChildrenMutation = useMutation({
     mutationFn: (pageId: string) => roleManagementApi.detachChildren(pageId),
@@ -225,6 +245,52 @@ export function ManageApplicationPagesDialog({
       toast.error('Gagal melepaskan halaman dari kategori');
     }
   });
+
+  // Handlers for category deletion
+  const handleDeleteCategoryRequest = (cat: ApplicationPage) => {
+    const childCount = cat.children?.length || 0;
+    setConfirmAction({
+      title: `Hapus Kategori "${cat.name}"?`,
+      description:
+        childCount === 0
+          ? `Kategori ini kosong (0 halaman). Yakin ingin menghapus folder ini secara permanen dari CMS?`
+          : `Kategori ini memiliki ${childCount} halaman di dalamnya. Menghapus folder ini akan melepaskan seluruh halaman di dalamnya menjadi halaman mandiri. Lanjutkan?`,
+      actionLabel: 'Hapus Folder',
+      variant: 'destructive',
+      onConfirm: () => {
+        deletePageMutation.mutate(cat.id);
+      }
+    });
+  };
+
+  const handleBulkDeleteCategoriesRequest = () => {
+    const selectedCategoryIds = selectedPageIds.filter((id) => {
+      const page = findPage(id);
+      return page && (page.routePath === '#' || !page.parentPageId);
+    });
+
+    if (selectedCategoryIds.length === 0) return;
+
+    setConfirmAction({
+      title: `Hapus ${selectedCategoryIds.length} Folder Terpilih?`,
+      description: `Yakin ingin menghapus ${selectedCategoryIds.length} folder kategori terpilih secara permanen? Seluruh halaman anak di dalamnya akan dilepaskan menjadi halaman mandiri tanpa folder induk.`,
+      actionLabel: 'Hapus Folder Terpilih',
+      variant: 'destructive',
+      onConfirm: () => {
+        bulkMutation.mutate({
+          action: 'delete',
+          pageIds: selectedCategoryIds
+        });
+      }
+    });
+  };
+
+  const hasCategoriesSelected = React.useMemo(() => {
+    return selectedPageIds.some((id) => {
+      const page = findPage(id);
+      return page && (page.routePath === '#' || !page.parentPageId);
+    });
+  }, [selectedPageIds, findPage]);
 
   // Drag-and-drop drop handler into a column/category
   const handleDropIntoTarget = (e: React.DragEvent<HTMLDivElement>, targetParentId: string | null) => {
@@ -551,6 +617,16 @@ export function ManageApplicationPagesDialog({
                       {/* Column Header */}
                       <div className='p-3.5 border-b border-border/60 flex items-center justify-between gap-2 shrink-0 bg-muted/20 rounded-t-2xl'>
                         <div className='flex items-center gap-2 min-w-0'>
+                          {canManage && (
+                            <input
+                              type='checkbox'
+                              checked={selectedPageIds.includes(cat.id)}
+                              onChange={() => handleToggleSelect(cat.id)}
+                              className='size-3.5 rounded border-muted-foreground/40 text-primary focus:ring-primary/30 cursor-pointer shrink-0'
+                              title='Pilih kategori ini untuk aksi massal'
+                              aria-label={`Pilih kategori ${cat.name}`}
+                            />
+                          )}
                           <ShiftIconDisplay
                             icon={cat.icon}
                             fallback={cat.name.charAt(0)}
@@ -563,6 +639,11 @@ export function ManageApplicationPagesDialog({
                               <h4 className='text-xs font-bold text-foreground truncate leading-tight'>
                                 {cat.name}
                               </h4>
+                              {!cat.isEnabled && (
+                                <span className='text-[10px] text-muted-foreground italic shrink-0'>
+                                  (Nonaktif)
+                                </span>
+                              )}
                               {isRedZone && (
                                 <span className='flex items-center gap-1 text-[9px] font-semibold text-destructive px-1.5 py-0.2 rounded bg-destructive/15 border border-destructive/25 shrink-0'>
                                   <AlertTriangle className='size-2.5 shrink-0' />
@@ -599,6 +680,24 @@ export function ManageApplicationPagesDialog({
                               title={`Edit Kategori: ${cat.name}`}
                             >
                               <Icons.edit className='size-3' />
+                            </Button>
+                            <Switch
+                              className='scale-75'
+                              checked={cat.isEnabled}
+                              onCheckedChange={(val) =>
+                                togglePageMutation.mutate({ pageId: cat.id, isEnabled: val })
+                              }
+                              aria-label={`Saklar CMS ${cat.name}`}
+                            />
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='icon'
+                              className='size-6 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer'
+                              onClick={() => handleDeleteCategoryRequest(cat)}
+                              title={`Hapus Kategori: ${cat.name}`}
+                            >
+                              <Icons.trash className='size-3 text-destructive' />
                             </Button>
                           </div>
                         )}
@@ -767,6 +866,14 @@ export function ManageApplicationPagesDialog({
 
                         {canManage && (
                           <div className='flex items-center gap-1.5 pl-3 shrink-0'>
+                            <input
+                              type='checkbox'
+                              checked={selectedPageIds.includes(parent.id)}
+                              onChange={() => handleToggleSelect(parent.id)}
+                              className='size-3.5 rounded border-muted-foreground/40 text-primary focus:ring-primary/30 cursor-pointer shrink-0 mr-1'
+                              title='Pilih kategori ini untuk aksi massal'
+                              aria-label={`Pilih kategori ${parent.name}`}
+                            />
                             {children.length > 0 && (
                               <Button
                                 type='button'
@@ -798,6 +905,16 @@ export function ManageApplicationPagesDialog({
                               }
                               aria-label={`Saklar CMS ${parent.name}`}
                             />
+                            <Button
+                              type='button'
+                              variant='ghost'
+                              size='icon'
+                              className='size-7 rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer'
+                              onClick={() => handleDeleteCategoryRequest(parent)}
+                              title={`Hapus Kategori: ${parent.name}`}
+                            >
+                              <Icons.trash className='size-3.5 text-destructive' />
+                            </Button>
                           </div>
                         )}
                       </div>
@@ -964,6 +1081,8 @@ export function ManageApplicationPagesDialog({
             }
           });
         }}
+        hasCategoriesSelected={hasCategoriesSelected}
+        onDeleteCategories={handleBulkDeleteCategoriesRequest}
         onCancel={() => setSelectedPageIds([])}
         isPending={bulkMutation.isPending}
       />

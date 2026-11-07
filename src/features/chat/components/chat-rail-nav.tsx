@@ -4,6 +4,7 @@ import React from 'react';
 import { Icons } from '@/components/icons';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { ChatUnreadBadge } from './atoms/chat-unread-badge';
 
 export type ChatRailTool = 'inbox' | 'settings';
 
@@ -52,7 +53,7 @@ export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
                       type='button'
                       onClick={() => onSelectTool(item.id)}
                       className={cn(
-                        'size-7 rounded-md flex items-center justify-center transition-all',
+                        'relative size-7 rounded-md flex items-center justify-center transition-all',
                         isActive
                           ? 'bg-primary text-primary-foreground shadow-xs'
                           : 'hover:bg-muted hover:text-foreground'
@@ -60,6 +61,9 @@ export function ChatRailNav({ activeTool, onSelectTool }: ChatRailNavProps) {
                       aria-label={item.label}
                     >
                       {item.icon}
+                      {item.id === 'inbox' && (
+                        <ChatUnreadBadge dotOnly className='absolute -top-0.5 -right-0.5' />
+                      )}
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side='right'>{item.label}</TooltipContent>

@@ -54,3 +54,17 @@ export interface MessageListResponse {
   hasMore: boolean;
   nextCursor?: string | null;
 }
+
+export interface ChatCandidateUser {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string | null;
+  avatarUrl?: string | null;
+  medicalRecordNumber?: string | null;
+  existingConversationId?: string | null;
+}
+
+export interface ChatCandidateResponse {
+  data: ChatCandidateUser[];
+}

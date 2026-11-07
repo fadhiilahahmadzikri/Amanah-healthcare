@@ -118,7 +118,7 @@ export const roleManagementApi = {
     ),
 
   bulkPageAction: (data: {
-    action: 'move' | 'detach' | 'toggle_status' | 'restore' | 'reorder';
+    action: 'move' | 'detach' | 'toggle_status' | 'restore' | 'reorder' | 'delete';
     pageIds: string[];
     targetParentId?: string | null;
     isEnabled?: boolean;

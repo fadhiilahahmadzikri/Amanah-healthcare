@@ -1,5 +1,6 @@
 import { clientFetch } from '@/lib/client-fetch';
 import type {
+  ChatCandidateResponse,
   ChatMessage,
   Conversation,
   ConversationListResponse,
@@ -8,6 +9,20 @@ import type {
 
 export const chatApiService = {
   // --- Admin Endpoints ---
+  async getCandidates(search?: string): Promise<ChatCandidateResponse> {
+    return clientFetch<ChatCandidateResponse>('/api/v1/admin/chat/candidates', {
+      method: 'GET',
+      query: search ? { search } : undefined
+    });
+  },
+
+  async createAdminConversation(userId: string): Promise<Conversation> {
+    return clientFetch<Conversation>('/api/v1/admin/chat/conversations', {
+      method: 'POST',
+      body: JSON.stringify({ userId })
+    });
+  },
+
   async getAdminConversations(params?: {
     status?: string;
     awaitingReply?: boolean;

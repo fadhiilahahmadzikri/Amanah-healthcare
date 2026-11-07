@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { cn } from '@/lib/utils';
+import { ChatUnreadBadge } from '../atoms/chat-unread-badge';
 import type { Conversation } from '../../utils/types';
 
 interface ConsultationHistoryDrawerProps {
@@ -142,9 +143,12 @@ export function ConsultationHistoryDrawer({
                       </span>
                     )}
                   </div>
-                  <p className='text-[11px] text-muted-foreground line-clamp-1 break-all'>
-                    {session.lastMessagePreview || 'Belum ada pesan'}
-                  </p>
+                  <div className='flex items-center justify-between gap-1'>
+                    <p className='text-[11px] text-muted-foreground line-clamp-1 break-all flex-1'>
+                      {session.lastMessagePreview || 'Belum ada pesan'}
+                    </p>
+                    <ChatUnreadBadge count={session.unreadCount} size='sm' />
+                  </div>
                 </div>
               </button>
             );

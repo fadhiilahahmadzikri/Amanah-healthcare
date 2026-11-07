@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { requireRouteAccess } from '@/lib/guard';
 import { PatientChatView } from '@/features/chat/components/patient-chat-view';
@@ -12,7 +13,9 @@ export default async function PatientChatPage() {
   return (
     <PageContainer scrollable={false}>
       <div className='flex-1 h-full min-h-0 flex flex-col'>
-        <PatientChatView />
+        <Suspense fallback={null}>
+          <PatientChatView />
+        </Suspense>
       </div>
     </PageContainer>
   );

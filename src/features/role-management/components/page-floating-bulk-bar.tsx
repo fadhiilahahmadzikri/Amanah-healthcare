@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CheckCircle2, FolderInput, Power, Unlink, X } from 'lucide-react';
+import { CheckCircle2, FolderInput, Power, Trash2, Unlink, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -17,9 +17,11 @@ export interface PageFloatingBulkBarProps {
   selectedCount: number;
   availableCategories: ApplicationPage[];
   canManage: boolean;
+  hasCategoriesSelected?: boolean;
   onMoveToCategory: (targetParentId: string | null) => void;
   onDetachSelected: () => void;
   onToggleStatus: (isEnabled: boolean) => void;
+  onDeleteCategories?: () => void;
   onCancel: () => void;
   isPending?: boolean;
 }
@@ -28,9 +30,11 @@ export function PageFloatingBulkBar({
   selectedCount,
   availableCategories,
   canManage,
+  hasCategoriesSelected = false,
   onMoveToCategory,
   onDetachSelected,
   onToggleStatus,
+  onDeleteCategories,
   onCancel,
   isPending = false
 }: PageFloatingBulkBarProps) {
@@ -39,7 +43,7 @@ export function PageFloatingBulkBar({
   return (
     <div className='fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 sm:gap-3 px-3.5 sm:px-4 py-2 sm:py-2.5 bg-background/95 backdrop-blur-md border border-border/90 shadow-2xl rounded-full animate-in fade-in slide-in-from-bottom-4 font-sans select-none'>
       <span className='text-xs font-semibold px-2.5 py-0.5 bg-primary/10 text-primary rounded-full shrink-0'>
-        {selectedCount} halaman terpilih
+        {selectedCount} item terpilih
       </span>
 
       <div className='h-4 w-px bg-border/80 shrink-0' />
@@ -101,7 +105,7 @@ export function PageFloatingBulkBar({
         className='h-7 text-xs gap-1 shrink-0 cursor-pointer text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10'
         onClick={() => onToggleStatus(true)}
         disabled={isPending}
-        title='Aktifkan halaman terpilih di CMS'
+        title='Aktifkan item terpilih di CMS'
       >
         <CheckCircle2 className='size-3.5' />
         <span className='hidden sm:inline'>Aktifkan</span>
@@ -113,11 +117,26 @@ export function PageFloatingBulkBar({
         className='h-7 text-xs gap-1 shrink-0 cursor-pointer text-muted-foreground hover:text-foreground'
         onClick={() => onToggleStatus(false)}
         disabled={isPending}
-        title='Nonaktifkan halaman terpilih di CMS'
+        title='Nonaktifkan item terpilih di CMS'
       >
         <Power className='size-3.5' />
         <span className='hidden sm:inline'>Nonaktifkan</span>
       </Button>
+
+      {/* Bulk Delete Categories (Only shown if categories are selected) */}
+      {hasCategoriesSelected && onDeleteCategories && (
+        <Button
+          size='sm'
+          variant='outline'
+          className='h-7 text-xs gap-1 shrink-0 cursor-pointer text-destructive hover:text-destructive hover:bg-destructive/10 border-destructive/30'
+          onClick={onDeleteCategories}
+          disabled={isPending}
+          title='Hapus folder terpilih secara massal'
+        >
+          <Trash2 className='size-3.5' />
+          <span className='hidden sm:inline'>Hapus Folder</span>
+        </Button>
+      )}
 
       <div className='h-4 w-px bg-border/80 shrink-0' />
 

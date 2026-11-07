@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
+import { ChatUnreadBadge } from './atoms/chat-unread-badge';
+import { ChatNewConversationPanel } from './organisms/chat-new-conversation-panel';
 import type { Conversation } from '../utils/types';
 
 interface ChatInboxSidebarProps {
@@ -49,6 +51,7 @@ export function ChatInboxSidebar({
 }: ChatInboxSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'all' | 'awaiting' | 'closed'>('all');
+  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((c) => {
@@ -78,12 +81,18 @@ export function ChatInboxSidebar({
   return (
     <aside
       className={cn(
-        'w-full md:w-[270px] lg:w-[290px] border-r border-border/60 bg-card flex flex-col min-w-0 shrink-0 select-none',
+        'w-full md:w-[270px] lg:w-[290px] border-r border-border/60 bg-card flex flex-col min-w-0 shrink-0 select-none relative overflow-hidden',
         className
       )}
     >
-      {/* 1. Top Search Bar & Mobile Actions (Standardized rounded-lg radius) */}
-      <div className='p-3 pb-2 flex items-center gap-2 shrink-0'>
+      {/* Master Slide-in New Conversation Panel */}
+      <ChatNewConversationPanel
+        open={isNewChatOpen}
+        onClose={() => setIsNewChatOpen(false)}
+      />
+
+      {/* 1. Top Search Bar & Actions */}
+      <div className='p-3 pb-2 flex items-center gap-1.5 shrink-0'>
         <div className='relative flex-1 min-w-0'>
           <span className='absolute left-3 top-1/2 -translate-y-1/2 flex items-center pointer-events-none text-muted-foreground'>
             <Icons.search className='size-4' />
@@ -109,7 +118,20 @@ export function ChatInboxSidebar({
           )}
         </div>
 
-        {/* Mobile Context Menu (Standardized size-9 rounded-lg button matching search bar) */}
+        {/* New Chat Button (Desktop & Mobile) */}
+        <Button
+          type='button'
+          variant='outline'
+          size='icon'
+          onClick={() => setIsNewChatOpen(true)}
+          className='size-9 rounded-lg shrink-0 text-foreground hover:bg-muted/70 cursor-pointer border-border/70'
+          aria-label='Chat Baru'
+          title='Chat Baru'
+        >
+          <Icons.add className='size-4' />
+        </Button>
+
+        {/* Mobile Context Menu */}
         <div className='block md:hidden shrink-0'>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -125,11 +147,14 @@ export function ChatInboxSidebar({
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end' className='w-44'>
               <DropdownMenuItem
-                onClick={() => onNewMessage?.()}
+                onClick={() => {
+                  setIsNewChatOpen(true);
+                  onNewMessage?.();
+                }}
                 className='text-xs cursor-pointer gap-2'
               >
                 <Icons.add className='size-3.5' />
-                <span>Pesan Baru</span>
+                <span>Chat Baru</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onOpenSettings?.()}
@@ -222,19 +247,21 @@ export function ChatInboxSidebar({
         ) : (
           filteredConversations.map((c) => {
             const isSelected = selectedId === c.id;
+            const hasUnread = (c.unreadCount || 0) > 0;
 
             return (
               <button
                 type='button'
                 key={c.id}
                 onClick={() => onSelect(c.id)}
+                aria-label={`Percakapan dengan ${c.customerName || 'Pasien'}`}
                 className={cn(
-                  'w-full text-left p-2.5 px-3 cursor-pointer flex items-start gap-2.5 transition-colors border-0 bg-transparent',
+                  'w-full text-left p-2.5 px-3 cursor-pointer flex items-center gap-2.5 transition-colors border-0 bg-transparent',
                   isSelected ? 'bg-muted/70' : 'hover:bg-muted/30'
                 )}
               >
-                <div className='relative shrink-0 mt-0.5'>
-                  <Avatar className='size-8 rounded-full ring-1 ring-border/40 overflow-hidden'>
+                <div className='relative shrink-0'>
+                  <Avatar className='size-9 rounded-full ring-1 ring-border/40 overflow-hidden'>
                     <AvatarImage
                       src={c.userId ? `/api/v1/users/${c.userId}/avatar` : DEFAULT_AVATAR_PATH}
                       alt={c.customerName || 'Pasien'}
@@ -244,48 +271,59 @@ export function ChatInboxSidebar({
                       <Image
                         src={DEFAULT_AVATAR_PATH}
                         alt={c.customerName || 'Pasien'}
-                        width={32}
-                        height={32}
+                        width={36}
+                        height={36}
                         unoptimized
                         className='size-full object-cover rounded-full aspect-square'
                       />
                     </AvatarFallback>
                   </Avatar>
-                  {(c.unreadCount || 0) > 0 && (
-                    <span className='absolute -top-1 -right-1 size-3.5 bg-primary text-primary-foreground rounded-full text-[8.5px] font-bold flex items-center justify-center border border-background shadow-xs'>
-                      {c.unreadCount}
-                    </span>
-                  )}
                 </div>
 
                 <div className='flex-1 min-w-0'>
-                  <div className='flex items-center justify-between'>
-                    <span className='text-xs font-semibold text-foreground truncate'>
+                  <div className='flex items-center justify-between gap-1'>
+                    <span
+                      className={cn(
+                        'text-xs truncate',
+                        hasUnread
+                          ? 'font-bold text-foreground'
+                          : 'font-semibold text-foreground/90'
+                      )}
+                    >
                       {c.customerName || 'Pasien'}
                     </span>
-                    <span className='text-[9.5px] text-muted-foreground tabular-nums'>
+                    <span
+                      className={cn(
+                        'text-[9.5px] tabular-nums shrink-0',
+                        hasUnread
+                          ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                          : 'text-muted-foreground'
+                      )}
+                    >
                       {formatConversationTime(c.lastMessageAt)}
                     </span>
                   </div>
 
-                  <p className='text-[10.5px] text-muted-foreground truncate mt-0.5'>
-                    {c.lastMessagePreview || 'Belum ada pesan'}
-                  </p>
+                  <div className='flex items-center justify-between gap-2 mt-0.5'>
+                    <p
+                      className={cn(
+                        'text-[10.5px] truncate flex-1 min-w-0',
+                        hasUnread
+                          ? 'text-foreground font-medium'
+                          : 'text-muted-foreground'
+                      )}
+                    >
+                      {c.lastMessagePreview || 'Belum ada pesan'}
+                    </p>
 
-                  <div className='mt-1 flex items-center gap-1.5'>
-                    {c.status === 'closed' ? (
-                      <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-zinc-500/10 text-zinc-500 border border-zinc-500/20'>
-                        Selesai
-                      </span>
-                    ) : c.awaitingReply ? (
-                      <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20'>
-                        Menunggu Balasan
-                      </span>
-                    ) : (
-                      <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20'>
-                        Terjawab
-                      </span>
-                    )}
+                    <div className='shrink-0 flex items-center gap-1'>
+                      {c.status === 'closed' && !hasUnread && (
+                        <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-muted text-muted-foreground'>
+                          Selesai
+                        </span>
+                      )}
+                      <ChatUnreadBadge count={c.unreadCount} size='sm' />
+                    </div>
                   </div>
                 </div>
               </button>

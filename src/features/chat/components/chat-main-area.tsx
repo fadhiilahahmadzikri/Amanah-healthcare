@@ -14,6 +14,7 @@ interface ChatMainAreaProps {
   conversation?: Conversation;
   messages?: ChatMessage[];
   isClientTyping?: boolean;
+  isProfileOpen?: boolean;
   onSendMessage: (text: string) => void;
   onTyping?: (isTyping: boolean) => void;
   onToggleProfile?: () => void;
@@ -34,10 +35,31 @@ function formatMessageTime(isoString: string): string {
   }
 }
 
+function formatLastSeen(isoString?: string): string {
+  if (!isoString) return 'Tidak aktif';
+  try {
+    const d = new Date(isoString);
+    const now = new Date();
+    const diffMs = now.getTime() - d.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const timeStr = d.toLocaleTimeString('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false
+    });
+    if (diffDays === 0) return `Terakhir aktif hari ini ${timeStr}`;
+    if (diffDays === 1) return `Terakhir aktif kemarin ${timeStr}`;
+    return `Terakhir aktif ${d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit' })} ${timeStr}`;
+  } catch {
+    return 'Tidak aktif';
+  }
+}
+
 export function ChatMainArea({
   conversation,
   messages = [],
   isClientTyping = false,
+  isProfileOpen = false,
   onSendMessage,
   onTyping,
   onToggleProfile,
@@ -89,12 +111,6 @@ export function ChatMainArea({
       </main>
     );
   }
-
-  const subtitle = conversation.medicalRecordNumber
-    ? `No. RM: ${conversation.medicalRecordNumber}`
-    : conversation.guestEmail
-      ? `Tamu • ${conversation.guestEmail}`
-      : conversation.customerEmail || 'Pasien';
 
   return (
     <main
@@ -155,9 +171,16 @@ export function ChatMainArea({
             <div className='text-xs font-bold text-foreground truncate'>
               {conversation.customerName || 'Pasien'}
             </div>
-            <div className='text-[10px] text-muted-foreground leading-tight truncate'>
-              {subtitle}
-            </div>
+            {conversation.status === 'open' ? (
+              <div className='flex items-center gap-1.5 text-[10.5px] font-medium text-emerald-600 dark:text-emerald-400 leading-tight'>
+                <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0' />
+                <span>Online</span>
+              </div>
+            ) : (
+              <div className='text-[10px] text-muted-foreground leading-tight truncate'>
+                {formatLastSeen(conversation.lastMessageAt)}
+              </div>
+            )}
           </div>
         </div>
 
@@ -169,12 +192,13 @@ export function ChatMainArea({
           )}
           {onToggleProfile && (
             <Button
-              variant='outline'
+              type='button'
+              variant={isProfileOpen ? 'secondary' : 'outline'}
               size='sm'
               onClick={onToggleProfile}
-              className='size-8.5 p-0 rounded-lg text-muted-foreground hover:text-foreground shadow-2xs lg:hidden cursor-pointer'
-              title='Lihat Profil Pasien'
-              aria-label='Lihat Profil Pasien'
+              className='size-8.5 p-0 rounded-lg text-muted-foreground hover:text-foreground shadow-2xs cursor-pointer'
+              title={isProfileOpen ? 'Sembunyikan Profil' : 'Lihat Profil'}
+              aria-label={isProfileOpen ? 'Sembunyikan Profil' : 'Lihat Profil'}
             >
               <Icons.user className='size-4' />
             </Button>

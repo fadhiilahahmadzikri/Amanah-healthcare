@@ -28,7 +28,7 @@ self.addEventListener('push', (event) => {
     tag: payload.tag || 'amanah-push-notification',
     renotify: true,
     data: {
-      url: payload.actionUrl || '/dashboard/klinik/antrean',
+      url: payload.actionUrl || payload.data?.url || '',
       ...payload.data
     }
   };
@@ -38,12 +38,13 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const targetUrl = event.notification.data?.url || '/dashboard/klinik/antrean';
+  const targetUrl = event.notification.data?.url;
+  if (!targetUrl) return;
 
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
       for (const client of clientList) {
-        if (client.url.includes(targetUrl) && 'focus' in client) {
+        if ((client.url === targetUrl || client.url.includes(targetUrl)) && 'focus' in client) {
           return client.focus();
         }
       }

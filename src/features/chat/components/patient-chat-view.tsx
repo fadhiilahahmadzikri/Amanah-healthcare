@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -19,6 +20,9 @@ import { ConsultationMessageItem } from './consultation-widget/consultation-mess
 
 export function PatientChatView() {
   const viewer = useViewer();
+  const searchParams = useSearchParams();
+  const queryConversationId = searchParams?.get('conversationId') || searchParams?.get('id');
+
   const [conversation, setConversation] = useState<Conversation | null>(null);
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -58,13 +62,23 @@ export function PatientChatView() {
     if (viewer.isLoading || !viewer.viewer?.id) return;
     setIsLoading(true);
     try {
-      const conv = await chatApiService.getOrCreateConversation({
-        name: viewer.viewer?.name || undefined,
-        email: viewer.viewer?.email || undefined
-      });
-      setConversation(conv);
+      let activeConv: Conversation | null = null;
+      if (queryConversationId) {
+        const historyList = await chatApiService.getCustomerConversations();
+        setConversations(historyList ?? []);
+        activeConv = historyList.find((c) => c.id === queryConversationId) || null;
+      }
 
-      const res = await chatApiService.getPatientMessages(conv.id);
+      if (!activeConv) {
+        activeConv = await chatApiService.getOrCreateConversation({
+          name: viewer.viewer?.name || undefined,
+          email: viewer.viewer?.email || undefined
+        });
+      }
+
+      setConversation(activeConv);
+
+      const res = await chatApiService.getPatientMessages(activeConv.id);
       setMessages(res.data ?? []);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Koneksi error';
@@ -72,7 +86,13 @@ export function PatientChatView() {
     } finally {
       setIsLoading(false);
     }
-  }, [viewer.isLoading, viewer.viewer?.id, viewer.viewer?.email, viewer.viewer?.name]);
+  }, [
+    viewer.isLoading,
+    viewer.viewer?.id,
+    viewer.viewer?.email,
+    viewer.viewer?.name,
+    queryConversationId
+  ]);
 
   useEffect(() => {
     initPatientChat();

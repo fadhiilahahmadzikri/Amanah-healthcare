@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ import type { Conversation } from '../utils/types';
 interface PatientCrmSidebarProps {
   conversation?: Conversation;
   onCloseConversation?: (conversationId: string) => void;
+  onCloseProfile?: () => void;
 }
 
 function copyToClipboard(text: string, label: string) {
@@ -21,7 +23,11 @@ function copyToClipboard(text: string, label: string) {
   toast.success(`${label} disalin ke clipboard`);
 }
 
-export function PatientCrmSidebar({ conversation, onCloseConversation }: PatientCrmSidebarProps) {
+export function PatientCrmSidebar({
+  conversation,
+  onCloseConversation,
+  onCloseProfile
+}: PatientCrmSidebarProps) {
   if (!conversation) {
     return (
       <aside className='w-[280px] bg-card flex flex-col overflow-y-auto p-4 shrink-0 select-none border-l border-border/60'>
@@ -41,8 +47,28 @@ export function PatientCrmSidebar({ conversation, onCloseConversation }: Patient
   return (
     <aside className='w-[280px] bg-card flex flex-col justify-between overflow-y-auto p-4 shrink-0 select-none border-l border-border/60'>
       <div className='flex flex-col items-center text-center'>
+        {/* Panel Header */}
+        <div className='flex items-center justify-between w-full mb-1'>
+          <span className='text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider'>
+            Profil Pasien
+          </span>
+          {onCloseProfile && (
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              onClick={onCloseProfile}
+              className='size-7 rounded-md text-muted-foreground hover:text-foreground cursor-pointer'
+              title='Tutup Panel'
+              aria-label='Tutup Panel'
+            >
+              <Icons.close className='size-3.5' />
+            </Button>
+          )}
+        </div>
+
         {/* Avatar & Name */}
-        <Avatar className='size-[56px] rounded-full ring-2 ring-primary/20 shadow-xs mt-2 overflow-hidden'>
+        <Avatar className='size-[56px] rounded-full ring-2 ring-primary/20 shadow-xs mt-1 overflow-hidden'>
           <AvatarImage
             src={
               conversation.userId
@@ -64,28 +90,17 @@ export function PatientCrmSidebar({ conversation, onCloseConversation }: Patient
           </AvatarFallback>
         </Avatar>
 
-        <h3 className='text-xs font-bold text-foreground mt-2.5 leading-tight'>
+        <h3 className='text-xs font-bold text-foreground mt-2 leading-tight'>
           {conversation.customerName || 'Pasien'}
         </h3>
 
-        <div className='mt-1 flex items-center gap-1.5'>
+        {/* Clean plain-text with pipeline separator */}
+        <div className='mt-1.5 flex items-center justify-center gap-2 text-[11px] text-muted-foreground font-medium'>
+          <span>{isGuest ? 'Tamu Publik' : 'Pasien Terdaftar'}</span>
+          <Separator orientation='vertical' className='h-3 bg-border/80' />
           <span
             className={cn(
-              'px-2 py-0.5 rounded-full text-[9px] font-semibold border',
-              isGuest
-                ? 'bg-amber-500/10 text-amber-600 border-amber-500/20'
-                : 'bg-primary/10 text-primary border-primary/20'
-            )}
-          >
-            {isGuest ? 'Tamu Publik' : 'Pasien Terdaftar'}
-          </span>
-
-          <span
-            className={cn(
-              'px-2 py-0.5 rounded-full text-[9px] font-semibold border',
-              isOpen
-                ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-                : 'bg-zinc-500/10 text-zinc-500 border-zinc-500/20'
+              isOpen ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-muted-foreground'
             )}
           >
             {isOpen ? 'Aktif' : 'Selesai'}

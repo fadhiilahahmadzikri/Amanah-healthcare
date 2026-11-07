@@ -22,6 +22,8 @@ interface ChatState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   updateConversationStatus: (id: string, status: ConversationStatus) => void;
+  upsertConversation: (conversation: Conversation) => void;
+  getTotalUnreadCount: () => number;
   getActiveConversation: () => Conversation | undefined;
   getActiveMessages: () => ChatMessage[];
 }
@@ -98,6 +100,21 @@ export const useChatStore = create<ChatState>()((set, get) => ({
     set((state) => ({
       conversations: state.conversations.map((c) => (c.id === id ? { ...c, status } : c))
     })),
+
+  upsertConversation: (conversation) =>
+    set((state) => {
+      const exists = state.conversations.some((c) => c.id === conversation.id);
+      return {
+        conversations: exists
+          ? state.conversations.map((c) => (c.id === conversation.id ? { ...c, ...conversation } : c))
+          : [conversation, ...state.conversations],
+        selectedConversationId: conversation.id
+      };
+    }),
+
+  getTotalUnreadCount: () => {
+    return get().conversations.reduce((acc, c) => acc + (c.unreadCount || 0), 0);
+  },
 
   getActiveConversation: () => {
     const state = get();

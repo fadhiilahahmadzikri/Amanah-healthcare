@@ -7,7 +7,6 @@ import { ChatRailNav, type ChatRailTool } from './chat-rail-nav';
 import { ChatInboxSidebar } from './chat-inbox-sidebar';
 import { ChatMainArea } from './chat-main-area';
 import { PatientCrmSidebar } from './patient-crm-sidebar';
-import { EmptyState } from '@/components/ui/empty-state';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +28,7 @@ export function UnifiedChatWorkspace({
 
   const [activeTool, setActiveTool] = useState<ChatRailTool>('inbox');
   const [showMobileProfile, setShowMobileProfile] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(true);
   const [isMobileChatOpen, setIsMobileChatOpen] = useState(Boolean(initialConversationId));
 
   const {
@@ -58,6 +58,14 @@ export function UnifiedChatWorkspace({
     setIsMobileChatOpen(false);
   };
 
+  const handleToggleProfile = () => {
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setShowMobileProfile((prev) => !prev);
+    } else {
+      setIsRightSidebarOpen((prev) => !prev);
+    }
+  };
+
   // Close mobile profile drawer on Escape key press
   useEffect(() => {
     if (!showMobileProfile) return;
@@ -69,19 +77,6 @@ export function UnifiedChatWorkspace({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showMobileProfile]);
-
-  if (conversations.length === 0) {
-    return (
-      <div className='flex flex-1 min-h-0 h-full w-full flex-col'>
-        <EmptyState
-          icon={Icons.chat}
-          title='Belum Ada Percakapan'
-          description='Belum ada riwayat pesan atau konsultasi pasien yang aktif saat ini.'
-          className='h-full w-full flex-1'
-        />
-      </div>
-    );
-  }
 
   return (
     <div className='w-full h-full flex-1 min-h-0 bg-card border border-border/80 rounded-[8px] overflow-hidden shadow-xs flex select-none'>
@@ -104,9 +99,10 @@ export function UnifiedChatWorkspace({
         conversation={activeConversation}
         messages={activeMessages}
         isClientTyping={isClientTyping}
+        isProfileOpen={isRightSidebarOpen}
         onSendMessage={(text) => onSendMessage?.(text)}
         onTyping={onTyping}
-        onToggleProfile={() => setShowMobileProfile(!showMobileProfile)}
+        onToggleProfile={handleToggleProfile}
         onBackToInbox={handleBackToInbox}
         className={cn(
           !isMobileChatOpen ? 'hidden' : 'flex flex-1 w-full',
@@ -114,12 +110,13 @@ export function UnifiedChatWorkspace({
         )}
       />
 
-      {/* Column 4: Patient Info Sidebar (Desktop only, rendered when a conversation is active) */}
-      {activeConversation && (
+      {/* Column 4: Patient Info Sidebar (Desktop only, rendered when a conversation is active and panel open) */}
+      {activeConversation && isRightSidebarOpen && (
         <div className='hidden lg:block shrink-0'>
           <PatientCrmSidebar
             conversation={activeConversation}
             onCloseConversation={onCloseConversation}
+            onCloseProfile={() => setIsRightSidebarOpen(false)}
           />
         </div>
       )}
@@ -148,6 +145,7 @@ export function UnifiedChatWorkspace({
             <PatientCrmSidebar
               conversation={activeConversation}
               onCloseConversation={onCloseConversation}
+              onCloseProfile={() => setShowMobileProfile(false)}
             />
           </div>
         </div>

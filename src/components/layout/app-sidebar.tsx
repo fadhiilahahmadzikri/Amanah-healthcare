@@ -38,6 +38,8 @@ import * as React from 'react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
 import { resolveLucideIcon } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
+import { ChatUnreadBadge } from '@/features/chat/components/atoms/chat-unread-badge';
+import { cn } from '@/lib/utils';
 
 const EMOJI_REGEX = /\p{Extended_Pictographic}/u;
 
@@ -108,6 +110,11 @@ export default function AppSidebar() {
               <SidebarMenu>
                 {group.items.map((item) => {
                   const itemIsActive = isNavItemActive(pathname, item.url, item.items);
+                  const isChatRoute = item.url === '/admin/chat' || item.url === '/klinik/chat';
+                  const hasChatSubItem = item.items?.some(
+                    (s) => s.url === '/admin/chat' || s.url === '/klinik/chat'
+                  );
+
                   return item?.items && item?.items?.length > 0 ? (
                     <Collapsible
                       key={item.title}
@@ -120,12 +127,17 @@ export default function AppSidebar() {
                           <SidebarMenuButton tooltip={item.title} isActive={itemIsActive}>
                             <SidebarItemIcon icon={item.icon} fallback={<Icons.logo />} />
                             <span>{item.title}</span>
-                            <Icons.chevronRight className='transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 ml-auto' />
+                            {hasChatSubItem && (
+                              <ChatUnreadBadge size='sm' className='ml-auto mr-1' />
+                            )}
+                            <Icons.chevronRight className={cn('transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90', !hasChatSubItem && 'ml-auto')} />
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent>
                           <SidebarMenuSub>
                             {item.items?.map((subItem) => {
+                              const isSubChat =
+                                subItem.url === '/admin/chat' || subItem.url === '/klinik/chat';
                               return (
                                 <SidebarMenuSubItem key={subItem.title}>
                                   <SidebarMenuSubButton
@@ -137,6 +149,9 @@ export default function AppSidebar() {
                                       <span className='min-w-0 flex-1 truncate'>
                                         {subItem.title}
                                       </span>
+                                      {isSubChat && (
+                                        <ChatUnreadBadge size='sm' className='ml-auto' />
+                                      )}
                                     </Link>
                                   </SidebarMenuSubButton>
                                 </SidebarMenuSubItem>
@@ -152,6 +167,7 @@ export default function AppSidebar() {
                         <Link href={item.url} onClick={handleNavClick}>
                           <SidebarItemIcon icon={item.icon} fallback={<Icons.logo />} />
                           <span>{item.title}</span>
+                          {isChatRoute && <ChatUnreadBadge size='sm' className='ml-auto' />}
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
