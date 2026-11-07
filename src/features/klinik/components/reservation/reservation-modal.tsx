@@ -492,9 +492,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                   size='md'
                   shape='pill'
                   onClick={() => setStep('session')}
-                  withTrailingCircleIcon
-                  className='min-w-[140px]'
-                  trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  className='min-w-[120px]'
                 >
                   Lanjut
                 </Button>
@@ -506,9 +504,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                   shape='pill'
                   disabled={!session}
                   onClick={() => setStep('confirmation')}
-                  withTrailingCircleIcon
-                  className='min-w-[140px]'
-                  trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  className='min-w-[120px]'
                 >
                   Lanjut
                 </Button>
@@ -521,15 +517,7 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
                   disabled={isSubmitting}
                   isLoading={isSubmitting}
                   onClick={handleFinalSubmit}
-                  withTrailingCircleIcon
-                  className='min-w-[160px]'
-                  trailingIcon={
-                    isReschedule ? (
-                      <Icons.check className='size-3 stroke-[2.5]' />
-                    ) : (
-                      <Icons.arrowUpRight className='size-3 stroke-[2.5]' />
-                    )
-                  }
+                  className='min-w-[140px]'
                 >
                   {isSubmitting
                     ? isReschedule

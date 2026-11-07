@@ -123,37 +123,26 @@ export function AppointmentCancellationModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[500px]'
+      maxWidth='max-w-[420px]'
       backdropClassName='overflow-hidden'
-      className='flex flex-col h-auto max-h-none overflow-visible rounded-2xl border border-border bg-card p-5 sm:p-6 w-full max-w-[500px] my-auto shadow-2xl'
+      className='flex flex-col h-auto max-h-none overflow-visible rounded-2xl border border-border bg-card p-5 sm:p-6 w-full max-w-[420px] my-auto shadow-xl'
     >
       <div className='flex flex-col font-sans select-none h-auto min-h-0 gap-4 justify-start'>
-        <div className='flex items-start gap-3'>
-          <div
-            className={`size-10 rounded-xl flex items-center justify-center shrink-0 mt-0.5 border ${
-              isDirect
-                ? 'bg-destructive/10 border-destructive/20 text-destructive'
-                : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400'
-            }`}
-          >
-            <Icons.alertCircle className='size-5 stroke-[2]' />
-          </div>
-          <div>
-            <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-              {isDirect
-                ? isBulk
-                  ? `Batalkan ${effectiveCount} Janji Temu (Langsung)`
-                  : `Batalkan Janji Temu ${patientName ? `(${patientName})` : ''} (Langsung)`
-                : isBulk
-                  ? `Ajukan Pembatalan ${effectiveCount} Janji Temu`
-                  : `Ajukan Pembatalan Janji Temu ${patientName ? `(${patientName})` : ''}`}
-            </h3>
-            <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
-              {isDirect
-                ? `Tindakan ini akan membatalkan antrean ${bookingCode ? `kode ${bookingCode} ` : ''}dan melepaskan slot tiket pasien seketika tanpa pengajuan proposal.`
-                : `Usulan pembatalan ${bookingCode ? `antrean ${bookingCode} ` : ''}akan dikirimkan kepada pasien via notifikasi. Janji temu akan dibatalkan resmi setelah disetujui pasien.`}
-            </p>
-          </div>
+        <div className='space-y-1 text-left'>
+          <h3 className='text-base font-semibold tracking-tight text-foreground'>
+            {isDirect
+              ? isBulk
+                ? `Batalkan ${effectiveCount} Janji Temu`
+                : 'Batalkan Janji Temu'
+              : isBulk
+                ? `Ajukan Pembatalan ${effectiveCount} Janji Temu`
+                : 'Ajukan Pembatalan'}
+          </h3>
+          <p className='text-xs text-muted-foreground leading-relaxed'>
+            {isDirect
+              ? `Batalkan antrean ${patientName ? `pasien ${patientName}` : isBulk ? `${effectiveCount} antrean` : ''} di sistem.`
+              : `Kirim usulan pembatalan ${patientName ? `pasien ${patientName}` : isBulk ? `${effectiveCount} antrean` : ''} ke pasien.`}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className='space-y-4 pt-1'>
@@ -170,48 +159,30 @@ export function AppointmentCancellationModal({
               rows={3}
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder='Tuliskan alasan pembatalan (misal: Dokter berhalangan hadir atau kendala operasional klinik)...'
+              placeholder='Tulis alasan pembatalan...'
               required
               className='w-full rounded-xl border border-input bg-background p-3 text-xs shadow-2xs focus:outline-none focus:ring-1 focus:ring-ring text-foreground resize-none'
             />
-          </div>
-
-          <div
-            className={`flex items-center gap-2 p-2.5 rounded-lg text-xs ${
-              isDirect
-                ? 'bg-destructive/10 text-destructive border border-destructive/20'
-                : 'bg-muted/60 text-muted-foreground'
-            }`}
-          >
-            <Icons.info className='size-4 text-primary shrink-0' />
-            <span>
-              {isDirect
-                ? 'Tindakan langsung (override) ini akan merilis tiket pasien seketika dan tidak dapat dibatalkan.'
-                : 'Tindakan usulan ini memerlukan konfirmasi pasien demi menjaga kepastian dan rekam medis pelayanan klinik.'}
-            </span>
           </div>
 
           <div className='flex items-center justify-end gap-2 shrink-0 pt-2 border-t border-border/40'>
             <Button
               type='button'
               variant='ghost'
-              size='md'
-              shape='pill'
+              size='sm'
               onClick={onClose}
               disabled={isSubmitting}
             >
-              Kembali
+              Batal
             </Button>
             <Button
               type='submit'
               variant='destructive'
-              size='md'
-              shape='pill'
+              size='sm'
               disabled={isSubmitting || !reason.trim()}
               isLoading={isSubmitting}
-              className='min-w-[140px]'
             >
-              {isSubmitting ? 'Memproses...' : isDirect ? 'Batalkan Sekarang' : 'Ajukan Pembatalan'}
+              {isSubmitting ? 'Memproses...' : isDirect ? 'Batalkan Sekarang' : 'Kirim Usulan'}
             </Button>
           </div>
         </form>

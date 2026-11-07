@@ -54,17 +54,17 @@ export function BookingConfirmationStep({
           {isReschedule
             ? isInternalProposal
               ? isBulk
-                ? `Pengajuan jadwal baru untuk ${appointmentCount} antrean`
-                : 'Cek ringkasan jadwal baru janji temu ✨'
-              : 'Cek ringkasan jadwal baru kamu ✨'
-            : 'Cek lagi ringkasan janji temu kamu ya ✨'}
+                ? `Pengajuan jadwal baru (${appointmentCount} antrean)`
+                : 'Ringkasan Jadwal Baru'
+              : 'Ringkasan Jadwal Baru'
+            : 'Ringkasan Janji Temu'}
         </h3>
         <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
           {isReschedule
             ? isInternalProposal
               ? 'Pastikan tanggal dan sesi baru sudah sesuai sebelum diajukan ke pasien.'
               : 'Pastikan tanggal dan sesi baru sudah sesuai sebelum disimpan.'
-            : 'Pastikan semua data sudah sesuai sebelum tiket antrean resmi diterbitkan.'}
+            : 'Pastikan data janji temu sudah sesuai sebelum disimpan.'}
         </p>
       </div>
 
@@ -140,13 +140,13 @@ export function BookingConfirmationStep({
       </div>
 
       <div className='flex items-center gap-2 p-2.5 rounded-lg bg-muted/60 text-muted-foreground text-xs'>
-        <Icons.info className='size-4 text-primary shrink-0' />
+        <Icons.info className='size-4 text-muted-foreground shrink-0' />
         <span>
           {isReschedule
             ? isInternalProposal
-              ? 'Usulan perubahan jadwal akan dikirimkan kepada pasien via notifikasi. Janji temu akan berpindah setelah disetujui pasien.'
-              : 'Setelah disimpan, jadwal janji temu Anda akan langsung diperbarui ke tanggal dan sesi baru yang dipilih.'
-            : 'Setelah disimpan, tiket nomor antrean resmi klinik akan langsung terbit. Dokter dan ruangan konsultasi ditetapkan saat giliran dipanggil.'}
+              ? 'Usulan perubahan jadwal akan dikirimkan ke pasien untuk konfirmasi.'
+              : 'Jadwal janji temu akan langsung diperbarui ke tanggal dan sesi yang dipilih.'
+            : 'Nomor antrean resmi klinik akan langsung diterbitkan setelah disimpan.'}
         </span>
       </div>
     </div>
