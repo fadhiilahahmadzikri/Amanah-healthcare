@@ -75,5 +75,5 @@ export function getMaternalSmokingLabel(val?: string | null): string {
   if (val === 'Tidak') return 'Tidak Pernah';
   if (val === 'Pasif') return 'Perokok Pasif (Suami/Keluarga)';
   if (val === 'Aktif') return 'Aktif Merokok';
-  return val || '-';
+  return val || '';
 }

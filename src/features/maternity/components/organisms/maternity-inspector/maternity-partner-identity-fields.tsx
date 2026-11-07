@@ -5,12 +5,13 @@ import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { formatClinicDate } from '@/lib/date-format';
-import type { MaternityIntake } from '../../../types/maternity.types';
+import type { MaternityIntake, MaternalHusbandProfile } from '../../../types/maternity.types';
 
 export interface MaternityPartnerIdentityFieldsProps {
   intake?: MaternityIntake | null;
   isEditing?: boolean;
   onIntakeFieldChange?: (field: keyof MaternityIntake, value: any) => void;
+  onHusbandFieldChange?: (field: keyof MaternalHusbandProfile, value: any) => void;
   validationErrors?: Record<string, string>;
   onClearError?: (field: string) => void;
   educationOptions: string[];
@@ -22,6 +23,7 @@ export function MaternityPartnerIdentityFields({
   intake,
   isEditing = false,
   onIntakeFieldChange,
+  onHusbandFieldChange,
   validationErrors,
   onClearError,
   educationOptions,
@@ -38,8 +40,15 @@ export function MaternityPartnerIdentityFields({
         <PatientLineInput
           id='maternity-husband-name'
           label='Nama Suami'
-          value={intake?.partnerName || ''}
-          onChange={(val) => onIntakeFieldChange('partnerName', val)}
+          value={intake?.partnerName}
+          onChange={(val) => {
+            onIntakeFieldChange('partnerName', val);
+            if (validationErrors?.partnerName) {
+              onClearError?.('partnerName');
+            }
+          }}
+          error={validationErrors?.partnerName}
+          invalid={Boolean(validationErrors?.partnerName)}
           placeholder='Nama lengkap suami...'
         />
 
@@ -47,7 +56,7 @@ export function MaternityPartnerIdentityFields({
           <PatientLineInput
             id='maternity-husband-nik'
             label='NIK Suami (16 Digit)'
-            value={intake?.partnerNik || ''}
+            value={intake?.partnerNik}
             onChange={(val) => {
               const numeric = val.replace(/\D/g, '').slice(0, 16);
               onIntakeFieldChange('partnerNik', numeric);
@@ -66,10 +75,17 @@ export function MaternityPartnerIdentityFields({
             id='maternity-husband-birthdate'
             label='Tanggal Lahir Suami'
             value={intake?.partnerBirthDate || ''}
-            onChange={(val) => onIntakeFieldChange('partnerBirthDate', val)}
+            onChange={(val) => {
+              onIntakeFieldChange('partnerBirthDate', val);
+              if (validationErrors?.partnerBirthDate && val) {
+                onClearError?.('partnerBirthDate');
+              }
+            }}
             placeholder='Pilih tgl lahir'
             disableFutureDates
             variant='underline'
+            error={validationErrors?.partnerBirthDate}
+            invalid={Boolean(validationErrors?.partnerBirthDate)}
           />
         </div>
 
@@ -78,9 +94,9 @@ export function MaternityPartnerIdentityFields({
             id='maternity-husband-phone'
             label='Nomor HP Suami'
             type='tel'
-            value={(intake as any)?.partnerPhone || ''}
+            value={intake?.husbandProfile?.phoneNumber || ''}
             onChange={(val) => {
-              onIntakeFieldChange('partnerPhone' as any, val);
+              onHusbandFieldChange?.('phoneNumber', val);
               if (validationErrors?.partnerPhone) {
                 onClearError?.('partnerPhone');
               }
@@ -94,7 +110,7 @@ export function MaternityPartnerIdentityFields({
           <PatientLineSelect
             id='maternity-husband-bloodtype'
             label='Golongan Darah Suami'
-            value={intake?.partnerBloodType || 'Tidak Tahu'}
+            value={intake?.partnerBloodType}
             onChange={(val) => onIntakeFieldChange('partnerBloodType', val)}
             options={['Tidak Tahu', ...bloodTypeOptions]}
           />
@@ -104,7 +120,7 @@ export function MaternityPartnerIdentityFields({
           <PatientLineSelect
             id='maternity-husband-education'
             label='Pendidikan Terakhir Suami'
-            value={intake?.partnerEducation || 'SMA/SMK'}
+            value={intake?.partnerEducation}
             onChange={(val) => onIntakeFieldChange('partnerEducation', val)}
             options={educationOptions}
           />
@@ -112,7 +128,7 @@ export function MaternityPartnerIdentityFields({
           <PatientLineSelect
             id='maternity-husband-job'
             label='Pekerjaan Suami'
-            value={intake?.partnerJob || 'Karyawan Swasta'}
+            value={intake?.partnerJob}
             onChange={(val) => onIntakeFieldChange('partnerJob', val)}
             options={occupationOptions}
           />
@@ -127,22 +143,43 @@ export function MaternityPartnerIdentityFields({
             <PatientLineInput
               id='maternity-dasawisma'
               label='Dasawisma'
-              value={intake?.dasawisma || ''}
-              onChange={(val) => onIntakeFieldChange('dasawisma', val)}
+              value={intake?.dasawisma}
+              onChange={(val) => {
+                onIntakeFieldChange('dasawisma', val);
+                if (validationErrors?.dasawisma) {
+                  onClearError?.('dasawisma');
+                }
+              }}
+              error={validationErrors?.dasawisma}
+              invalid={Boolean(validationErrors?.dasawisma)}
               placeholder='cth: Mawar 1'
             />
             <PatientLineInput
               id='maternity-posyandu'
               label='Posyandu'
-              value={intake?.posyandu || ''}
-              onChange={(val) => onIntakeFieldChange('posyandu', val)}
+              value={intake?.posyandu}
+              onChange={(val) => {
+                onIntakeFieldChange('posyandu', val);
+                if (validationErrors?.posyandu) {
+                  onClearError?.('posyandu');
+                }
+              }}
+              error={validationErrors?.posyandu}
+              invalid={Boolean(validationErrors?.posyandu)}
               placeholder='cth: Melati'
             />
             <PatientLineInput
               id='maternity-puskesmas'
               label='Puskesmas'
-              value={intake?.puskesmas || ''}
-              onChange={(val) => onIntakeFieldChange('puskesmas', val)}
+              value={intake?.puskesmas}
+              onChange={(val) => {
+                onIntakeFieldChange('puskesmas', val);
+                if (validationErrors?.puskesmas) {
+                  onClearError?.('puskesmas');
+                }
+              }}
+              error={validationErrors?.puskesmas}
+              invalid={Boolean(validationErrors?.puskesmas)}
               placeholder='cth: Depok III'
             />
           </div>
@@ -161,7 +198,7 @@ export function MaternityPartnerIdentityFields({
       <PatientLineInput
         id='view-husband-name'
         label='Nama Suami'
-        value={intake?.partnerName || '-'}
+        value={intake?.partnerName || ''}
         readOnly
       />
 
@@ -169,14 +206,14 @@ export function MaternityPartnerIdentityFields({
         <PatientLineInput
           id='view-husband-nik'
           label='NIK Suami (16 Digit)'
-          value={intake?.partnerNik || '-'}
+          value={intake?.partnerNik || ''}
           isMonospace
           readOnly
         />
         <PatientLineInput
           id='view-husband-birthdate'
           label='Tanggal Lahir Suami'
-          value={formatClinicDate(intake?.partnerBirthDate, { style: 'human_medium' })}
+          value={intake?.partnerBirthDate ? formatClinicDate(intake.partnerBirthDate, { style: 'human_medium' }) : ''}
           readOnly
         />
       </div>
@@ -185,14 +222,14 @@ export function MaternityPartnerIdentityFields({
         <PatientLineInput
           id='view-husband-phone'
           label='Nomor HP Suami'
-          value={(intake as any)?.partnerPhone || '-'}
+          value={intake?.husbandProfile?.phoneNumber || ''}
           isMonospace
           readOnly
         />
         <PatientLineInput
           id='view-husband-bloodtype'
           label='Golongan Darah Suami'
-          value={intake?.partnerBloodType || '-'}
+          value={intake?.partnerBloodType || ''}
           readOnly
         />
       </div>
@@ -201,13 +238,13 @@ export function MaternityPartnerIdentityFields({
         <PatientLineInput
           id='view-husband-education'
           label='Pendidikan Terakhir Suami'
-          value={intake?.partnerEducation || '-'}
+          value={intake?.partnerEducation || ''}
           readOnly
         />
         <PatientLineInput
           id='view-husband-job'
           label='Pekerjaan Suami'
-          value={intake?.partnerJob || '-'}
+          value={intake?.partnerJob || ''}
           readOnly
         />
       </div>
@@ -221,19 +258,19 @@ export function MaternityPartnerIdentityFields({
           <PatientLineInput
             id='view-dasawisma'
             label='Dasawisma'
-            value={intake?.dasawisma || '-'}
+            value={intake?.dasawisma || ''}
             readOnly
           />
           <PatientLineInput
             id='view-posyandu'
             label='Posyandu'
-            value={intake?.posyandu || '-'}
+            value={intake?.posyandu || ''}
             readOnly
           />
           <PatientLineInput
             id='view-puskesmas'
             label='Puskesmas'
-            value={intake?.puskesmas || '-'}
+            value={intake?.puskesmas || ''}
             readOnly
           />
         </div>

@@ -58,7 +58,7 @@ export const RegulerHeader: React.FC<RegulerHeaderProps> = ({
           </div>
           <div className='py-1 px-1 min-h-[24px] flex items-center justify-center'>
             <FormText customPt={9} bold align='center'>
-              {medicalRecordNumber || '-'}
+              {medicalRecordNumber || ''}
             </FormText>
           </div>
           {bookingCode && (

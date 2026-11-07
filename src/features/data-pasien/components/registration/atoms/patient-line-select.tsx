@@ -17,7 +17,7 @@ export type PatientLineSelectOption = string | { label: string; value: string };
 export interface PatientLineSelectProps {
   id: string;
   label: React.ReactNode;
-  value: string;
+  value?: string | null;
   onChange: (value: string) => void;
   options: readonly PatientLineSelectOption[] | PatientLineSelectOption[];
   placeholder?: string;
@@ -43,13 +43,14 @@ export function PatientLineSelect({
 }: PatientLineSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const isInvalid = Boolean(invalid || error);
-  const hasValue = Boolean(value && String(value).trim().length > 0);
+  const valString = value === null || value === undefined ? '' : String(value);
+  const hasValue = Boolean(valString.trim().length > 0);
   const isFloating = isOpen || hasValue;
 
   return (
     <div className={cn('relative pt-3', containerClassName)}>
       <Select
-        value={value}
+        value={valString}
         disabled={disabled}
         open={isOpen}
         onOpenChange={setIsOpen}

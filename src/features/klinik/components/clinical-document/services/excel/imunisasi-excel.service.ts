@@ -45,7 +45,7 @@ export async function exportImunisasiExcel(
 
   ws.mergeCells('A3:F3');
   const t3 = ws.getCell('A3');
-  t3.value = `No. Rekam Medis: ${data?.header?.recordDigits?.join('') || '-'}`;
+  t3.value = `No. Rekam Medis: ${data?.header?.recordDigits?.join('') || ''}`;
   t3.font = { bold: true, size: 10, name: 'Calibri' };
   t3.alignment = { horizontal: 'center', vertical: 'middle' };
 
@@ -67,7 +67,7 @@ export async function exportImunisasiExcel(
     r.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
     r.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
-    r.getCell(3).value = leftVals[idx] || rDef.leftValue || '-';
+    r.getCell(3).value = leftVals[idx] || rDef.leftValue || '';
     r.getCell(3).font = { size: 9, name: 'Calibri' };
     r.getCell(3).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
@@ -75,7 +75,7 @@ export async function exportImunisasiExcel(
     r.getCell(4).font = { bold: true, size: 9, name: 'Calibri' };
     r.getCell(4).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
-    r.getCell(6).value = rightVals[idx] || rDef.rightValue || '-';
+    r.getCell(6).value = rightVals[idx] || rDef.rightValue || '';
     r.getCell(6).font = { size: 9, name: 'Calibri' };
     r.getCell(6).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
 
@@ -92,11 +92,11 @@ export async function exportImunisasiExcel(
   const p1 = ws.getRow(currentLine);
   p1.getCell(1).value = 'Pernah Imunisasi Sebelumnya:';
   p1.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
-  p1.getCell(3).value = data?.preTable?.previousVaccines || '-';
+  p1.getCell(3).value = data?.preTable?.previousVaccines || '';
   p1.getCell(3).font = { size: 9, name: 'Calibri' };
   p1.getCell(4).value = 'Riwayat Alergi Anak:';
   p1.getCell(4).font = { bold: true, size: 9, name: 'Calibri' };
-  p1.getCell(6).value = data?.preTable?.allergy || '-';
+  p1.getCell(6).value = data?.preTable?.allergy || '';
   p1.getCell(6).font = { size: 9, name: 'Calibri' };
   applyRowBorders(p1, 1, 6);
 
@@ -143,11 +143,11 @@ export async function exportImunisasiExcel(
     r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
     r.getCell(2).value = vaccineLabel;
     r.getCell(2).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
-    r.getCell(3).value = rec?.injectionDate || '-';
+    r.getCell(3).value = rec?.injectionDate || '';
     r.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
-    r.getCell(4).value = rec?.age || '-';
+    r.getCell(4).value = rec?.age || '';
     r.getCell(4).alignment = { horizontal: 'center', vertical: 'middle' };
-    r.getCell(5).value = rec?.planning || '-';
+    r.getCell(5).value = rec?.planning || '';
     r.getCell(5).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
 
     for (let c = 1; c <= 6; c += 1) {

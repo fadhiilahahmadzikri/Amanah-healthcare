@@ -2,7 +2,10 @@ import { describe, expect, it } from 'bun:test';
 import {
   validateRegularForm,
   validateMaternalForm,
-  validateImmunizationForm
+  validateImmunizationForm,
+  getMaternityTabWithErrors,
+  getMaternityTabErrorCounts,
+  MATERNITY_FIELD_DOM_ID_MAP
 } from './inspector-form.schema';
 
 describe('Inspector Form Zod Validation', () => {
@@ -64,6 +67,54 @@ describe('Inspector Form Zod Validation', () => {
       });
       expect(res.isValid).toBe(false);
       expect(res.errors.partnerNik).toBe('NIK suami harus berupa 16 digit angka');
+    });
+
+    it('should accurately calculate error counts across all 4 tabs', () => {
+      const mockErrors = {
+        motherName: 'Nama wajib diisi',
+        marriageDate: 'Tanggal menikah tidak valid',
+        parityCount: 'Paritas melebihi riwayat kehamilan',
+        heightCm: 'Tinggi badan minimal 0',
+        condition_HYPERTENSION_year: 'Tahun diagnosis tidak valid'
+      };
+
+      const counts = getMaternityTabErrorCounts(mockErrors);
+      expect(counts.identitas).toBe(2);
+      expect(counts.obstetri).toBe(1);
+      expect(counts.klinis).toBe(1);
+      expect(counts.skrining).toBe(1);
+    });
+
+    it('should map first error tab correctly to obstetri when only obstetric errors exist', () => {
+      const mockErrors = {
+        parityCount: 'Paritas tidak boleh melebihi riwayat kehamilan'
+      };
+      expect(getMaternityTabWithErrors(mockErrors)).toBe('obstetri');
+    });
+
+    it('should provide DOM element IDs for all standard maternity fields', () => {
+      expect(MATERNITY_FIELD_DOM_ID_MAP.motherName).toBe('maternity-mother-name');
+      expect(MATERNITY_FIELD_DOM_ID_MAP.marriageDate).toBe('maternity-marriage-date');
+      expect(MATERNITY_FIELD_DOM_ID_MAP.parityCount).toBe('maternity-parity');
+      expect(MATERNITY_FIELD_DOM_ID_MAP.heightCm).toBe('maternity-height');
+      expect(MATERNITY_FIELD_DOM_ID_MAP.dasawisma).toBe('maternity-dasawisma');
+    });
+
+    it('should pass validation when saving partial edits on an intake with legacy dates', () => {
+      const res = validateMaternalForm({
+        motherName: 'Angelina Saputri',
+        motherNik: '9999999999999999',
+        phoneNumber: '0877777777777',
+        dasawisma: 'Mawar',
+        posyandu: 'Melati',
+        puskesmas: 'Depok III',
+        gravidaCount: 2,
+        parityCount: 1,
+        abortionCount: 0,
+        livingChildrenCount: 0,
+        gestationalAgeWeeks: 323
+      });
+      expect(res.isValid).toBe(true);
     });
   });
 

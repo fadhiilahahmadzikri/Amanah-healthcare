@@ -20,18 +20,23 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { GENDER_OPTIONS, getGenderLabel } from '@/constants/gender.constants';
+import { cn } from '@/lib/utils';
 import type { MaternalPreviousPregnancy } from '../../types/maternity.types';
 
 export interface PregnancyHistoryTableProps {
   items: MaternalPreviousPregnancy[];
   isEditing?: boolean;
   onChange?: (updated: MaternalPreviousPregnancy[]) => void;
+  validationErrors?: Record<string, string>;
+  onClearError?: (key: string) => void;
 }
 
 export function PregnancyHistoryTable({
   items,
   isEditing = false,
-  onChange
+  onChange,
+  validationErrors,
+  onClearError
 }: PregnancyHistoryTableProps) {
   const handleAddItem = () => {
     if (!onChange) return;
@@ -148,24 +153,45 @@ export function PregnancyHistoryTable({
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs font-mono'>
                     {isEditing ? (
-                      <input
-                        maxLength={4}
-                        value={item.birthYear || ''}
-                        onChange={(e) =>
-                          handleFieldChange(index, 'birthYear', e.target.value.slice(0, 4))
-                        }
-                        placeholder='2022'
-                        className='h-7 w-full text-xs px-1 font-mono bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
-                      />
+                      <div>
+                        <input
+                          id={`prev-preg-year-${index}`}
+                          maxLength={4}
+                          value={item.birthYear || ''}
+                          onChange={(e) => {
+                            const val = e.target.value.slice(0, 4);
+                            handleFieldChange(index, 'birthYear', val);
+                            if (validationErrors?.[`prev_preg_${index}_birthYear`]) {
+                              onClearError?.(`prev_preg_${index}_birthYear`);
+                            }
+                          }}
+                          placeholder='2022'
+                          className={cn(
+                            'h-7 w-full text-xs px-1 font-mono bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none',
+                            validationErrors?.[`prev_preg_${index}_birthYear`] && 'border-destructive text-destructive'
+                          )}
+                        />
+                        {validationErrors?.[`prev_preg_${index}_birthYear`] && (
+                          <p className='text-[10px] text-destructive leading-tight mt-0.5'>
+                            {validationErrors[`prev_preg_${index}_birthYear`]}
+                          </p>
+                        )}
+                      </div>
                     ) : (
-                      item.birthYear || '-'
+                      item.birthYear || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
                     {isEditing ? (
                       <div className='flex items-center gap-1.5'>
-                        <div className='inline-flex items-center border-b border-border/60 focus-within:border-primary'>
+                        <div
+                          className={cn(
+                            'inline-flex items-center border-b border-border/60 focus-within:border-primary',
+                            validationErrors?.[`prev_preg_${index}_birthWeightGrams`] && 'border-destructive text-destructive'
+                          )}
+                        >
                           <input
+                            id={`prev-preg-weight-${index}`}
                             type='number'
                             min={0}
                             max={30000}
@@ -180,6 +206,9 @@ export function PregnancyHistoryTable({
                               if (!Number.isFinite(val)) return;
                               const clamped = Math.min(30000, Math.max(0, val));
                               handleFieldChange(index, 'birthWeightGrams', clamped);
+                              if (validationErrors?.[`prev_preg_${index}_birthWeightGrams`]) {
+                                onClearError?.(`prev_preg_${index}_birthWeightGrams`);
+                              }
                             }}
                             placeholder='3200'
                             className='h-7 text-xs px-1 w-14 bg-transparent rounded-none border-0 focus:outline-none shadow-none text-right font-mono'
@@ -189,8 +218,14 @@ export function PregnancyHistoryTable({
                           </span>
                         </div>
                         <span className='text-muted-foreground'>/</span>
-                        <div className='inline-flex items-center border-b border-border/60 focus-within:border-primary'>
+                        <div
+                          className={cn(
+                            'inline-flex items-center border-b border-border/60 focus-within:border-primary',
+                            validationErrors?.[`prev_preg_${index}_birthLengthCm`] && 'border-destructive text-destructive'
+                          )}
+                        >
                           <input
+                            id={`prev-preg-length-${index}`}
                             type='number'
                             min={0}
                             max={250}
@@ -205,6 +240,9 @@ export function PregnancyHistoryTable({
                               if (!Number.isFinite(val)) return;
                               const clamped = Math.min(250, Math.max(0, val));
                               handleFieldChange(index, 'birthLengthCm', clamped);
+                              if (validationErrors?.[`prev_preg_${index}_birthLengthCm`]) {
+                                onClearError?.(`prev_preg_${index}_birthLengthCm`);
+                              }
                             }}
                             placeholder='49'
                             className='h-7 text-xs px-1 w-10 bg-transparent rounded-none border-0 focus:outline-none shadow-none text-right font-mono'
@@ -215,7 +253,12 @@ export function PregnancyHistoryTable({
                         </div>
                       </div>
                     ) : (
-                      `${item.birthWeightGrams ? `${item.birthWeightGrams} gr` : '-'} / ${item.birthLengthCm ? `${item.birthLengthCm} cm` : '-'}`
+                      [
+                        item.birthWeightGrams ? `${item.birthWeightGrams} gr` : '',
+                        item.birthLengthCm ? `${item.birthLengthCm} cm` : ''
+                      ]
+                        .filter(Boolean)
+                        .join(' / ')
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -270,7 +313,7 @@ export function PregnancyHistoryTable({
                         </span>
                       </div>
                     ) : (
-                      item.gestationalAgeAtBirth || '-'
+                      item.gestationalAgeAtBirth || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -285,7 +328,7 @@ export function PregnancyHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.birthAttendant || '-'
+                      item.birthAttendant || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -300,7 +343,7 @@ export function PregnancyHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.deliveryMethod || '-'
+                      item.deliveryMethod || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -315,7 +358,7 @@ export function PregnancyHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.deliveryPlace || '-'
+                      item.deliveryPlace || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -330,7 +373,7 @@ export function PregnancyHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.complications || '-'
+                      item.complications || ''
                     )}
                   </TableCell>
                   {isEditing && (

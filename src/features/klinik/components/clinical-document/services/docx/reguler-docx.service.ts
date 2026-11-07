@@ -77,7 +77,7 @@ export async function exportRegulerDocx(
               size: 7.5,
               alignment: AlignmentType.CENTER
             }),
-            paragraph(data?.medicalRecordNumber || '-', {
+            paragraph(data?.medicalRecordNumber || '', {
               bold: true,
               size: 9,
               alignment: AlignmentType.CENTER
@@ -118,21 +118,21 @@ export async function exportRegulerDocx(
             [
               row([
                 textCell('Kode Booking', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.bookingCode || '-', 3500, { size: 7.5 }),
+                textCell(data?.bookingCode || '', 3500, { size: 7.5 }),
                 textCell('Nomor Antrean', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.queueNumber || '-', 3400, { bold: true, size: 7.5 })
+                textCell(data?.queueNumber || '', 3400, { bold: true, size: 7.5 })
               ]),
               row([
                 textCell('Poliklinik Tujuan', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.poliklinikName || '-', 3500, { bold: true, size: 7.5 }),
+                textCell(data?.poliklinikName || '', 3500, { bold: true, size: 7.5 }),
                 textCell('Layanan Medis', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.serviceName || '-', 3400, { size: 7.5 })
+                textCell(data?.serviceName || '', 3400, { size: 7.5 })
               ]),
               row([
                 textCell('Dokter Pemeriksa', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.doctorName || '-', 3500, { bold: true, size: 7.5 }),
+                textCell(data?.doctorName || '', 3500, { bold: true, size: 7.5 }),
                 textCell('Waktu & Sesi', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.scheduledTime || '-', 3400, { size: 7.5 })
+                textCell(data?.scheduledTime || '', 3400, { size: 7.5 })
               ])
             ]
           ),
@@ -143,27 +143,29 @@ export async function exportRegulerDocx(
             [
               row([
                 textCell('NIK', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.nik || '-', 3500, { size: 7.5 }),
+                textCell(data?.identity?.nik || '', 3500, { size: 7.5 }),
                 textCell('Nama Lengkap', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.fullName || '-', 3400, { bold: true, size: 7.5 })
+                textCell(data?.identity?.fullName || '', 3400, { bold: true, size: 7.5 })
               ]),
               row([
                 textCell('Tempat/Tgl Lahir', 2500, { bold: true, size: 7.5 }),
                 textCell(
-                  `${data?.identity?.birthPlace || ''}, ${data?.identity?.birthDate || ''}`,
+                  [data?.identity?.birthPlace, data?.identity?.birthDate].filter(Boolean).join(', '),
                   3500,
                   { size: 7.5 }
                 ),
                 textCell('Jenis Kelamin / Usia', 2500, { bold: true, size: 7.5 }),
-                textCell(`${data?.identity?.gender || '-'} (${data?.identity?.age || '-'})`, 3400, {
-                  size: 7.5
-                })
+                textCell(
+                  [data?.identity?.gender, data?.identity?.age ? `(${data.identity.age})` : ''].filter(Boolean).join(' '),
+                  3400,
+                  { size: 7.5 }
+                )
               ]),
               row([
                 textCell('No Handphone', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.phoneNumber || '-', 3500, { size: 7.5 }),
+                textCell(data?.identity?.phoneNumber || '', 3500, { size: 7.5 }),
                 textCell('Email', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.email || '-', 3400, { size: 7.5 })
+                textCell(data?.identity?.email || '', 3400, { size: 7.5 })
               ]),
               row([
                 textCell('Kontak Darurat', 2500, { bold: true, size: 7.5 }),
@@ -172,7 +174,7 @@ export async function exportRegulerDocx(
                     paragraph(
                       data?.emergencyContact?.phoneNumber
                         ? `${data?.emergencyContact?.name || 'Kerabat'}${data?.emergencyContact?.relationship ? ` (${data?.emergencyContact?.relationship})` : ''} - Telp: ${data?.emergencyContact?.phoneNumber}`
-                        : '-',
+                        : '',
                       { size: 7.5 }
                     )
                   ],
@@ -182,7 +184,7 @@ export async function exportRegulerDocx(
               ]),
               row([
                 textCell('Alamat Lengkap', 2500, { bold: true, size: 7.5 }),
-                cell([paragraph(data?.identity?.address || '-')], 9400, { columnSpan: 3 })
+                cell([paragraph(data?.identity?.address || '')], 9400, { columnSpan: 3 })
               ])
             ]
           ),
@@ -196,7 +198,7 @@ export async function exportRegulerDocx(
                 textCell(
                   data?.chiefComplaint ||
                     data?.clinical?.chiefComplaint ||
-                    'Tidak ada keluhan klinis yang dicatat saat pendaftaran.',
+                    '',
                   9400,
                   { size: 7.5 }
                 )
@@ -210,7 +212,7 @@ export async function exportRegulerDocx(
               row([
                 cell(
                   [
-                    paragraph(`Tanggal: ${data?.registrationDate || '-'}`, {
+                    paragraph(`Tanggal: ${data?.registrationDate || ''}`, {
                       size: 7.5,
                       alignment: AlignmentType.CENTER
                     }),
@@ -230,7 +232,7 @@ export async function exportRegulerDocx(
                 ),
                 cell(
                   [
-                    paragraph(`Tanggal: ${data?.registrationDate || '-'}`, {
+                    paragraph(`Tanggal: ${data?.registrationDate || ''}`, {
                       size: 7.5,
                       alignment: AlignmentType.CENTER
                     }),

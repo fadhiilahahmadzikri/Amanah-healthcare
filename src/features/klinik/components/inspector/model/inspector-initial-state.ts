@@ -35,7 +35,7 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     motherNik: m?.motherNik || '',
     motherBirthDate: m?.motherBirthDate || '',
     motherAge: m?.motherAge || '',
-    marriageOrder: m?.marriageOrder ?? 1,
+    marriageOrder: m?.marriageOrder ?? '',
     marriageDate: m?.marriageDate || '',
     motherJob: m?.motherJob || '',
     motherEducation: m?.motherEducation || '',
@@ -54,7 +54,7 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     partnerJob: m?.partnerJob || '',
     partnerEducation: m?.partnerEducation || '',
     partnerBloodType: m?.partnerBloodType || '',
-    partnerPhone: m?.husband?.phoneNumber || '',
+    partnerPhone: m?.husbandProfile?.phoneNumber || '',
 
     heightCm: m?.heightCm || '',
     prePregnancyWeightKg: m?.prePregnancyWeightKg || '',
@@ -69,14 +69,14 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     gestationalAgeFormatted: m?.gestationalAgeFormatted || '',
     currentComplaints: m?.currentComplaints || '',
 
-    gravidaCount: m?.gravidaCount ?? 1,
-    parityCount: m?.parityCount ?? 0,
-    abortionCount: m?.abortionCount ?? 0,
-    livingChildrenCount: m?.livingChildrenCount ?? 0,
+    gravidaCount: m?.gravidaCount ?? '',
+    parityCount: m?.parityCount ?? '',
+    abortionCount: m?.abortionCount ?? '',
+    livingChildrenCount: m?.livingChildrenCount ?? '',
     hasPreviousPregnancyHistory: Boolean(m?.hasPreviousPregnancyHistory),
     hasContraceptionHistory: Boolean(m?.hasContraceptionHistory),
 
-    smokedBeforePregnancy: m?.smokedBeforePregnancy || 'Tidak',
+    smokedBeforePregnancy: m?.smokedBeforePregnancy || '',
     alcoholBeforePregnancy: Boolean(m?.alcoholBeforePregnancy),
     irregularDietBeforePregnancy: Boolean(m?.irregularDietBeforePregnancy),
     reducedPhysicalActivityBeforePregnancy: Boolean(m?.reducedPhysicalActivityBeforePregnancy),
@@ -133,41 +133,32 @@ export function buildInitialImmunizationData(parsedData: UnifiedInspectorData): 
   }
 
   const hasVaccineHistory =
-    c?.hasVaccineHistory ||
-    a.hasVaccineHistory ||
-    (entries.length > 0
+    c?.previousVaccineHistory &&
+    c.previousVaccineHistory !== 'Belum pernah imunisasi sama sekali'
       ? 'Ya, pernah'
-      : c?.previousVaccineHistory &&
-          c.previousVaccineHistory !== 'Belum pernah imunisasi sama sekali'
-        ? 'Ya, pernah'
-        : 'Belum pernah sama sekali');
+      : (a.hasVaccineHistory as string) || (entries.length > 0 ? 'Ya, pernah' : 'Belum pernah sama sekali');
 
-  const previousVaccineHistory = c?.previousVaccineHistory || a.previousVaccineHistory || '';
+  const previousVaccineHistory = c?.previousVaccineHistory || (a.previousVaccineHistory as string) || '';
 
   const hasAllergyHistory =
-    c?.hasAllergyHistory ||
-    a.hasAllergyHistory ||
-    (c?.childAllergyHistory && c.childAllergyHistory !== 'Tidak ada riwayat alergi.'
+    c?.childAllergyHistory && c.childAllergyHistory !== 'Tidak ada riwayat alergi.'
       ? 'Ada riwayat alergi'
-      : 'Tidak ada alergi');
+      : (a.hasAllergyHistory as string) || 'Tidak ada alergi';
 
-  const childAllergyHistory =
-    c?.childAllergyHistory ||
-    a.childAllergyHistory ||
-    (hasAllergyHistory === 'Ada riwayat alergi' ? 'Riwayat alergi tercatat.' : '');
+  const childAllergyHistory = c?.childAllergyHistory || (a.childAllergyHistory as string) || '';
 
   return {
     medicalRecordNumber: parsedData.patient?.medicalRecordNumber || '',
     birthPlace: parsedData.patient?.birthPlace || '',
-    childName: c?.childName || a.childName || parsedData.patient?.fullName || '',
-    childNik: c?.childNik || a.childNik || parsedData.patient?.nik || '',
-    childBirthDate: birthDate,
-    childSex: c?.childSex || a.childSex || parsedData.patient?.gender || '',
-    childAgeFormatted: childAge,
-    parentPhone: c?.parentPhone || a.parentPhone || parsedData.patient?.phone || '',
-    fatherName: c?.fatherName || a.fatherName || '',
-    motherName: c?.motherName || a.motherName || parsedData.patient?.motherName || '',
-    childAddress: c?.childAddress || a.childAddress || parsedData.patient?.address || '',
+    childName: c?.childName || parsedData.patient?.fullName || '',
+    childNik: c?.childNik || parsedData.patient?.nik || '',
+    childBirthDate: c?.childBirthDate || '',
+    childSex: c?.childSex || '',
+    childAgeFormatted: c?.childAgeFormatted || '',
+    parentPhone: c?.parentPhone || parsedData.patient?.phone || '',
+    fatherName: c?.fatherName || '',
+    motherName: c?.motherName || parsedData.patient?.motherName || '',
+    childAddress: c?.childAddress || parsedData.patient?.address || '',
     hasVaccineHistory,
     previousVaccineHistory,
     hasAllergyHistory,

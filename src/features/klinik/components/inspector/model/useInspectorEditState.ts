@@ -79,6 +79,12 @@ export function useInspectorEditState({
         ...prev,
         [field]: value
       }));
+      setValidationErrors((prev) => {
+        if (!prev[field as string]) return prev;
+        const next = { ...prev };
+        delete next[field as string];
+        return next;
+      });
     },
     []
   );

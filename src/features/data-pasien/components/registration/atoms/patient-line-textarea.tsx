@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 export interface PatientLineTextareaProps {
   id: string;
   label: React.ReactNode;
-  value: string;
+  value?: string | null;
   onChange?: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
@@ -37,7 +37,8 @@ export function PatientLineTextarea({
   const [isFocused, setIsFocused] = React.useState(false);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
   const isInvalid = Boolean(invalid || error);
-  const hasValue = Boolean(value && String(value).trim().length > 0);
+  const valString = value === null || value === undefined ? '' : String(value);
+  const hasValue = Boolean(valString.trim().length > 0);
   const isFloating = isFocused || hasValue;
 
   const adjustHeight = React.useCallback(() => {
@@ -71,7 +72,7 @@ export function PatientLineTextarea({
           ref={textareaRef}
           id={id}
           aria-labelledby={`${id}-label`}
-          value={value}
+          value={valString}
           rows={rows}
           placeholder={isFloating ? placeholder : ''}
           disabled={disabled}

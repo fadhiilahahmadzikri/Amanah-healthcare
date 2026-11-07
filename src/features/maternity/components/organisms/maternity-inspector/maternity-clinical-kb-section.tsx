@@ -47,8 +47,13 @@ export function MaternityClinicalKbSection({
               label='Tinggi Badan'
               type='number'
               step='0.1'
-              value={intake?.heightCm ? String(intake.heightCm) : ''}
-              onChange={(val) => onIntakeFieldChange('heightCm', Number(val) || null)}
+              value={intake?.heightCm}
+              onChange={(val) => {
+                onIntakeFieldChange('heightCm', val === '' ? '' : val);
+                if (validationErrors?.heightCm) onClearError?.('heightCm');
+              }}
+              error={validationErrors?.heightCm}
+              invalid={Boolean(validationErrors?.heightCm)}
               placeholder='155'
               trailingIcon={<span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>cm</span>}
             />
@@ -57,8 +62,13 @@ export function MaternityClinicalKbSection({
               label='Berat Badan Pra-Hamil'
               type='number'
               step='0.1'
-              value={intake?.prePregnancyWeightKg ? String(intake.prePregnancyWeightKg) : ''}
-              onChange={(val) => onIntakeFieldChange('prePregnancyWeightKg', Number(val) || null)}
+              value={intake?.prePregnancyWeightKg}
+              onChange={(val) => {
+                onIntakeFieldChange('prePregnancyWeightKg', val === '' ? '' : val);
+                if (validationErrors?.prePregnancyWeightKg) onClearError?.('prePregnancyWeightKg');
+              }}
+              error={validationErrors?.prePregnancyWeightKg}
+              invalid={Boolean(validationErrors?.prePregnancyWeightKg)}
               placeholder='50'
               trailingIcon={<span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>kg</span>}
             />
@@ -67,15 +77,20 @@ export function MaternityClinicalKbSection({
               label='Lingkar Lengan Atas (LiLA)'
               type='number'
               step='0.1'
-              value={intake?.upperArmCircumferenceCm ? String(intake.upperArmCircumferenceCm) : ''}
-              onChange={(val) => onIntakeFieldChange('upperArmCircumferenceCm', Number(val) || null)}
+              value={intake?.upperArmCircumferenceCm}
+              onChange={(val) => {
+                onIntakeFieldChange('upperArmCircumferenceCm', val === '' ? '' : val);
+                if (validationErrors?.upperArmCircumferenceCm) onClearError?.('upperArmCircumferenceCm');
+              }}
+              error={validationErrors?.upperArmCircumferenceCm}
+              invalid={Boolean(validationErrors?.upperArmCircumferenceCm)}
               placeholder='24'
               trailingIcon={<span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>cm</span>}
             />
             <PatientLineInput
               id='maternity-bmi'
               label='IMT / BMI Terhitung'
-              value={intake?.initialBmi ? String(intake.initialBmi) : '-'}
+              value={intake?.initialBmi ? String(intake.initialBmi) : ''}
               trailingIcon={<span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>kg/m²</span>}
               readOnly
             />
@@ -85,7 +100,7 @@ export function MaternityClinicalKbSection({
             <PatientLineSelect
               id='maternity-tetanus-status'
               label='Status Imunisasi TT'
-              value={intake?.tetanusStatus || 'T2'}
+              value={intake?.tetanusStatus}
               onChange={(val) => onIntakeFieldChange('tetanusStatus', val)}
               options={tetanusOptions}
             />
@@ -93,7 +108,7 @@ export function MaternityClinicalKbSection({
             <PatientLineSelect
               id='maternity-mother-bloodtype'
               label='Golongan Darah Ibu'
-              value={intake?.motherBloodType || 'O'}
+              value={intake?.motherBloodType}
               onChange={(val) => onIntakeFieldChange('motherBloodType', val)}
               options={bloodTypeOptions}
             />
@@ -106,6 +121,8 @@ export function MaternityClinicalKbSection({
             items={contraceptiveHistories}
             isEditing={isEditing}
             onChange={onContraceptiveHistoriesChange}
+            validationErrors={validationErrors}
+            onClearError={onClearError}
           />
         </div>
       </div>
@@ -125,25 +142,25 @@ export function MaternityClinicalKbSection({
           <PatientLineInput
             id='view-height'
             label='Tinggi Badan (cm)'
-            value={intake?.heightCm ? `${intake.heightCm} cm` : '-'}
+            value={intake?.heightCm ? `${intake.heightCm} cm` : ''}
             readOnly
           />
           <PatientLineInput
             id='view-weight'
             label='Berat Badan Pra-Hamil (kg)'
-            value={intake?.prePregnancyWeightKg ? `${intake.prePregnancyWeightKg} kg` : '-'}
+            value={intake?.prePregnancyWeightKg ? `${intake.prePregnancyWeightKg} kg` : ''}
             readOnly
           />
           <PatientLineInput
             id='view-lila'
             label='Lingkar Lengan Atas / LILA (cm)'
-            value={intake?.upperArmCircumferenceCm ? `${intake.upperArmCircumferenceCm} cm` : '-'}
+            value={intake?.upperArmCircumferenceCm ? `${intake.upperArmCircumferenceCm} cm` : ''}
             readOnly
           />
           <PatientLineInput
             id='view-bmi'
             label='IMT / BMI Terhitung'
-            value={intake?.initialBmi ? String(intake.initialBmi) : '-'}
+            value={intake?.initialBmi ? String(intake.initialBmi) : ''}
             readOnly
           />
         </div>
@@ -152,14 +169,14 @@ export function MaternityClinicalKbSection({
           <PatientLineInput
             id='view-tetanus-status'
             label='Status Imunisasi TT'
-            value={intake?.tetanusStatus || '-'}
+            value={intake?.tetanusStatus || ''}
             readOnly
           />
 
           <PatientLineInput
             id='view-mother-bloodtype'
             label='Golongan Darah Ibu'
-            value={intake?.motherBloodType || '-'}
+            value={intake?.motherBloodType || ''}
             readOnly
           />
         </div>

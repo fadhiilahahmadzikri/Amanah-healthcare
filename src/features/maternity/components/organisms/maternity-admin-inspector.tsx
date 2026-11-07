@@ -19,6 +19,8 @@ import {
 } from './maternity-inspector';
 import {
   getMaternityTabWithErrors,
+  getMaternityTabErrorCounts,
+  MATERNITY_FIELD_DOM_ID_MAP,
   type MaternityInspectorTab
 } from '@/features/klinik/validations/maternity-form.schema';
 
@@ -47,13 +49,53 @@ export function MaternityAdminInspector({
 }: MaternityAdminInspectorProps) {
   const [activeTab, setActiveTab] = React.useState<MaternityInspectorTab>('identitas');
 
-  // Automatically switch tab to the first error section when validation errors are present
+  // Automatically switch tab to the first error section and scroll to the first invalid field
   React.useEffect(() => {
     if (validationErrors && Object.keys(validationErrors).length > 0) {
       const errorTab = getMaternityTabWithErrors(validationErrors);
       if (errorTab) {
         setActiveTab(errorTab);
       }
+
+      const firstErrorKey = Object.keys(validationErrors)[0];
+      let domId = MATERNITY_FIELD_DOM_ID_MAP[firstErrorKey];
+      if (!domId) {
+        if (firstErrorKey.startsWith('prev_preg_')) {
+          const match = firstErrorKey.match(/^prev_preg_(\d+)_(.+)$/);
+          if (match) {
+            const idx = match[1];
+            const field = match[2];
+            if (field === 'birthYear') domId = `prev-preg-year-${idx}`;
+            else if (field === 'birthWeightGrams') domId = `prev-preg-weight-${idx}`;
+            else if (field === 'birthLengthCm') domId = `prev-preg-length-${idx}`;
+          }
+        } else if (firstErrorKey.startsWith('condition_')) {
+          const match = firstErrorKey.match(/^condition_([A-Z_]+)_year$/);
+          if (match) {
+            domId = `condition-year-${match[1].toLowerCase()}`;
+          }
+        } else {
+          domId = `maternity-${firstErrorKey}`;
+        }
+      }
+
+      const timer = setTimeout(() => {
+        if (domId) {
+          const el = document.getElementById(domId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (
+              el instanceof HTMLInputElement ||
+              el instanceof HTMLTextAreaElement ||
+              el instanceof HTMLSelectElement
+            ) {
+              el.focus({ preventScroll: true });
+            }
+          }
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
   }, [validationErrors]);
 
@@ -75,18 +117,9 @@ export function MaternityAdminInspector({
     [references.religions]
   );
 
-  const errorKeys = Object.keys(validationErrors);
-  const hasIdentitasErrors = errorKeys.some((k) =>
-    ['motherName', 'motherNik', 'motherBirthDate', 'phoneNumber', 'partnerNik', 'partnerPhone'].includes(k)
-  );
-  const hasObstetriErrors = errorKeys.some((k) =>
-    ['hpht', 'estimatedDueDate', 'gravidaCount', 'parityCount', 'abortionCount'].includes(k)
-  );
-  const hasKlinisErrors = errorKeys.some((k) =>
-    ['heightCm', 'prePregnancyWeightKg', 'upperArmCircumferenceCm', 'initialBmi', 'tetanusStatus'].includes(k)
-  );
-  const hasSkriningErrors = errorKeys.some(
-    (k) => k.startsWith('condition_') || k === 'conditionResponses'
+  const tabErrorCounts = React.useMemo(
+    () => getMaternityTabErrorCounts(validationErrors),
+    [validationErrors]
   );
 
   return (
@@ -96,28 +129,36 @@ export function MaternityAdminInspector({
       className='w-full flex flex-col h-full min-h-0'
     >
       <TabsList className='grid grid-cols-4 w-full h-9 mb-3 shrink-0'>
-        <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer truncate relative'>
-          Identitas
-          {hasIdentitasErrors && (
-            <span className='size-1.5 rounded-full bg-destructive absolute top-1.5 right-2' />
+        <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
+          <span>Identitas</span>
+          {tabErrorCounts.identitas > 0 && (
+            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
+              {tabErrorCounts.identitas}
+            </span>
           )}
         </TabsTrigger>
-        <TabsTrigger value='obstetri' className='text-xs font-semibold cursor-pointer truncate relative'>
-          Riwayat Kehamilan
-          {hasObstetriErrors && (
-            <span className='size-1.5 rounded-full bg-destructive absolute top-1.5 right-2' />
+        <TabsTrigger value='obstetri' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
+          <span>Riwayat Kehamilan</span>
+          {tabErrorCounts.obstetri > 0 && (
+            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
+              {tabErrorCounts.obstetri}
+            </span>
           )}
         </TabsTrigger>
-        <TabsTrigger value='klinis' className='text-xs font-semibold cursor-pointer truncate relative'>
-          Pemeriksaan Fisik & KB
-          {hasKlinisErrors && (
-            <span className='size-1.5 rounded-full bg-destructive absolute top-1.5 right-2' />
+        <TabsTrigger value='klinis' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
+          <span>Pemeriksaan Fisik & KB</span>
+          {tabErrorCounts.klinis > 0 && (
+            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
+              {tabErrorCounts.klinis}
+            </span>
           )}
         </TabsTrigger>
-        <TabsTrigger value='skrining' className='text-xs font-semibold cursor-pointer truncate relative'>
-          Skrining Penyakit
-          {hasSkriningErrors && (
-            <span className='size-1.5 rounded-full bg-destructive absolute top-1.5 right-2' />
+        <TabsTrigger value='skrining' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
+          <span>Skrining Penyakit</span>
+          {tabErrorCounts.skrining > 0 && (
+            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
+              {tabErrorCounts.skrining}
+            </span>
           )}
         </TabsTrigger>
       </TabsList>

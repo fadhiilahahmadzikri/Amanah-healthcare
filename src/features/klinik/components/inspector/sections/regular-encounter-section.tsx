@@ -38,7 +38,7 @@ export function RegularEncounterSection({
             Kode Booking
           </span>
           <span className='text-sm font-semibold font-mono text-primary block truncate'>
-            {data.bookingCode || appointment.booking_code || '-'}
+            {data.bookingCode || appointment.booking_code || ''}
           </span>
         </div>
 
@@ -47,7 +47,7 @@ export function RegularEncounterSection({
             Poliklinik Tujuan
           </span>
           <span className='text-sm font-semibold text-foreground block truncate'>
-            {data.poliklinikName || appointment.poliklinik_name || '-'}
+            {data.poliklinikName || appointment.poliklinik_name || ''}
           </span>
         </div>
 
@@ -56,7 +56,7 @@ export function RegularEncounterSection({
             Layanan Medis
           </span>
           <span className='text-sm font-semibold text-foreground block truncate'>
-            {data.serviceName || appointment.service || '-'}
+            {data.serviceName || appointment.service || ''}
           </span>
         </div>
 
@@ -65,7 +65,7 @@ export function RegularEncounterSection({
             Dokter Jaga / Pemeriksa
           </span>
           <span className='text-sm font-semibold text-foreground block truncate'>
-            {appointment.doctor_name || '-'}
+            {appointment.doctor_name || ''}
           </span>
         </div>
 
@@ -74,8 +74,10 @@ export function RegularEncounterSection({
             Waktu Konsultasi
           </span>
           <span className='text-sm font-semibold text-foreground block truncate'>
-            {scheduledDateFormatted} (
-            {data.scheduledStartTime || appointment.scheduled_start_time || '-'} WIB)
+            {scheduledDateFormatted}
+            {data.scheduledStartTime || appointment.scheduled_start_time
+              ? ` (${data.scheduledStartTime || appointment.scheduled_start_time} WIB)`
+              : ''}
           </span>
         </div>
 
@@ -84,7 +86,7 @@ export function RegularEncounterSection({
             Ruang & Lokasi
           </span>
           <span className='text-sm font-semibold text-foreground block truncate'>
-            {appointment.room_name || appointment.room_location || '-'}
+            {appointment.room_name || appointment.room_location || ''}
           </span>
         </div>
       </div>
@@ -108,7 +110,7 @@ export function RegularEncounterSection({
               data.answers.keluhanUtama ||
               data.complaint ||
               appointment.complaint ||
-              '-'
+              ''
             }
             readOnly
           />

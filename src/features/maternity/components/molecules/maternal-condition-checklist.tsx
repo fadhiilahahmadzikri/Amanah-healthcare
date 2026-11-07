@@ -239,6 +239,7 @@ export function MaternalConditionChecklist({
                           Tahun Diagnosis
                         </span>
                         <input
+                          id={`condition-year-${item.code.toLowerCase()}`}
                           type='number'
                           min={birthYear}
                           max={currentYear}
@@ -268,7 +269,7 @@ export function MaternalConditionChecklist({
                           Tahun
                         </span>
                         <span className='text-xs font-semibold font-mono text-foreground'>
-                          {year || '-'}
+                          {year || ''}
                         </span>
                       </div>
                     )}

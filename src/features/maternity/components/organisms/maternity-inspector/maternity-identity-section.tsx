@@ -25,6 +25,7 @@ export function MaternityIdentitySection({
   intake,
   isEditing = false,
   onIntakeFieldChange,
+  onHusbandFieldChange,
   validationErrors,
   onClearError,
   religionOptions,
@@ -55,6 +56,7 @@ export function MaternityIdentitySection({
         intake={intake}
         isEditing={isEditing}
         onIntakeFieldChange={onIntakeFieldChange}
+        onHusbandFieldChange={onHusbandFieldChange}
         validationErrors={validationErrors}
         onClearError={onClearError}
         educationOptions={educationOptions}

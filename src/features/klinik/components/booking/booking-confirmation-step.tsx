@@ -131,7 +131,7 @@ export function BookingConfirmationStep({
         {!isReschedule && (
           <div className='py-2 space-y-1'>
             <span className='text-muted-foreground font-normal block'>Keluhan Medis</span>
-            <p className='text-foreground font-normal'>{complaint || '-'}</p>
+            <p className='text-foreground font-normal'>{complaint || ''}</p>
           </div>
         )}
       </div>

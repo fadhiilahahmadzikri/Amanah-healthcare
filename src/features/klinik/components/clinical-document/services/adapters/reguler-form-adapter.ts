@@ -19,19 +19,19 @@ export function adaptToRegulerFormData(
   const _inactive = getInactiveFieldIds(schema);
 
   const bDate = p?.birthDate;
-  const age = bDate ? `${new Date().getFullYear() - new Date(bDate).getFullYear()} Tahun` : '-';
+  const age = bDate ? `${new Date().getFullYear() - new Date(bDate).getFullYear()} Tahun` : '';
 
-  const complaint = appointment?.complaint || data.complaint || '-';
-  const allergy = answers.allergyHistory || '-';
+  const complaint = appointment?.complaint || data.complaint || '';
+  const allergy = answers.allergyHistory || '';
 
   const heightVal = answers.vitalHeightCm;
-  const vitalHeightCm = heightVal ? `${heightVal} cm` : '-';
+  const vitalHeightCm = heightVal ? `${heightVal} cm` : '';
 
   const weightVal = answers.vitalWeightKg;
-  const vitalWeightKg = weightVal ? `${weightVal} kg` : '-';
+  const vitalWeightKg = weightVal ? `${weightVal} kg` : '';
 
-  const vitalBloodPressure = answers.vitalBloodPressure || '-';
-  const additionalNotes = answers.additionalNotes || '-';
+  const vitalBloodPressure = answers.vitalBloodPressure || '';
+  const additionalNotes = answers.additionalNotes || '';
 
   const resolvedAddress = (() => {
     const l1 = p?.line1;
@@ -46,39 +46,39 @@ export function adaptToRegulerFormData(
       reg,
       prov ? `Prov. ${prov}` : ''
     ].filter(Boolean);
-    return parts.length > 0 ? parts.join(', ') : p?.address || '-';
+    return parts.length > 0 ? parts.join(', ') : p?.address || '';
   })();
 
   return {
-    medicalRecordNumber: p?.medicalRecordNumber || '-',
+    medicalRecordNumber: p?.medicalRecordNumber || '',
     registrationDate: data.scheduledDate
       ? formatClinicDate(data.scheduledDate, { style: 'human_full' })
       : formatClinicDate(new Date().toISOString(), { style: 'human_full' }),
-    bookingCode: appointment?.booking_code || data.bookingCode || '-',
-    queueNumber: appointment?.queue_number || '-',
-    poliklinikName: appointment?.poliklinik_name || data?.poliklinikName || '-',
-    serviceName: appointment?.service || data.serviceName || '-',
-    doctorName: appointment?.doctor_name || '-',
-    scheduledTime: `${appointment?.scheduled_start_time || data.scheduledStartTime || '-'} WIB`,
+    bookingCode: appointment?.booking_code || data.bookingCode || '',
+    queueNumber: appointment?.queue_number || '',
+    poliklinikName: appointment?.poliklinik_name || data?.poliklinikName || '',
+    serviceName: appointment?.service || data.serviceName || '',
+    doctorName: appointment?.doctor_name || '',
+    scheduledTime: appointment?.scheduled_start_time || data.scheduledStartTime ? `${appointment?.scheduled_start_time || data.scheduledStartTime} WIB` : '',
     identity: {
-      nik: p?.nik || '-',
-      fullName: p?.fullName || '-',
+      nik: p?.nik || '',
+      fullName: p?.fullName || '',
       gender: formatGender(p?.gender),
-      birthDate: bDate ? formatClinicDate(bDate, { style: 'human_full' }) : '-',
-      birthPlace: p?.birthPlace || '-',
+      birthDate: bDate ? formatClinicDate(bDate, { style: 'human_full' }) : '',
+      birthPlace: p?.birthPlace || '',
       age,
-      bloodType: p?.bloodType ? p.bloodType.toUpperCase() : '-',
-      motherName: p?.motherName || '-',
-      occupation: p?.occupation || '-',
-      phoneNumber: p?.phone || '-',
-      email: p?.email || '-',
+      bloodType: p?.bloodType ? p.bloodType.toUpperCase() : '',
+      motherName: p?.motherName || '',
+      occupation: p?.occupation || '',
+      phoneNumber: p?.phone || '',
+      email: p?.email || '',
       address: resolvedAddress,
       relationship: getRelationshipLabel(p?.relationshipType)
     },
     emergencyContact: {
-      name: p?.emergencyContactName || '-',
-      relationship: p?.emergencyContactRelationship || '-',
-      phoneNumber: p?.emergencyContactPhone || '-'
+      name: p?.emergencyContactName || '',
+      relationship: p?.emergencyContactRelationship || '',
+      phoneNumber: p?.emergencyContactPhone || ''
     },
     clinical: {
       chiefComplaint: complaint,

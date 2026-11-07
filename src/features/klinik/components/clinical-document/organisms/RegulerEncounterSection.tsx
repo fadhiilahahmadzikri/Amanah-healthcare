@@ -29,7 +29,7 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
             </td>
             <td className='px-1.5 py-0.5 border-r border-black'>
               <FormText customPt={7.2} bold>
-                {data?.bookingCode || '-'}
+                {data?.bookingCode || ''}
               </FormText>
             </td>
             <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
@@ -39,7 +39,7 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
             </td>
             <td className='px-1.5 py-0.5'>
               <FormText customPt={7.2} bold>
-                {data?.queueNumber || '-'}
+                {data?.queueNumber || ''}
               </FormText>
             </td>
           </tr>
@@ -50,7 +50,7 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
               </FormText>
             </td>
             <td className='px-1.5 py-0.5 border-r border-black'>
-              <FormText customPt={7.2} bold>{data?.poliklinikName || '-'}</FormText>
+              <FormText customPt={7.2} bold>{data?.poliklinikName || ''}</FormText>
             </td>
             <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
               <FormText customPt={7.2} bold>
@@ -58,7 +58,7 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
               </FormText>
             </td>
             <td className='px-1.5 py-0.5'>
-              <FormText customPt={7.2}>{data?.serviceName || '-'}</FormText>
+              <FormText customPt={7.2}>{data?.serviceName || ''}</FormText>
             </td>
           </tr>
           <tr className='h-[20px]'>
@@ -69,7 +69,7 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
             </td>
             <td className='px-1.5 py-0.5 border-r border-black'>
               <FormText customPt={7.2} bold>
-                {data?.doctorName || '-'}
+                {data?.doctorName || ''}
               </FormText>
             </td>
             <td className='px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold'>
@@ -78,7 +78,7 @@ export const RegulerEncounterSection: React.FC<RegulerEncounterSectionProps> = (
               </FormText>
             </td>
             <td className='px-1.5 py-0.5'>
-              <FormText customPt={7.2}>{data?.scheduledTime || '-'}</FormText>
+              <FormText customPt={7.2}>{data?.scheduledTime || ''}</FormText>
             </td>
           </tr>
         </tbody>

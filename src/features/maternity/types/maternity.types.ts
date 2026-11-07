@@ -4,7 +4,7 @@ export interface MaternalHusbandProfile {
   fullName: string;
   nik?: string | null;
   birthDate?: string | null;
-  age?: number | null;
+  age?: number | string | null;
   job?: string | null;
   education?: string | null;
   bloodType?: string | null;
@@ -18,7 +18,7 @@ export interface MaternalPreviousPregnancy {
   maternalIntakeId?: string;
   orderNumber: number;
   birthYear?: string | null;
-  birthWeightGrams?: number | null;
+  birthWeightGrams?: number | string | null;
   birthLengthCm?: number | string | null;
   childSex?: string | null;
   gestationalAgeAtBirth?: string | null;
@@ -60,8 +60,8 @@ export interface MaternityIntake {
   motherNik: string;
   motherName: string;
   motherBirthDate?: string | null;
-  motherAge?: number | null;
-  marriageOrder?: number | null;
+  motherAge?: string | number | null;
+  marriageOrder?: string | number | null;
   marriageDate?: string | null;
   motherJob?: string | null;
   motherEducation?: string | null;
@@ -76,7 +76,7 @@ export interface MaternityIntake {
   partnerName?: string | null;
   partnerNik?: string | null;
   partnerBirthDate?: string | null;
-  partnerAge?: number | null;
+  partnerAge?: string | number | null;
   partnerJob?: string | null;
   partnerEducation?: string | null;
   partnerBloodType?: string | null;
@@ -92,15 +92,15 @@ export interface MaternityIntake {
   estimatedDueDate?: string | null;
   gestationalAgeWeeks?: string | number | null;
   gestationalAgeFormatted?: string | null;
-  currentComplaints: string;
+  currentComplaints?: string | null;
 
-  gravidaCount: number;
-  parityCount: number;
-  abortionCount: number;
-  livingChildrenCount: number;
+  gravidaCount?: string | number | null;
+  parityCount?: string | number | null;
+  abortionCount?: string | number | null;
+  livingChildrenCount?: string | number | null;
 
-  hasPreviousPregnancyHistory: boolean;
-  hasContraceptionHistory: boolean;
+  hasPreviousPregnancyHistory?: boolean | null;
+  hasContraceptionHistory?: boolean | null;
 
   smokedBeforePregnancy?: string | null;
   alcoholBeforePregnancy?: boolean | null;
@@ -115,13 +115,15 @@ export interface MaternityIntake {
   allergyInfo?: string | null;
   otherNotes?: string | null;
 
-  createdAt: string;
-  updatedAt: string;
+  createdAt?: string;
+  updatedAt?: string;
 
   husbandProfile?: MaternalHusbandProfile | null;
-  previousPregnancies: MaternalPreviousPregnancy[];
-  contraceptiveHistories: MaternalContraceptiveHistory[];
-  conditionResponses: MaternalConditionResponse[];
+  previousPregnancies?: MaternalPreviousPregnancy[];
+  contraceptiveHistories?: MaternalContraceptiveHistory[];
+  conditionResponses?: MaternalConditionResponse[];
+  answers?: Record<string, unknown>;
+  automatic?: Record<string, unknown>;
 }
 
 export interface CreateMaternityIntakePayload {
@@ -159,7 +161,7 @@ export interface CreateMaternityIntakePayload {
   motherBloodType?: string;
 
   hpht?: string;
-  currentComplaints: string;
+  currentComplaints?: string | null;
   gravidaCount: number;
   parityCount: number;
   abortionCount: number;

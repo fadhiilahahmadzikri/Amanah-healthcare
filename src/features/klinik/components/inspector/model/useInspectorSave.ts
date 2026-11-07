@@ -14,7 +14,9 @@ import type {
 import {
   validateMaternalForm,
   validateImmunizationForm,
-  validateRegularForm
+  validateRegularForm,
+  getMaternityTabWithErrors,
+  MATERNITY_TAB_LABELS
 } from '../../../validations/inspector-form.schema';
 import {
   buildInitialMaternalData,
@@ -78,7 +80,11 @@ export function useInspectorSave({
     const validation = validateMaternalForm(formData);
     if (!validation.isValid) {
       setValidationErrors(validation.errors);
-      toast.error('Periksa kembali isian formulir KIA & Kehamilan yang ditandai merah.');
+      const firstTab = getMaternityTabWithErrors(validation.errors);
+      const firstKey = Object.keys(validation.errors)[0];
+      const firstMsg = validation.errors[firstKey];
+      const tabLabel = firstTab ? MATERNITY_TAB_LABELS[firstTab] || firstTab : 'Formulir KIA';
+      toast.error(`${tabLabel}: ${firstMsg}`);
       return;
     }
     setValidationErrors({});
@@ -113,8 +119,8 @@ export function useInspectorSave({
       motherName: formData.motherName || undefined,
       motherNik: formData.motherNik || undefined,
       motherBirthDate: formData.motherBirthDate || undefined,
-      motherAge: formData.motherAge ? Number(formData.motherAge) : undefined,
-      marriageOrder: formData.marriageOrder ? Number(formData.marriageOrder) : 1,
+      motherAge: formData.motherAge !== '' && formData.motherAge !== undefined && formData.motherAge !== null ? Number(formData.motherAge) : undefined,
+      marriageOrder: formData.marriageOrder !== '' && formData.marriageOrder !== undefined && formData.marriageOrder !== null ? Number(formData.marriageOrder) : undefined,
       marriageDate: formData.marriageDate || undefined,
       motherJob: formData.motherJob || undefined,
       motherEducation: formData.motherEducation || undefined,
@@ -126,22 +132,22 @@ export function useInspectorSave({
       posyandu: formData.posyandu || undefined,
       puskesmas: formData.puskesmas || undefined,
 
-      partnerName: formData.partnerName || undefined,
-      partnerNik: formData.partnerNik || undefined,
-      partnerBirthDate: formData.partnerBirthDate || undefined,
-      partnerAge: formData.partnerAge ? Number(formData.partnerAge) : undefined,
-      partnerJob: formData.partnerJob || undefined,
-      partnerEducation: formData.partnerEducation || undefined,
-      partnerBloodType: formData.partnerBloodType || undefined,
+      partnerName: formData.partnerName !== undefined ? (formData.partnerName || null) : undefined,
+      partnerNik: formData.partnerNik !== undefined ? (formData.partnerNik.trim() || null) : undefined,
+      partnerBirthDate: formData.partnerBirthDate !== undefined ? (formData.partnerBirthDate || null) : undefined,
+      partnerAge: formData.partnerAge ? Number(formData.partnerAge) : null,
+      partnerJob: formData.partnerJob !== undefined ? (formData.partnerJob || null) : undefined,
+      partnerEducation: formData.partnerEducation !== undefined ? (formData.partnerEducation || null) : undefined,
+      partnerBloodType: formData.partnerBloodType !== undefined ? (formData.partnerBloodType || null) : undefined,
       husband: {
-        fullName: formData.partnerName || undefined,
-        nik: formData.partnerNik || undefined,
-        birthDate: formData.partnerBirthDate || undefined,
-        age: formData.partnerAge ? Number(formData.partnerAge) : undefined,
-        job: formData.partnerJob || undefined,
-        education: formData.partnerEducation || undefined,
-        bloodType: formData.partnerBloodType || undefined,
-        phoneNumber: formData.partnerPhone || undefined
+        fullName: formData.partnerName || '',
+        nik: formData.partnerNik !== undefined ? (formData.partnerNik.trim() || null) : undefined,
+        birthDate: formData.partnerBirthDate !== undefined ? (formData.partnerBirthDate || null) : undefined,
+        age: formData.partnerAge ? Number(formData.partnerAge) : null,
+        job: formData.partnerJob !== undefined ? (formData.partnerJob || null) : undefined,
+        education: formData.partnerEducation !== undefined ? (formData.partnerEducation || null) : undefined,
+        bloodType: formData.partnerBloodType !== undefined ? (formData.partnerBloodType || null) : undefined,
+        phoneNumber: formData.partnerPhone !== undefined ? (formData.partnerPhone.trim() || null) : undefined
       },
 
       heightCm: formData.heightCm
@@ -167,10 +173,10 @@ export function useInspectorSave({
       gestationalAgeFormatted: formData.gestationalAgeFormatted || undefined,
       currentComplaints: formData.currentComplaints || undefined,
 
-      gravidaCount: Math.min(50, Math.max(1, Number(formData.gravidaCount) || 1)),
-      parityCount: Math.min(50, Math.max(0, Number(formData.parityCount) || 0)),
-      abortionCount: Math.min(50, Math.max(0, Number(formData.abortionCount) || 0)),
-      livingChildrenCount: Math.min(50, Math.max(0, Number(formData.livingChildrenCount) || 0)),
+      gravidaCount: formData.gravidaCount !== '' && formData.gravidaCount !== undefined && formData.gravidaCount !== null ? Number(formData.gravidaCount) : undefined,
+      parityCount: formData.parityCount !== '' && formData.parityCount !== undefined && formData.parityCount !== null ? Number(formData.parityCount) : undefined,
+      abortionCount: formData.abortionCount !== '' && formData.abortionCount !== undefined && formData.abortionCount !== null ? Number(formData.abortionCount) : undefined,
+      livingChildrenCount: formData.livingChildrenCount !== '' && formData.livingChildrenCount !== undefined && formData.livingChildrenCount !== null ? Number(formData.livingChildrenCount) : undefined,
       hasPreviousPregnancyHistory: Boolean(formData.hasPreviousPregnancyHistory),
       hasContraceptionHistory: Boolean(formData.hasContraceptionHistory),
 

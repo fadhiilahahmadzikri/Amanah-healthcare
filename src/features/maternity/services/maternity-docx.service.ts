@@ -166,7 +166,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Nama Ibu: ${intake.motherName || '-'}`,
+                              text: `Nama Ibu: ${intake.motherName || ''}`,
                               bold: true,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
@@ -176,7 +176,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `NIK: ${intake.motherNik || '-'} | Umur: ${intake.motherAge ? `${intake.motherAge} th` : '-'}`,
+                              text: `NIK: ${intake.motherNik || ''} | Umur: ${intake.motherAge ? `${intake.motherAge} th` : ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -185,7 +185,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Pekerjaan: ${intake.motherJob || '-'} | Pendidikan: ${intake.motherEducation || '-'}`,
+                              text: `Pekerjaan: ${intake.motherJob || ''} | Pendidikan: ${intake.motherEducation || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -194,7 +194,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Agama: ${intake.religion || '-'} | No. Telp: ${intake.phoneNumber || '-'}`,
+                              text: `Agama: ${intake.religion || ''} | No. Telp: ${intake.phoneNumber || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -203,7 +203,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Alamat Domisili: ${intake.domicileAddress || '-'}`,
+                              text: `Alamat Domisili: ${intake.domicileAddress || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -217,7 +217,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Nama Suami: ${intake.husbandProfile?.fullName || intake.partnerName || '-'}`,
+                              text: `Nama Suami: ${intake.husbandProfile?.fullName || intake.partnerName || ''}`,
                               bold: true,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
@@ -227,7 +227,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `NIK Suami: ${intake.husbandProfile?.nik || intake.partnerNik || '-'} | Umur: ${intake.husbandProfile?.age || intake.partnerAge || '-'} th`,
+                              text: `NIK Suami: ${intake.husbandProfile?.nik || intake.partnerNik || ''} | Umur: ${intake.husbandProfile?.age || intake.partnerAge ? `${intake.husbandProfile?.age || intake.partnerAge} th` : ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -236,7 +236,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Pekerjaan: ${intake.husbandProfile?.job || intake.partnerJob || '-'} | Pendidikan: ${intake.husbandProfile?.education || intake.partnerEducation || '-'}`,
+                              text: `Pekerjaan: ${intake.husbandProfile?.job || intake.partnerJob || ''} | Pendidikan: ${intake.husbandProfile?.education || intake.partnerEducation || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -245,7 +245,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Gol. Darah Suami: ${intake.husbandProfile?.bloodType || intake.partnerBloodType || '-'}`,
+                              text: `Gol. Darah Suami: ${intake.husbandProfile?.bloodType || intake.partnerBloodType || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -254,7 +254,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Pernikahan Ke: ${intake.marriageOrder || '1'} | Tgl Menikah: ${intake.marriageDate || '-'}`,
+                              text: `Pernikahan Ke: ${intake.marriageOrder ? String(intake.marriageOrder) : ''} | Tgl Menikah: ${intake.marriageDate || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -293,7 +293,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `HPHT: ${intake.hpht || '-'}   |   HPL (Taksiran Persalinan): ${intake.estimatedDueDate || '-'}   |   Usia Kehamilan: ${intake.gestationalAgeFormatted || `${intake.gestationalAgeWeeks || 0} minggu`}`,
+                              text: `HPHT: ${intake.hpht || ''}   |   HPL (Taksiran Persalinan): ${intake.estimatedDueDate || ''}   |   Usia Kehamilan: ${intake.gestationalAgeFormatted || (intake.gestationalAgeWeeks ? `${intake.gestationalAgeWeeks} minggu` : '')}`,
                               bold: true,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
@@ -303,7 +303,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `Keluhan Saat Ini: ${intake.currentComplaints || '-'}`,
+                              text: `Keluhan Saat Ini: ${intake.currentComplaints || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -312,7 +312,7 @@ export const maternityDocxService = {
                         new Paragraph({
                           children: [
                             new TextRun({
-                              text: `TB: ${intake.heightCm || '-'} cm   |   BB Awal: ${intake.prePregnancyWeightKg || '-'} kg   |   IMT: ${intake.initialBmi || '-'}   |   LiLA: ${intake.upperArmCircumferenceCm || '-'} cm   |   Gol. Darah Ibu: ${intake.motherBloodType || '-'}   |   Status TT: ${intake.tetanusStatus || '-'}`,
+                              text: `TB: ${intake.heightCm ? `${intake.heightCm} cm` : ''}   |   BB Awal: ${intake.prePregnancyWeightKg ? `${intake.prePregnancyWeightKg} kg` : ''}   |   IMT: ${intake.initialBmi || ''}   |   LiLA: ${intake.upperArmCircumferenceCm ? `${intake.upperArmCircumferenceCm} cm` : ''}   |   Gol. Darah Ibu: ${intake.motherBloodType || ''}   |   Status TT: ${intake.tetanusStatus || ''}`,
                               font: 'Times New Roman',
                               size: halfPoints(7.5),
                             }),
@@ -428,13 +428,19 @@ export const maternityDocxService = {
                             }),
                             new TableCell({
                               children: [
-                                new Paragraph({ text: p.birthYear || '-' }),
+                                new Paragraph({ text: p.birthYear ? String(p.birthYear) : '' }),
                               ],
                             }),
                             new TableCell({
                               children: [
                                 new Paragraph({
-                                  text: `${p.birthWeightGrams || '-'}gr / ${p.birthLengthCm || '-'}cm`,
+                                  text: p.birthWeightGrams && p.birthLengthCm
+                                    ? `${p.birthWeightGrams}gr / ${p.birthLengthCm}cm`
+                                    : p.birthWeightGrams
+                                      ? `${p.birthWeightGrams}gr`
+                                      : p.birthLengthCm
+                                        ? `${p.birthLengthCm}cm`
+                                        : '',
                                 }),
                               ],
                             }),
@@ -446,18 +452,18 @@ export const maternityDocxService = {
                             new TableCell({
                               children: [
                                 new Paragraph({
-                                  text: p.gestationalAgeAtBirth || '-',
+                                  text: p.gestationalAgeAtBirth || '',
                                 }),
                               ],
                             }),
                             new TableCell({
                               children: [
-                                new Paragraph({ text: p.birthAttendant || '-' }),
+                                new Paragraph({ text: p.birthAttendant || '' }),
                               ],
                             }),
                             new TableCell({
                               children: [
-                                new Paragraph({ text: p.deliveryMethod || '-' }),
+                                new Paragraph({ text: p.deliveryMethod || '' }),
                               ],
                             }),
                             new TableCell({
@@ -574,7 +580,7 @@ export const maternityDocxService = {
                                 new Paragraph({
                                   children: [
                                     new TextRun({
-                                      text: `• ${k.contraceptiveType || '-'}: ${k.durationText || '-'} (${k.problems || 'Tidak ada keluhan'})`,
+                                      text: `• ${k.contraceptiveType || ''}: ${k.durationText || ''}${k.problems ? ` (${k.problems})` : ''}`,
                                       font: 'Times New Roman',
                                       size: halfPoints(7.2),
                                     }),

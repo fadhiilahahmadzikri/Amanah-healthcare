@@ -67,7 +67,7 @@ export function MaternityObstetricSection({
           <PatientLineInput
             id='maternity-gestational-age'
             label='Usia Kehamilan Terhitung'
-            value={intake?.gestationalAgeFormatted || '-'}
+            value={intake?.gestationalAgeFormatted || ''}
             readOnly
           />
         </div>
@@ -84,8 +84,13 @@ export function MaternityObstetricSection({
               label='Gravida (G) *'
               type='number'
               min={1}
-              value={String(intake?.gravidaCount ?? 1)}
-              onChange={(val) => onIntakeFieldChange('gravidaCount', Number(val) || 1)}
+              value={intake?.gravidaCount}
+              onChange={(val) => {
+                onIntakeFieldChange('gravidaCount', val === '' ? '' : val);
+                if (validationErrors?.gravidaCount) onClearError?.('gravidaCount');
+              }}
+              error={validationErrors?.gravidaCount}
+              invalid={Boolean(validationErrors?.gravidaCount)}
               placeholder='1'
               required
             />
@@ -94,8 +99,13 @@ export function MaternityObstetricSection({
               label='Partus / Paritas (P)'
               type='number'
               min={0}
-              value={String(intake?.parityCount ?? 0)}
-              onChange={(val) => onIntakeFieldChange('parityCount', Number(val) || 0)}
+              value={intake?.parityCount}
+              onChange={(val) => {
+                onIntakeFieldChange('parityCount', val === '' ? '' : val);
+                if (validationErrors?.parityCount) onClearError?.('parityCount');
+              }}
+              error={validationErrors?.parityCount}
+              invalid={Boolean(validationErrors?.parityCount)}
               placeholder='0'
             />
             <PatientLineInput
@@ -103,8 +113,13 @@ export function MaternityObstetricSection({
               label='Abortus (A)'
               type='number'
               min={0}
-              value={String(intake?.abortionCount ?? 0)}
-              onChange={(val) => onIntakeFieldChange('abortionCount', Number(val) || 0)}
+              value={intake?.abortionCount}
+              onChange={(val) => {
+                onIntakeFieldChange('abortionCount', val === '' ? '' : val);
+                if (validationErrors?.abortionCount) onClearError?.('abortionCount');
+              }}
+              error={validationErrors?.abortionCount}
+              invalid={Boolean(validationErrors?.abortionCount)}
               placeholder='0'
             />
             <PatientLineInput
@@ -112,8 +127,13 @@ export function MaternityObstetricSection({
               label='Anak Hidup (H)'
               type='number'
               min={0}
-              value={String(intake?.livingChildrenCount ?? 0)}
-              onChange={(val) => onIntakeFieldChange('livingChildrenCount', Number(val) || 0)}
+              value={intake?.livingChildrenCount}
+              onChange={(val) => {
+                onIntakeFieldChange('livingChildrenCount', val === '' ? '' : val);
+                if (validationErrors?.livingChildrenCount) onClearError?.('livingChildrenCount');
+              }}
+              error={validationErrors?.livingChildrenCount}
+              invalid={Boolean(validationErrors?.livingChildrenCount)}
               placeholder='0'
             />
           </div>
@@ -125,6 +145,8 @@ export function MaternityObstetricSection({
             items={previousPregnancies}
             isEditing={isEditing}
             onChange={onPreviousPregnanciesChange}
+            validationErrors={validationErrors}
+            onClearError={onClearError}
           />
         </div>
 
@@ -133,8 +155,13 @@ export function MaternityObstetricSection({
           <PatientLineTextarea
             id='maternity-current-complaints'
             label='Keluhan Utama Saat Ini'
-            value={intake?.currentComplaints || ''}
-            onChange={(val) => onIntakeFieldChange('currentComplaints', val)}
+            value={intake?.currentComplaints}
+            onChange={(val) => {
+              onIntakeFieldChange('currentComplaints', val);
+              if (validationErrors?.currentComplaints && val) onClearError?.('currentComplaints');
+            }}
+            error={validationErrors?.currentComplaints}
+            invalid={Boolean(validationErrors?.currentComplaints)}
             placeholder='Keluhan fisik atau masalah yang dirasakan ibu saat ini...'
           />
         </div>
@@ -150,19 +177,19 @@ export function MaternityObstetricSection({
         <PatientLineInput
           id='view-hpht'
           label='HPHT (Hari Pertama Haid Terakhir)'
-          value={formatClinicDate(intake?.hpht, { style: 'human_medium' })}
+          value={intake?.hpht ? formatClinicDate(intake.hpht, { style: 'human_medium' }) : ''}
           readOnly
         />
         <PatientLineInput
           id='view-hpl'
           label='Taksiran Persalinan (HPL)'
-          value={formatClinicDate(intake?.estimatedDueDate, { style: 'human_medium' })}
+          value={intake?.estimatedDueDate ? formatClinicDate(intake.estimatedDueDate, { style: 'human_medium' }) : ''}
           readOnly
         />
         <PatientLineInput
           id='view-gestational-age'
           label='Usia Kehamilan Terhitung'
-          value={intake?.gestationalAgeFormatted || '-'}
+          value={intake?.gestationalAgeFormatted || ''}
           readOnly
         />
       </div>
@@ -177,25 +204,25 @@ export function MaternityObstetricSection({
           <PatientLineInput
             id='view-gravida'
             label='Gravida (G)'
-            value={String(intake?.gravidaCount ?? 1)}
+            value={intake?.gravidaCount !== undefined && intake?.gravidaCount !== null ? String(intake.gravidaCount) : ''}
             readOnly
           />
           <PatientLineInput
             id='view-parity'
             label='Partus / Paritas (P)'
-            value={String(intake?.parityCount ?? 0)}
+            value={intake?.parityCount !== undefined && intake?.parityCount !== null ? String(intake.parityCount) : ''}
             readOnly
           />
           <PatientLineInput
             id='view-abortion'
             label='Abortus (A)'
-            value={String(intake?.abortionCount ?? 0)}
+            value={intake?.abortionCount !== undefined && intake?.abortionCount !== null ? String(intake.abortionCount) : ''}
             readOnly
           />
           <PatientLineInput
             id='view-living-children'
             label='Anak Hidup (H)'
-            value={String(intake?.livingChildrenCount ?? 0)}
+            value={intake?.livingChildrenCount !== undefined && intake?.livingChildrenCount !== null ? String(intake.livingChildrenCount) : ''}
             readOnly
           />
         </div>
@@ -214,7 +241,7 @@ export function MaternityObstetricSection({
         <PatientLineTextarea
           id='view-current-complaints'
           label='Keluhan Utama Saat Ini'
-          value={intake?.currentComplaints || '-'}
+          value={intake?.currentComplaints || ''}
           readOnly
         />
       </div>

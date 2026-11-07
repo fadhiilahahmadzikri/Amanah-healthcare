@@ -110,118 +110,41 @@ export function AppointmentFormInspector({
     return intakeForms.find((f) => f.code === targetCode)?.schema ?? null;
   }, [intakeForms, isPregnancy, isImmunization]);
 
-  const activeMaternityIntake: MaternityIntake | null = React.useMemo(() => {
-    if (!isPregnancy) return null;
-    const m = parsedData.maternal;
+  const activeMaternityIntake = React.useMemo<MaternityIntake | null>(() => {
+    if (!isPregnancy || !parsedData.maternal) return null;
+    if (!isEditing) {
+      return parsedData.maternal;
+    }
+
+    const currentPartnerPhone = formData.partnerPhone ?? parsedData.maternal.husbandProfile?.phoneNumber ?? '';
+
     return {
-      id: m?.id || appointment.id,
-      patientId: m?.patientId || appointment.patient_id || '',
-      appointmentId: m?.appointmentId || appointment.id,
-      motherName: formData.motherName || m?.motherName || appointment.patient_name || '',
-      motherNik: formData.motherNik || m?.motherNik || '',
-      motherBirthDate: formData.motherBirthDate || m?.motherBirthDate || null,
-      motherAge: formData.motherAge ? Number(formData.motherAge) : m?.motherAge || null,
-      marriageOrder: formData.marriageOrder ? Number(formData.marriageOrder) : m?.marriageOrder || 1,
-      marriageDate: formData.marriageDate || m?.marriageDate || null,
-      motherJob: formData.motherJob || m?.motherJob || null,
-      motherEducation: formData.motherEducation || m?.motherEducation || null,
-      religion: formData.religion || m?.religion || null,
-      phoneNumber: formData.phoneNumber || m?.phoneNumber || appointment.patient_phone || null,
-      domicileAddress: formData.domicileAddress || m?.domicileAddress || null,
-      identityCardAddress: formData.identityCardAddress || m?.identityCardAddress || null,
-      dasawisma: formData.dasawisma || m?.dasawisma || null,
-      posyandu: formData.posyandu || m?.posyandu || null,
-      puskesmas: formData.puskesmas || m?.puskesmas || null,
-
-      partnerName: formData.partnerName || m?.partnerName || null,
-      partnerNik: formData.partnerNik || m?.partnerNik || null,
-      partnerBirthDate: formData.partnerBirthDate || m?.partnerBirthDate || null,
-      partnerAge: formData.partnerAge ? Number(formData.partnerAge) : m?.partnerAge || null,
-      partnerJob: formData.partnerJob || m?.partnerJob || null,
-      partnerEducation: formData.partnerEducation || m?.partnerEducation || null,
-      partnerBloodType: formData.partnerBloodType || m?.partnerBloodType || null,
+      ...parsedData.maternal,
+      ...formData,
       husbandProfile: {
-        fullName: formData.partnerName || m?.husband?.fullName || m?.partnerName || '',
-        nik: formData.partnerNik || m?.husband?.nik || m?.partnerNik || null,
-        birthDate: formData.partnerBirthDate || m?.husband?.birthDate || m?.partnerBirthDate || null,
-        age: formData.partnerAge ? Number(formData.partnerAge) : m?.husband?.age || null,
-        job: formData.partnerJob || m?.husband?.job || m?.partnerJob || null,
-        education: formData.partnerEducation || m?.husband?.education || m?.partnerEducation || null,
-        bloodType: formData.partnerBloodType || m?.husband?.bloodType || m?.partnerBloodType || null,
-        phoneNumber: (formData as any).partnerPhone || m?.husband?.phoneNumber || null
-      },
-
-      heightCm: formData.heightCm ? Number(formData.heightCm) : m?.heightCm || null,
-      prePregnancyWeightKg: formData.prePregnancyWeightKg ? Number(formData.prePregnancyWeightKg) : m?.prePregnancyWeightKg || null,
-      upperArmCircumferenceCm: formData.upperArmCircumferenceCm ? Number(formData.upperArmCircumferenceCm) : m?.upperArmCircumferenceCm || null,
-      initialBmi: formData.initialBmi ? Number(formData.initialBmi) : m?.initialBmi || null,
-      tetanusStatus: formData.tetanusStatus || m?.tetanusStatus || null,
-      motherBloodType: formData.motherBloodType || m?.motherBloodType || null,
-
-      hpht: formData.hpht || m?.hpht || null,
-      estimatedDueDate: formData.estimatedDueDate || m?.estimatedDueDate || null,
-      gestationalAgeWeeks: formData.gestationalAgeWeeks || m?.gestationalAgeWeeks || null,
-      gestationalAgeFormatted: formData.gestationalAgeFormatted || m?.gestationalAgeFormatted || null,
-      currentComplaints: formData.currentComplaints || m?.currentComplaints || appointment.complaint || '',
-
-      gravidaCount: Number(formData.gravidaCount) || m?.gravidaCount || 1,
-      parityCount: Number(formData.parityCount) || m?.parityCount || 0,
-      abortionCount: Number(formData.abortionCount) || m?.abortionCount || 0,
-      livingChildrenCount: Number(formData.livingChildrenCount) || m?.livingChildrenCount || 0,
-
-      hasPreviousPregnancyHistory: Boolean(formData.hasPreviousPregnancyHistory),
-      hasContraceptionHistory: Boolean(formData.hasContraceptionHistory),
-
-      smokedBeforePregnancy: formData.smokedBeforePregnancy || m?.smokedBeforePregnancy || null,
-      alcoholBeforePregnancy: Boolean(formData.alcoholBeforePregnancy ?? m?.alcoholBeforePregnancy),
-      irregularDietBeforePregnancy: Boolean(formData.irregularDietBeforePregnancy ?? m?.irregularDietBeforePregnancy),
-      reducedPhysicalActivityBeforePregnancy: Boolean(formData.reducedPhysicalActivityBeforePregnancy ?? m?.reducedPhysicalActivityBeforePregnancy),
-      unprescribedMedicationBeforePregnancy: Boolean(formData.unprescribedMedicationBeforePregnancy ?? m?.unprescribedMedicationBeforePregnancy),
-      concerningCosmeticUseBeforePregnancy: Boolean(formData.concerningCosmeticUseBeforePregnancy ?? m?.concerningCosmeticUseBeforePregnancy),
-      pesticideExposureBeforePregnancy: Boolean(formData.pesticideExposureBeforePregnancy ?? m?.pesticideExposureBeforePregnancy),
-      chemicalExposureBeforePregnancy: Boolean(formData.chemicalExposureBeforePregnancy ?? m?.chemicalExposureBeforePregnancy),
-      smokeExposureBeforePregnancy: Boolean(formData.smokeExposureBeforePregnancy ?? m?.smokeExposureBeforePregnancy),
-      concerningEnvironmentNotes: formData.concerningEnvironmentNotes || m?.concerningEnvironmentNotes || null,
-      allergyInfo: formData.allergyInfo || m?.allergyInfo || null,
-      otherNotes: formData.otherNotes || m?.otherNotes || null,
-
-      createdAt: m?.createdAt || new Date().toISOString(),
-      updatedAt: m?.updatedAt || new Date().toISOString(),
-
-      previousPregnancies: (formData.previousPregnancies || m?.previousPregnancies || []) as any,
-      contraceptiveHistories: (formData.contraceptiveHistories || m?.contraceptiveHistories || []) as any,
-      diseaseHistory: formData.diseaseHistory || m?.diseaseHistory || null,
-      conditionResponses: (
-        formData.conditionResponses && formData.conditionResponses.length > 0
-          ? formData.conditionResponses
-          : m?.conditionResponses || []
-      ) as any
+        ...parsedData.maternal.husbandProfile,
+        fullName: formData.partnerName || '',
+        nik: formData.partnerNik || null,
+        birthDate: formData.partnerBirthDate || null,
+        age: formData.partnerAge || null,
+        job: formData.partnerJob || null,
+        education: formData.partnerEducation || null,
+        bloodType: formData.partnerBloodType || null,
+        phoneNumber: currentPartnerPhone || null
+      }
     };
-  }, [isPregnancy, parsedData.maternal, formData, appointment]);
+  }, [isPregnancy, isEditing, parsedData.maternal, formData]);
 
   const activeChildIntake = React.useMemo(() => {
-    if (!isImmunization) return null;
-    const c = parsedData.child;
+    if (!isImmunization || !parsedData.child) return null;
+    if (!isEditing) {
+      return parsedData.child as any;
+    }
     return {
-      id: c?.id || appointment.id,
-      patientId: c?.patientId || parsedData.patient?.id || '',
-      appointmentId: c?.appointmentId || appointment.id,
-      childName: immunizationFormData.childName || c?.childName || appointment.patient_name || '',
-      childNik: immunizationFormData.childNik || c?.childNik || null,
-      childBirthDate: immunizationFormData.childBirthDate || c?.childBirthDate || '',
-      childSex: (immunizationFormData.childSex || c?.childSex || 'male') as any,
-      childAgeFormatted: immunizationFormData.childAgeFormatted || c?.childAgeFormatted || null,
-      parentPhone: immunizationFormData.parentPhone || c?.parentPhone || appointment.patient_phone || '',
-      fatherName: immunizationFormData.fatherName || c?.fatherName || null,
-      motherName: immunizationFormData.motherName || c?.motherName || null,
-      childAddress: immunizationFormData.childAddress || c?.childAddress || null,
-      previousVaccineHistory: immunizationFormData.previousVaccineHistory || c?.previousVaccineHistory || null,
-      childAllergyHistory: immunizationFormData.childAllergyHistory || c?.childAllergyHistory || null,
-      entries: (immunizationFormData.entries && immunizationFormData.entries.length > 0
-        ? immunizationFormData.entries
-        : (c as any)?.entries || []) as any
-    };
-  }, [isImmunization, parsedData.child, parsedData.patient, immunizationFormData, appointment]);
+      ...parsedData.child,
+      ...immunizationFormData
+    } as any;
+  }, [isImmunization, isEditing, parsedData.child, immunizationFormData]);
 
   const activeUnifiedData = React.useMemo<typeof parsedData>(() => {
     const activePatient = parsedData.patient

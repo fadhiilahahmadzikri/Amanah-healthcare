@@ -27,17 +27,17 @@ export function adaptToImunisasiFormData(
   const cleanDigits = mrn.replace(/\D/g, '').padStart(10, '0').slice(-10);
   const recordDigits = cleanDigits.split('');
 
-  const childName = isFieldActive('childName') ? (c?.childName || p?.fullName || '-') : '-';
-  const childNik = isFieldActive('childNik') ? (c?.childNik || p?.nik || '-') : '-';
+  const childName = isFieldActive('childName') ? (c?.childName || p?.fullName || '') : '';
+  const childNik = isFieldActive('childNik') ? (c?.childNik || p?.nik || '') : '';
   const rawBirthDate = isFieldActive('childBirthDate') ? (c?.childBirthDate || p?.birthDate) : undefined;
   const childBirthDate = rawBirthDate
     ? formatClinicDate(rawBirthDate, { style: 'human_full' })
-    : '-';
-  const phone = isFieldActive('parentPhone') ? (c?.parentPhone || p?.phone || '-') : '-';
+    : '';
+  const phone = isFieldActive('parentPhone') ? (c?.parentPhone || p?.phone || '') : '';
 
-  const fatherName = isFieldActive('fatherName') ? (c?.fatherName || '-') : '-';
-  const motherName = isFieldActive('motherName') ? (c?.motherName || p?.motherName || '-') : '-';
-  const address = isFieldActive('childAddress') ? (c?.childAddress || p?.address || '-') : '-';
+  const fatherName = isFieldActive('fatherName') ? (c?.fatherName || '') : '';
+  const motherName = isFieldActive('motherName') ? (c?.motherName || p?.motherName || '') : '';
+  const address = isFieldActive('childAddress') ? (c?.childAddress || p?.address || '') : '';
 
   // Construct 15 entries strictly mapped to defaultImunisasiConfig.vaccineTable.rows
   const vaccineRows: (VaccineRowData | undefined)[] = Array.from({ length: 15 }, () => undefined);
@@ -78,15 +78,15 @@ export function adaptToImunisasiFormData(
           const matchedPlanning = match.planning || match.notes || '';
 
           const matchedSubjective = [
-            `Demam: ${match.fever || '-'}`,
-            `Batuk: ${match.cough || '-'}`,
-            `Pilek: ${match.runnyNose || '-'}`
+            `Demam: ${match.fever || ''}`,
+            `Batuk: ${match.cough || ''}`,
+            `Pilek: ${match.runnyNose || ''}`
           ];
 
-          const bbStr = match.weightKg != null ? `${match.weightKg} kg` : '-';
-          const pbStr = match.heightCm != null ? `${match.heightCm} cm` : '-';
-          const lkStr = match.headCircumferenceCm != null ? `${match.headCircumferenceCm} cm` : '-';
-          const tempStr = match.temperatureCelsius != null ? `${match.temperatureCelsius}°C` : '-';
+          const bbStr = match.weightKg != null ? `${match.weightKg} kg` : '';
+          const pbStr = match.heightCm != null ? `${match.heightCm} cm` : '';
+          const lkStr = match.headCircumferenceCm != null ? `${match.headCircumferenceCm} cm` : '';
+          const tempStr = match.temperatureCelsius != null ? `${match.temperatureCelsius}°C` : '';
           const matchedObjective = [`BB/PB: ${bbStr}/${pbStr}`, `LK/S: ${lkStr}/${tempStr}`];
 
           vaccineRows[def.rowIdx] = {
@@ -111,8 +111,8 @@ export function adaptToImunisasiFormData(
       rightValues: [fatherName, motherName, address, '']
     },
     preTable: {
-      previousVaccines: c?.previousVaccineHistory || '-',
-      allergy: c?.childAllergyHistory || '-'
+      previousVaccines: c?.previousVaccineHistory || '',
+      allergy: c?.childAllergyHistory || ''
     },
     vaccineRows
   };

@@ -13,7 +13,7 @@ export const RegulerClinicalNotesSection: React.FC<RegulerClinicalNotesSectionPr
   chiefComplaint,
   clinical
 }) => {
-  const displayComplaint = chiefComplaint || clinical?.chiefComplaint || '-';
+  const displayComplaint = chiefComplaint || clinical?.chiefComplaint || '';
 
   return (
     <div className='w-full mb-2'>
@@ -31,9 +31,7 @@ export const RegulerClinicalNotesSection: React.FC<RegulerClinicalNotesSectionPr
             </td>
             <td className='px-1.5 py-1 align-top'>
               <FormText customPt={7.2}>
-                {displayComplaint !== '-'
-                  ? displayComplaint
-                  : 'Tidak ada keluhan klinis yang dicatat saat pendaftaran.'}
+                {displayComplaint}
               </FormText>
             </td>
           </tr>

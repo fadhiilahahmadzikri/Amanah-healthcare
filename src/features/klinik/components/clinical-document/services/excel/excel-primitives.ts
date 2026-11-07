@@ -43,7 +43,7 @@ export function addSquareLogo(wb: ExcelJS.Workbook, ws: ExcelJS.Worksheet) {
 
 export function parseNativeNumber(val: any): number | string {
   if (typeof val === 'number') return val;
-  if (!val || typeof val !== 'string') return '-';
+  if (!val || typeof val !== 'string') return '';
   const clean = val.replace(/,/g, '.').replace(/[^\d.-]/g, '');
   if (clean && !isNaN(Number(clean))) {
     return Number(clean);

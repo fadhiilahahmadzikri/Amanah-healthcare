@@ -70,7 +70,7 @@ export async function exportPmbExcel(
   const r6 = ws.getRow(6);
   r6.getCell(1).value = 'Nomor RM ANC:';
   r6.getCell(1).font = { bold: true, size: 9 };
-  r6.getCell(3).value = data?.header?.rmAncCode || '-';
+  r6.getCell(3).value = data?.header?.rmAncCode || '';
   r6.getCell(3).font = { size: 9 };
   r6.getCell(5).value = 'Riwayat Alergi:';
   r6.getCell(5).font = { bold: true, size: 9 };
@@ -88,33 +88,33 @@ export async function exportPmbExcel(
   const measurements = data?.identity?.measurementValues || [];
 
   const fourFieldRows = [
-    ['Nama Ibu', topRows[0]?.[0] || '-', 'Pernikahan Ke', parseNativeNumber(topRows[0]?.[1])],
-    ['NIK Ibu', topRows[1]?.[0] || '-', 'Tanggal Menikah', topRows[0]?.[2] || '-'],
-    ['Tanggal Lahir Ibu', topRows[1]?.[1] || '-', 'Nama Suami', topRows[2]?.[0] || '-'],
-    ['Umur Ibu', parseNativeNumber(topRows[2]?.[1]), 'NIK Suami', topRows[3]?.[0] || '-'],
-    ['Pekerjaan Ibu', topRows[1]?.[2] || '-', 'Tanggal Lahir Suami', topRows[3]?.[1] || '-'],
-    ['Pendidikan Ibu', topRows[2]?.[2] || '-', 'Umur Suami', parseNativeNumber(topRows[4]?.[1])],
-    ['Golongan Darah Ibu', measurements[0]?.[3] || '-', 'Pekerjaan Suami', topRows[3]?.[2] || '-'],
+    ['Nama Ibu', topRows[0]?.[0] || '', 'Pernikahan Ke', parseNativeNumber(topRows[0]?.[1])],
+    ['NIK Ibu', topRows[1]?.[0] || '', 'Tanggal Menikah', topRows[0]?.[2] || ''],
+    ['Tanggal Lahir Ibu', topRows[1]?.[1] || '', 'Nama Suami', topRows[2]?.[0] || ''],
+    ['Umur Ibu', parseNativeNumber(topRows[2]?.[1]), 'NIK Suami', topRows[3]?.[0] || ''],
+    ['Pekerjaan Ibu', topRows[1]?.[2] || '', 'Tanggal Lahir Suami', topRows[3]?.[1] || ''],
+    ['Pendidikan Ibu', topRows[2]?.[2] || '', 'Umur Suami', parseNativeNumber(topRows[4]?.[1])],
+    ['Golongan Darah Ibu', measurements[0]?.[3] || '', 'Pekerjaan Suami', topRows[3]?.[2] || ''],
     [
       'Tinggi Badan (TB)',
       parseNativeNumber(measurements[0]?.[0]),
       'Pendidikan Suami',
-      topRows[4]?.[2] || '-'
+      topRows[4]?.[2] || ''
     ],
     [
       'Berat Badan Sebelum Hamil (BB)',
       parseNativeNumber(measurements[1]?.[0]),
       'Golongan Darah Suami',
-      measurements[1]?.[3] || '-'
+      measurements[1]?.[3] || ''
     ],
     [
       'LILA',
       parseNativeNumber(measurements[0]?.[1]),
       'Status Imunisasi TT',
-      measurements[0]?.[2] || '-'
+      measurements[0]?.[2] || ''
     ],
-    ['IMT Awal', parseNativeNumber(measurements[1]?.[1]), 'Dasawisma', locations[0] || '-'],
-    ['Posyandu', locations[1] || '-', 'Puskesmas', locations[2] || '-']
+    ['IMT Awal', parseNativeNumber(measurements[1]?.[1]), 'Dasawisma', locations[0] || ''],
+    ['Posyandu', locations[1] || '', 'Puskesmas', locations[2] || '']
   ];
 
   fourFieldRows.forEach((rowPair) => {
@@ -130,10 +130,10 @@ export async function exportPmbExcel(
   });
 
   const fullFieldRows = [
-    ['Agama', fullRows[0] || '-'],
-    ['Alamat Domisili', fullRows[1] || '-'],
-    ['Alamat KTP', fullRows[2] || '-'],
-    ['Nomor Telepon / WA', fullRows[3] || '-']
+    ['Agama', fullRows[0] || ''],
+    ['Alamat Domisili', fullRows[1] || ''],
+    ['Alamat KTP', fullRows[2] || ''],
+    ['Nomor Telepon / WA', fullRows[3] || '']
   ];
 
   fullFieldRows.forEach((item) => {
@@ -151,11 +151,11 @@ export async function exportPmbExcel(
   const anamnesaRows = [
     [
       'HPHT (Haid Pertama Terakhir)',
-      prompts[0] || '-',
+      prompts[0] || '',
       'HPL (Hari Perkiraan Lahir)',
-      prompts[1] || '-'
+      prompts[1] || ''
     ],
-    ['Usia Kehamilan (UK)', prompts[2] || '-', 'Keluhan Saat Ini', prompts[3] || '-'],
+    ['Usia Kehamilan (UK)', prompts[2] || '', 'Keluhan Saat Ini', prompts[3] || ''],
     [
       'Merokok',
       risk['Merokok'] ? 'Ya' : 'Tidak',
@@ -186,10 +186,10 @@ export async function exportPmbExcel(
     ws,
     currentLine,
     'Paparan Lingkungan Berisiko',
-    data?.anamnesa?.environment || '-'
+    data?.anamnesa?.environment || ''
   );
   currentLine += 1;
-  addFullFieldRow(ws, currentLine, 'Catatan Lainnya', data?.anamnesa?.otherLines?.[0] || '-');
+  addFullFieldRow(ws, currentLine, 'Catatan Lainnya', data?.anamnesa?.otherLines?.[0] || '');
 
   // Section III: SKRINING 14 PENYAKIT
   currentLine += 2;
@@ -218,8 +218,8 @@ export async function exportPmbExcel(
   CANONICAL_MATERNAL_CONDITIONS.forEach((condDef, idx) => {
     currentLine += 1;
     const rec = diseases[condDef.docLabel];
-    const status = rec?.status === 'ya' ? 'Ya' : rec?.status === 'tidak' ? 'Tidak' : '-';
-    const year = rec?.year || '-';
+    const status = rec?.status === 'ya' ? 'Ya' : rec?.status === 'tidak' ? 'Tidak' : '';
+    const year = rec?.year || '';
 
     ws.mergeCells(`B${currentLine}:D${currentLine}`);
     ws.mergeCells(`E${currentLine}:F${currentLine}`);

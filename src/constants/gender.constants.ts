@@ -16,5 +16,5 @@ export const GENDER_OPTIONS: { label: string; value: Gender }[] = [
 ];
 
 export function getGenderLabel(gender?: string | null): string {
-  return (gender && GENDER_LABEL_MAP[gender as Gender]) || '-';
+  return (gender && GENDER_LABEL_MAP[gender as Gender]) || '';
 }

@@ -30,13 +30,13 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
               <FormText customPt={7.2}>NIK (KTP)</FormText>
             </td>
             <td className="px-1.5 py-0.5 border-r border-black font-mono">
-              <FormText customPt={7.2} bold>{identity?.nik || '-'}</FormText>
+              <FormText customPt={7.2} bold>{identity?.nik || ''}</FormText>
             </td>
             <td className="px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold">
               <FormText customPt={7.2}>Nama Lengkap</FormText>
             </td>
             <td className="px-1.5 py-0.5 font-semibold">
-              <FormText customPt={7.2} bold>{identity?.fullName || '-'}</FormText>
+              <FormText customPt={7.2} bold>{identity?.fullName || ''}</FormText>
             </td>
           </tr>
 
@@ -46,7 +46,7 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
             </td>
             <td className="px-1.5 py-0.5 border-r border-black">
               <FormText customPt={7.2}>
-                {[identity?.birthPlace, identity?.birthDate].filter(Boolean).join(', ') || '-'}
+                {[identity?.birthPlace, identity?.birthDate].filter(Boolean).join(', ')}
               </FormText>
             </td>
             <td className="px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold">
@@ -54,7 +54,7 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
             </td>
             <td className="px-1.5 py-0.5">
               <FormText customPt={7.2}>
-                {[identity?.gender, identity?.age ? `(${identity.age})` : ''].filter(Boolean).join(' ') || '-'}
+                {[identity?.gender, identity?.age ? `(${identity.age})` : ''].filter(Boolean).join(' ')}
               </FormText>
             </td>
           </tr>
@@ -64,13 +64,13 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
               <FormText customPt={7.2}>Golongan Darah</FormText>
             </td>
             <td className="px-1.5 py-0.5 border-r border-black">
-              <FormText customPt={7.2} bold>{identity?.bloodType || '-'}</FormText>
+              <FormText customPt={7.2} bold>{identity?.bloodType || ''}</FormText>
             </td>
             <td className="px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold">
               <FormText customPt={7.2}>Nama Ibu Kandung</FormText>
             </td>
             <td className="px-1.5 py-0.5">
-              <FormText customPt={7.2}>{identity?.motherName || '-'}</FormText>
+              <FormText customPt={7.2}>{identity?.motherName || ''}</FormText>
             </td>
           </tr>
 
@@ -79,7 +79,7 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
               <FormText customPt={7.2}>Pekerjaan</FormText>
             </td>
             <td colSpan={3} className="px-1.5 py-0.5">
-              <FormText customPt={7.2}>{identity?.occupation || '-'}</FormText>
+              <FormText customPt={7.2}>{identity?.occupation || ''}</FormText>
             </td>
           </tr>
 
@@ -88,13 +88,13 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
               <FormText customPt={7.2}>No. Telepon / WA</FormText>
             </td>
             <td className="px-1.5 py-0.5 border-r border-black">
-              <FormText customPt={7.2}>{identity?.phoneNumber || '-'}</FormText>
+              <FormText customPt={7.2}>{identity?.phoneNumber || ''}</FormText>
             </td>
             <td className="px-1.5 py-0.5 bg-gray-50 border-r border-black font-semibold">
               <FormText customPt={7.2}>Email Pasien</FormText>
             </td>
             <td className="px-1.5 py-0.5">
-              <FormText customPt={7.2}>{identity?.email || '-'}</FormText>
+              <FormText customPt={7.2}>{identity?.email || ''}</FormText>
             </td>
           </tr>
 
@@ -103,7 +103,7 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
               <FormText customPt={7.2}>Alamat Lengkap</FormText>
             </td>
             <td colSpan={3} className="px-1.5 py-0.5">
-              <FormText customPt={7.2}>{identity?.address || '-'}</FormText>
+              <FormText customPt={7.2}>{identity?.address || ''}</FormText>
             </td>
           </tr>
 
@@ -114,8 +114,8 @@ export const RegulerIdentitySection: React.FC<RegulerIdentitySectionProps> = ({
             <td colSpan={3} className="px-1.5 py-0.5">
               <FormText customPt={7.2}>
                 {emergencyContact?.name
-                  ? `${emergencyContact.name} (${emergencyContact.relationship || 'Keluarga'}) - Telp: ${emergencyContact.phoneNumber || '-'}`
-                  : '-'}
+                  ? `${emergencyContact.name}${emergencyContact.relationship ? ` (${emergencyContact.relationship})` : ''}${emergencyContact.phoneNumber ? ` - Telp: ${emergencyContact.phoneNumber}` : ''}`
+                  : ''}
               </FormText>
             </td>
           </tr>

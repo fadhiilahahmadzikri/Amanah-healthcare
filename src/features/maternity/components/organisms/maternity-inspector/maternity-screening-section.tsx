@@ -58,7 +58,7 @@ export function MaternityScreeningSection({
             <PatientLineSelect
               id='maternity-smoke-habit'
               label='Kebiasaan Merokok'
-              value={intake?.smokedBeforePregnancy || 'Tidak'}
+              value={intake?.smokedBeforePregnancy}
               onChange={(val) => onIntakeFieldChange('smokedBeforePregnancy', val)}
               options={MATERNAL_SMOKING_HABIT_OPTIONS}
             />
@@ -168,7 +168,7 @@ export function MaternityScreeningSection({
           <PatientLineInput
             id='maternity-env-notes'
             label='Catatan Lingkungan Khusus'
-            value={intake?.concerningEnvironmentNotes || ''}
+            value={intake?.concerningEnvironmentNotes}
             onChange={(val) => onIntakeFieldChange('concerningEnvironmentNotes', val)}
             placeholder='Keterangan paparan lingkungan...'
           />
@@ -179,7 +179,7 @@ export function MaternityScreeningSection({
           <PatientLineTextarea
             id='maternity-allergy'
             label='Riwayat Alergi (Obat / Makanan / Debu)'
-            value={intake?.allergyInfo || ''}
+            value={intake?.allergyInfo}
             onChange={(val) => onIntakeFieldChange('allergyInfo', val)}
             placeholder='cth: Alergi Amoksisilin, debu...'
           />
@@ -187,7 +187,7 @@ export function MaternityScreeningSection({
           <PatientLineTextarea
             id='maternity-other-notes'
             label='Catatan Medis Tambahan Bidan'
-            value={intake?.otherNotes || ''}
+            value={intake?.otherNotes}
             onChange={(val) => onIntakeFieldChange('otherNotes', val)}
             placeholder='Catatan khusus pemeriksaan...'
           />
@@ -310,14 +310,14 @@ export function MaternityScreeningSection({
         <PatientLineTextarea
           id='view-allergy'
           label='Riwayat Alergi (Obat / Makanan / Debu)'
-          value={intake?.allergyInfo || '-'}
+          value={intake?.allergyInfo || ''}
           readOnly
         />
 
         <PatientLineTextarea
           id='view-other-notes'
           label='Catatan Medis Tambahan Bidan'
-          value={intake?.otherNotes || '-'}
+          value={intake?.otherNotes || ''}
           readOnly
         />
       </div>

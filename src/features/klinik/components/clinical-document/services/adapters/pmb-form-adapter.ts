@@ -19,60 +19,60 @@ export function adaptToPmbFormData(
   const inactive = getInactiveFieldIds(schema);
   const isFieldActive = (id: string) => !inactive.has(id);
 
-  const motherName = isFieldActive('motherName') ? (m?.motherName || p?.fullName || '-') : '-';
-  const marriageOrder = isFieldActive('marriageOrder') ? (m?.marriageOrder ? String(m.marriageOrder) : '1') : '-';
+  const motherName = isFieldActive('motherName') ? (m?.motherName || p?.fullName || '') : '';
+  const marriageOrder = isFieldActive('marriageOrder') ? (m?.marriageOrder ? String(m.marriageOrder) : '') : '';
   const rawMarriageDate = isFieldActive('marriageDate') ? m?.marriageDate : undefined;
   const marriageDate = rawMarriageDate
     ? formatClinicDate(rawMarriageDate, { style: 'human_full' })
-    : '-';
-  const motherNik = isFieldActive('motherNik') ? (m?.motherNik || p?.nik || '-') : '-';
+    : '';
+  const motherNik = isFieldActive('motherNik') ? (m?.motherNik || p?.nik || '') : '';
   const rawMotherBirthDate = isFieldActive('motherBirthDate') ? (m?.motherBirthDate || p?.birthDate) : undefined;
   const motherBirthDate = rawMotherBirthDate
     ? formatClinicDate(rawMotherBirthDate, { style: 'human_full' })
-    : '-';
-  const motherAge = isFieldActive('motherAge') ? (m?.motherAge ? `${m.motherAge} tahun` : '-') : '-';
-  const motherJob = isFieldActive('motherJob') ? (m?.motherJob || p?.occupation || '-') : '-';
-  const motherEducation = isFieldActive('motherEducation') ? (m?.motherEducation || '-') : '-';
+    : '';
+  const motherAge = isFieldActive('motherAge') ? (m?.motherAge ? `${m.motherAge} tahun` : '') : '';
+  const motherJob = isFieldActive('motherJob') ? (m?.motherJob || p?.occupation || '') : '';
+  const motherEducation = isFieldActive('motherEducation') ? (m?.motherEducation || '') : '';
 
-  const partnerName = isFieldActive('partnerName') ? (m?.partnerName || '-') : '-';
-  const partnerAge = isFieldActive('partnerAge') ? (m?.partnerAge ? `${m.partnerAge} tahun` : '-') : '-';
-  const partnerNik = isFieldActive('partnerNik') ? (m?.partnerNik || '-') : '-';
-  const rawPartnerBirthDate = isFieldActive('partnerBirthDate') ? m?.partnerBirthDate : undefined;
+  const partnerName = isFieldActive('partnerName') ? (m?.husbandProfile?.fullName || m?.partnerName || '') : '';
+  const partnerAge = isFieldActive('partnerAge') ? (m?.husbandProfile?.age || m?.partnerAge ? `${m?.husbandProfile?.age || m?.partnerAge} tahun` : '') : '';
+  const partnerNik = isFieldActive('partnerNik') ? (m?.husbandProfile?.nik || m?.partnerNik || '') : '';
+  const rawPartnerBirthDate = isFieldActive('partnerBirthDate') ? (m?.husbandProfile?.birthDate || m?.partnerBirthDate) : undefined;
   const partnerBirthDate = rawPartnerBirthDate
     ? formatClinicDate(rawPartnerBirthDate, { style: 'human_full' })
-    : '-';
-  const partnerJob = isFieldActive('partnerJob') ? (m?.partnerJob || '-') : '-';
-  const partnerEducation = isFieldActive('partnerEducation') ? (m?.partnerEducation || '-') : '-';
+    : '';
+  const partnerJob = isFieldActive('partnerJob') ? (m?.husbandProfile?.job || m?.partnerJob || '') : '';
+  const partnerEducation = isFieldActive('partnerEducation') ? (m?.husbandProfile?.education || m?.partnerEducation || '') : '';
 
   const fullRows = [
-    isFieldActive('religion') ? (m?.religion || '-') : '-',
-    isFieldActive('domicileAddress') ? (m?.domicileAddress || p?.address || '-') : '-',
-    isFieldActive('identityCardAddress') ? (m?.identityCardAddress || p?.address || '-') : '-',
-    isFieldActive('phoneNumber') ? (m?.phoneNumber || p?.phone || '-') : '-'
+    isFieldActive('religion') ? (m?.religion || '') : '',
+    isFieldActive('domicileAddress') ? (m?.domicileAddress || p?.address || '') : '',
+    isFieldActive('identityCardAddress') ? (m?.identityCardAddress || p?.address || '') : '',
+    isFieldActive('phoneNumber') ? (m?.phoneNumber || p?.phone || '') : ''
   ];
 
   const locationValues = [
-    isFieldActive('dasawisma') ? (m?.dasawisma || '-') : '-',
-    isFieldActive('posyandu') ? (m?.posyandu || '-') : '-',
-    isFieldActive('puskesmas') ? (m?.puskesmas || '-') : '-'
+    isFieldActive('dasawisma') ? (m?.dasawisma || '') : '',
+    isFieldActive('posyandu') ? (m?.posyandu || '') : '',
+    isFieldActive('puskesmas') ? (m?.puskesmas || '') : ''
   ];
 
-  const motherBlood = (m?.motherBloodType || p?.bloodType || '-').toUpperCase();
-  const partnerBlood = (m?.partnerBloodType || '-').toUpperCase();
+  const motherBlood = (m?.motherBloodType || p?.bloodType || '').toUpperCase();
+  const partnerBlood = (m?.husbandProfile?.bloodType || m?.partnerBloodType || '').toUpperCase();
 
   const rawHeight = m?.heightCm;
-  const tb = rawHeight ? `${rawHeight} cm` : '-';
+  const tb = rawHeight ? `${rawHeight} cm` : '';
 
   const rawWeight = m?.prePregnancyWeightKg;
-  const bbAwal = rawWeight ? `${rawWeight} kg` : '-';
+  const bbAwal = rawWeight ? `${rawWeight} kg` : '';
 
   const rawLila = m?.upperArmCircumferenceCm;
-  const lila = rawLila ? `${rawLila} cm` : '-';
+  const lila = rawLila ? `${rawLila} cm` : '';
 
   const rawBmi = m?.initialBmi;
-  const imt = rawBmi ? String(rawBmi) : '-';
+  const imt = rawBmi ? String(rawBmi) : '';
 
-  const tetanus = m?.tetanusStatus || '-';
+  const tetanus = m?.tetanusStatus || '';
 
   const measurementValues = [
     [tb, lila, tetanus, motherBlood],
@@ -81,20 +81,20 @@ export function adaptToPmbFormData(
 
   // Anamnesa prompts
   const rawHpht = m?.hpht;
-  const hpht = rawHpht ? formatClinicDate(rawHpht, { style: 'human_full' }) : '-';
+  const hpht = rawHpht ? formatClinicDate(rawHpht, { style: 'human_full' }) : '';
 
   const rawHpl = m?.estimatedDueDate;
-  const hpl = rawHpl ? formatClinicDate(rawHpl, { style: 'human_full' }) : '-';
+  const hpl = rawHpl ? formatClinicDate(rawHpl, { style: 'human_full' }) : '';
 
   const uk =
     m?.gestationalAgeFormatted ||
-    (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '-');
+    (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '');
 
   const keluhan =
     m?.currentComplaints ||
     appointment?.complaint ||
     data.complaint ||
-    '-';
+    '';
 
   const isSmokingActive = m?.smokedBeforePregnancy === 'Aktif';
   const isSmokingPassive =
@@ -176,8 +176,8 @@ export function adaptToPmbFormData(
 
   return {
     header: {
-      allergy: m?.allergyInfo || '-',
-      rmAncCode: p?.medicalRecordNumber || '-'
+      allergy: m?.allergyInfo || '',
+      rmAncCode: p?.medicalRecordNumber || ''
     },
     identity: {
       topRowValues: [
@@ -194,7 +194,7 @@ export function adaptToPmbFormData(
     anamnesa: {
       promptValues: [hpht, hpl, uk, keluhan],
       riskChecked,
-      environment: m?.concerningEnvironmentNotes || '-',
+      environment: m?.concerningEnvironmentNotes || '',
       otherLines: [m?.otherNotes || '', '', ''],
       diseaseHistory
     },

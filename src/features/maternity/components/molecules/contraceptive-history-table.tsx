@@ -20,12 +20,16 @@ export interface ContraceptiveHistoryTableProps {
   items: MaternalContraceptiveHistory[];
   isEditing?: boolean;
   onChange?: (updated: MaternalContraceptiveHistory[]) => void;
+  validationErrors?: Record<string, string>;
+  onClearError?: (key: string) => void;
 }
 
 export function ContraceptiveHistoryTable({
   items,
   isEditing = false,
-  onChange
+  onChange,
+  validationErrors,
+  onClearError
 }: ContraceptiveHistoryTableProps) {
   const handleAddItem = () => {
     if (!onChange) return;
@@ -162,7 +166,7 @@ export function ContraceptiveHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.contraceptiveType || '-'
+                      item.contraceptiveType || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -177,7 +181,7 @@ export function ContraceptiveHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.durationText || '-'
+                      item.durationText || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -192,7 +196,7 @@ export function ContraceptiveHistoryTable({
                         variant='underline'
                       />
                     ) : (
-                      formatClinicDate(item.stopDate, { style: 'human_medium' })
+                      item.stopDate ? formatClinicDate(item.stopDate, { style: 'human_medium' }) : ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -206,7 +210,7 @@ export function ContraceptiveHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.problems || '-'
+                      item.problems || ''
                     )}
                   </TableCell>
                   <TableCell className='px-3 py-2.5 text-xs'>
@@ -220,7 +224,7 @@ export function ContraceptiveHistoryTable({
                         className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
                       />
                     ) : (
-                      item.sideEffects || '-'
+                      item.sideEffects || ''
                     )}
                   </TableCell>
                   {isEditing && (

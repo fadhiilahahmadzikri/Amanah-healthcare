@@ -148,10 +148,10 @@ export interface EditableMaternalData {
   gestationalAgeFormatted: string;
   currentComplaints: string;
 
-  gravidaCount: number;
-  parityCount: number;
-  abortionCount: number;
-  livingChildrenCount: number;
+  gravidaCount: number | string;
+  parityCount: number | string;
+  abortionCount: number | string;
+  livingChildrenCount: number | string;
   hasPreviousPregnancyHistory: boolean;
   hasContraceptionHistory: boolean;
 

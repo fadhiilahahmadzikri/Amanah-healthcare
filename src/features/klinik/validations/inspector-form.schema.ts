@@ -10,6 +10,11 @@ export {
   maternalConditionItemZodSchema as conditionResponseItemZodSchema,
   validateMaternalForm,
   getMaternityTabWithErrors,
+  getMaternityTabErrorCounts,
+  getTabForErrorKey,
+  MATERNITY_TAB_LABELS,
+  MATERNITY_FIELD_TAB_MAP,
+  MATERNITY_FIELD_DOM_ID_MAP,
   type MaternalValidationResult,
   type MaternityInspectorTab
 } from './maternity-form.schema';

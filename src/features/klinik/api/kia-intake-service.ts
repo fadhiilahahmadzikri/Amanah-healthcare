@@ -1,4 +1,5 @@
 import { clientFetch } from '@/lib/client-fetch';
+import type { MaternityIntake } from '@/features/maternity/types/maternity.types';
 import {
   type FlowName,
   type IntakeType,
@@ -206,18 +207,7 @@ export interface CreateChildImmunizationPayload {
   entries?: ChildImmunizationEntryPayload[];
 }
 
-export interface MaternalIntakeResponse extends CreateMaternityIntakePayload {
-  id: string;
-  intakeSubmissionId: string;
-  createdAt: string;
-  updatedAt: string;
-  estimatedDueDate?: string | null;
-  gestationalAgeWeeks?: number | null;
-  gestationalAgeFormatted?: string | null;
-  answers?: Record<string, unknown>;
-  automatic?: Record<string, unknown>;
-  conditionResponses?: HealthConditionResponsePayload[];
-}
+export type MaternalIntakeResponse = MaternityIntake;
 
 export interface ChildImmunizationResponse extends CreateChildImmunizationPayload {
   id: string;

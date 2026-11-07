@@ -5,11 +5,11 @@ import { cn } from '@/lib/utils';
 
 export interface PatientLineInputProps extends Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
-  'onChange'
+  'onChange' | 'value'
 > {
   label: React.ReactNode;
   id: string;
-  value: string;
+  value?: string | number | null;
   onChange?: (value: string) => void;
   error?: string;
   invalid?: boolean;
@@ -48,7 +48,8 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
   ) => {
     const [isFocused, setIsFocused] = React.useState(false);
     const isInvalid = Boolean(invalid || error);
-    const hasValue = Boolean(value && String(value).trim().length > 0);
+    const valString = value === null || value === undefined ? '' : String(value);
+    const hasValue = Boolean(valString.trim().length > 0);
     const isFloating = isFocused || hasValue;
 
     return (
@@ -67,7 +68,7 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
             ref={ref}
             id={id}
             type={type}
-            value={value}
+            value={valString}
             disabled={disabled}
             readOnly={readOnly}
             tabIndex={readOnly ? -1 : rest.tabIndex}

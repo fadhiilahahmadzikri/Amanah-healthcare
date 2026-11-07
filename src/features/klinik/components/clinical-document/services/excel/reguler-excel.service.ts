@@ -40,7 +40,7 @@ export async function exportRegulerExcel(
 
   ws.mergeCells('A3:D3');
   const t3 = ws.getCell('A3');
-  t3.value = `Nomor RM: ${data?.medicalRecordNumber || '-'} | Tanggal: ${data?.registrationDate || '-'}`;
+  t3.value = `Nomor RM: ${data?.medicalRecordNumber || ''} | Tanggal: ${data?.registrationDate || ''}`;
   t3.font = { size: 9, name: 'Calibri' };
   t3.alignment = { horizontal: 'center', vertical: 'middle' };
 
@@ -48,9 +48,9 @@ export async function exportRegulerExcel(
   addSectionHeader(ws, currentLine, 'I. INFORMASI KUNJUNGAN', 4);
 
   const encounterData = [
-    ['Kode Booking', data?.bookingCode || '-', 'Nomor Antrean', data?.queueNumber || '-'],
-    ['Poliklinik Tujuan', data?.poliklinikName || '-', 'Layanan Medis', data?.serviceName || '-'],
-    ['Dokter Pemeriksa', data?.doctorName || '-', 'Waktu & Sesi', data?.scheduledTime || '-']
+    ['Kode Booking', data?.bookingCode || '', 'Nomor Antrean', data?.queueNumber || ''],
+    ['Poliklinik Tujuan', data?.poliklinikName || '', 'Layanan Medis', data?.serviceName || ''],
+    ['Dokter Pemeriksa', data?.doctorName || '', 'Waktu & Sesi', data?.scheduledTime || '']
   ];
 
   encounterData.forEach((rowPair) => {
@@ -72,18 +72,18 @@ export async function exportRegulerExcel(
 
   const emergencyStr = data?.emergencyContact?.phoneNumber
     ? `${data?.emergencyContact?.name || 'Kerabat'}${data?.emergencyContact?.relationship ? ` (${data?.emergencyContact?.relationship})` : ''} - ${data?.emergencyContact?.phoneNumber}`
-    : '-';
+    : '';
 
   const patientData = [
-    ['Nama Pasien', data?.identity?.fullName || '-', 'NIK', data?.identity?.nik || '-'],
+    ['Nama Pasien', data?.identity?.fullName || '', 'NIK', data?.identity?.nik || ''],
     [
       'Tanggal Lahir',
-      data?.identity?.birthDate || '-',
+      data?.identity?.birthDate || '',
       'Jenis Kelamin',
-      data?.identity?.gender || '-'
+      data?.identity?.gender || ''
     ],
-    ['Nomor Telepon', data?.identity?.phoneNumber || '-', 'Email', data?.identity?.email || '-'],
-    ['Kontak Darurat', emergencyStr, 'Alamat', data?.identity?.address || '-']
+    ['Nomor Telepon', data?.identity?.phoneNumber || '', 'Email', data?.identity?.email || ''],
+    ['Kontak Darurat', emergencyStr, 'Alamat', data?.identity?.address || '']
   ];
 
   patientData.forEach((rowPair) => {
@@ -111,7 +111,7 @@ export async function exportRegulerExcel(
   c1.getCell(2).value =
     data?.chiefComplaint ||
     data?.clinical?.chiefComplaint ||
-    'Tidak ada keluhan klinis yang dicatat saat pendaftaran.';
+    '';
   c1.getCell(2).font = { size: 9, name: 'Calibri' };
   applyRowBorders(c1, 1, 4);
 
@@ -122,10 +122,10 @@ export async function exportRegulerExcel(
   ws.mergeCells(`A${currentLine}:B${currentLine}`);
   ws.mergeCells(`C${currentLine}:D${currentLine}`);
   const sHeader = ws.getRow(currentLine);
-  sHeader.getCell(1).value = `Tanggal: ${data?.registrationDate || '-'}\nPasien / Keluarga`;
+  sHeader.getCell(1).value = `Tanggal: ${data?.registrationDate || ''}\nPasien / Keluarga`;
   sHeader.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
   sHeader.getCell(1).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-  sHeader.getCell(3).value = `Tanggal: ${data?.registrationDate || '-'}\nDokter Pemeriksa`;
+  sHeader.getCell(3).value = `Tanggal: ${data?.registrationDate || ''}\nDokter Pemeriksa`;
   sHeader.getCell(3).font = { bold: true, size: 9, name: 'Calibri' };
   sHeader.getCell(3).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
 

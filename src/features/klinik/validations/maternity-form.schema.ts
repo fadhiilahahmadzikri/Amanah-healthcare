@@ -245,29 +245,43 @@ export const maternalFormZodSchema = z
     motherName: z.string().min(1, 'Nama lengkap ibu wajib diisi'),
     motherNik: z
       .string()
-      .regex(/^\d{16}$/, { message: 'NIK ibu harus berupa 16 digit angka' })
+      .trim()
+      .nullable()
       .optional()
-      .or(z.literal('')),
+      .refine(
+        (val) => !val || val === '' || /^\d{16}$/.test(val),
+        { message: 'NIK ibu harus berupa 16 digit angka' }
+      ),
     motherBirthDate: z.string().nullable().optional(),
     marriageDate: z.string().nullable().optional(),
     hpht: z.string().nullable().optional(),
     partnerNik: z
       .string()
-      .regex(/^\d{16}$/, { message: 'NIK suami harus berupa 16 digit angka' })
+      .trim()
+      .nullable()
       .optional()
-      .or(z.literal('')),
+      .refine(
+        (val) => !val || val === '' || /^\d{16}$/.test(val),
+        { message: 'NIK suami harus berupa 16 digit angka' }
+      ),
     phoneNumber: z
       .string()
-      .regex(/^(\+62|62|0)[0-9]{8,15}$/, { message: 'Nomor telepon tidak valid' })
+      .trim()
+      .nullable()
       .optional()
-      .or(z.literal('')),
+      .refine(
+        (val) => !val || val === '' || /^(\+62|62|0)[0-9]{8,15}$/.test(val.replace(/[\s-]/g, '')),
+        { message: 'Nomor telepon tidak valid' }
+      ),
     partnerPhone: z
       .string()
-      .regex(/^(\+62|62|0)[0-9]{8,15}$/, {
-        message: 'Nomor HP suami tidak valid'
-      })
+      .trim()
+      .nullable()
       .optional()
-      .or(z.literal('')),
+      .refine(
+        (val) => !val || val === '' || /^(\+62|62|0)[0-9]{8,15}$/.test(val.replace(/[\s-]/g, '')),
+        { message: 'Nomor HP suami tidak valid' }
+      ),
     heightCm: z
       .number()
       .min(0, 'Tinggi badan minimal 0 cm')
@@ -294,8 +308,6 @@ export const maternalFormZodSchema = z
       .optional(),
     gestationalAgeWeeks: z
       .number()
-      .min(0, 'Usia kehamilan minimal 0 minggu')
-      .max(60, 'Usia kehamilan maksimal 60 minggu')
       .nullable()
       .optional(),
     gravidaCount: z
@@ -303,24 +315,28 @@ export const maternalFormZodSchema = z
       .int()
       .min(1, 'Gravida minimal 1')
       .max(50, 'Gravida maksimal 50')
+      .nullable()
       .optional(),
     parityCount: z
       .number()
       .int()
       .min(0, 'Paritas minimal 0')
       .max(50, 'Paritas maksimal 50')
+      .nullable()
       .optional(),
     abortionCount: z
       .number()
       .int()
       .min(0, 'Abortus minimal 0')
       .max(50, 'Abortus maksimal 50')
+      .nullable()
       .optional(),
     livingChildrenCount: z
       .number()
       .int()
       .min(0, 'Jumlah anak hidup minimal 0')
       .max(50, 'Jumlah anak hidup maksimal 50')
+      .nullable()
       .optional(),
     previousPregnancies: z.array(maternalPreviousPregnancyZodSchema).optional(),
     contraceptiveHistories: z.array(maternalContraceptiveHistoryZodSchema).optional(),
@@ -375,22 +391,22 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
 
   const result = maternalFormZodSchema.safeParse({
     motherName: data.motherName ?? '',
-    motherNik: data.motherNik ? data.motherNik.trim() : '',
+    motherNik: data.motherNik ? data.motherNik.trim() : null,
     motherBirthDate: data.motherBirthDate ? data.motherBirthDate.trim() : null,
     marriageDate: data.marriageDate ? data.marriageDate.trim() : null,
     hpht: data.hpht ? data.hpht.trim() : null,
-    partnerNik: data.partnerNik ? data.partnerNik.trim() : '',
-    phoneNumber: data.phoneNumber ? data.phoneNumber.trim() : '',
-    partnerPhone: data.partnerPhone ? data.partnerPhone.trim() : '',
+    partnerNik: data.partnerNik ? data.partnerNik.trim() : null,
+    phoneNumber: data.phoneNumber ? data.phoneNumber.trim().replace(/[\s-]/g, '') : null,
+    partnerPhone: data.partnerPhone ? data.partnerPhone.trim().replace(/[\s-]/g, '') : null,
     heightCm: parseNumber(data.heightCm),
     prePregnancyWeightKg: parseNumber(data.prePregnancyWeightKg),
     upperArmCircumferenceCm: parseNumber(data.upperArmCircumferenceCm),
     initialBmi: parseNumber(data.initialBmi),
     gestationalAgeWeeks: parseNumber(data.gestationalAgeWeeks),
-    gravidaCount: parseNumber(data.gravidaCount) ?? 1,
-    parityCount: parseNumber(data.parityCount) ?? 0,
-    abortionCount: parseNumber(data.abortionCount) ?? 0,
-    livingChildrenCount: parseNumber(data.livingChildrenCount) ?? 0,
+    gravidaCount: parseNumber(data.gravidaCount),
+    parityCount: parseNumber(data.parityCount),
+    abortionCount: parseNumber(data.abortionCount),
+    livingChildrenCount: parseNumber(data.livingChildrenCount),
     previousPregnancies: parsedPreviousPregnancies,
     contraceptiveHistories: parsedContraceptiveHistories,
     conditionResponses: data.conditionResponses
@@ -452,69 +468,152 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
 
 export type MaternityInspectorTab = 'identitas' | 'obstetri' | 'klinis' | 'skrining';
 
+export const MATERNITY_TAB_LABELS: Record<MaternityInspectorTab, string> = {
+  identitas: 'Identitas',
+  obstetri: 'Riwayat Kehamilan',
+  klinis: 'Pemeriksaan Fisik & KB',
+  skrining: 'Skrining Penyakit'
+};
+
+export const MATERNITY_FIELD_TAB_MAP: Record<string, MaternityInspectorTab> = {
+  // Tab 1: Identitas
+  motherName: 'identitas',
+  motherNik: 'identitas',
+  motherBirthDate: 'identitas',
+  phoneNumber: 'identitas',
+  religion: 'identitas',
+  motherEducation: 'identitas',
+  motherJob: 'identitas',
+  marriageOrder: 'identitas',
+  marriageDate: 'identitas',
+  domicileAddress: 'identitas',
+  identityCardAddress: 'identitas',
+  partnerName: 'identitas',
+  partnerNik: 'identitas',
+  partnerBirthDate: 'identitas',
+  partnerAge: 'identitas',
+  partnerJob: 'identitas',
+  partnerEducation: 'identitas',
+  partnerBloodType: 'identitas',
+  partnerPhone: 'identitas',
+  dasawisma: 'identitas',
+  posyandu: 'identitas',
+  puskesmas: 'identitas',
+
+  // Tab 2: Obstetri
+  hpht: 'obstetri',
+  estimatedDueDate: 'obstetri',
+  gestationalAgeWeeks: 'obstetri',
+  gravidaCount: 'obstetri',
+  parityCount: 'obstetri',
+  abortionCount: 'obstetri',
+  livingChildrenCount: 'obstetri',
+  hasPreviousPregnancyHistory: 'obstetri',
+  previousPregnancies: 'obstetri',
+  currentComplaints: 'obstetri',
+
+  // Tab 3: Klinis & KB
+  heightCm: 'klinis',
+  prePregnancyWeightKg: 'klinis',
+  upperArmCircumferenceCm: 'klinis',
+  initialBmi: 'klinis',
+  tetanusStatus: 'klinis',
+  motherBloodType: 'klinis',
+  contraceptiveHistories: 'klinis',
+
+  // Tab 4: Skrining
+  conditionResponses: 'skrining',
+  smokedBeforePregnancy: 'skrining',
+  alcoholBeforePregnancy: 'skrining',
+  irregularDietBeforePregnancy: 'skrining',
+  reducedPhysicalActivityBeforePregnancy: 'skrining',
+  unprescribedMedicationBeforePregnancy: 'skrining',
+  concerningCosmeticUseBeforePregnancy: 'skrining',
+  pesticideExposureBeforePregnancy: 'skrining',
+  chemicalExposureBeforePregnancy: 'skrining',
+  smokeExposureBeforePregnancy: 'skrining',
+  concerningEnvironmentNotes: 'skrining',
+  allergyInfo: 'skrining',
+  otherNotes: 'skrining'
+};
+
+export const MATERNITY_FIELD_DOM_ID_MAP: Record<string, string> = {
+  motherName: 'maternity-mother-name',
+  motherNik: 'maternity-mother-nik',
+  motherBirthDate: 'maternity-mother-birthdate',
+  phoneNumber: 'maternity-phone-number',
+  religion: 'maternity-religion',
+  motherEducation: 'maternity-mother-education',
+  motherJob: 'maternity-mother-job',
+  marriageOrder: 'maternity-marriage-order',
+  marriageDate: 'maternity-marriage-date',
+  domicileAddress: 'maternity-domicile-address',
+  identityCardAddress: 'maternity-ktp-address',
+  partnerName: 'maternity-husband-name',
+  partnerNik: 'maternity-husband-nik',
+  partnerBirthDate: 'maternity-husband-birthdate',
+  partnerPhone: 'maternity-husband-phone',
+  partnerBloodType: 'maternity-husband-bloodtype',
+  partnerEducation: 'maternity-husband-education',
+  partnerJob: 'maternity-husband-job',
+  dasawisma: 'maternity-dasawisma',
+  posyandu: 'maternity-posyandu',
+  puskesmas: 'maternity-puskesmas',
+
+  hpht: 'maternity-hpht',
+  estimatedDueDate: 'maternity-hpl',
+  gestationalAgeWeeks: 'maternity-gestational-age',
+  gravidaCount: 'maternity-gravida',
+  parityCount: 'maternity-parity',
+  abortionCount: 'maternity-abortion',
+  livingChildrenCount: 'maternity-living-children',
+  currentComplaints: 'maternity-current-complaints',
+
+  heightCm: 'maternity-height',
+  prePregnancyWeightKg: 'maternity-weight',
+  upperArmCircumferenceCm: 'maternity-lila',
+  initialBmi: 'maternity-bmi',
+  tetanusStatus: 'maternity-tetanus-status',
+  motherBloodType: 'maternity-mother-bloodtype'
+};
+
+export function getTabForErrorKey(key: string): MaternityInspectorTab {
+  if (MATERNITY_FIELD_TAB_MAP[key]) return MATERNITY_FIELD_TAB_MAP[key];
+  if (key.startsWith('prev_preg_')) return 'obstetri';
+  if (key.startsWith('contra_')) return 'klinis';
+  if (key.startsWith('condition_')) return 'skrining';
+  return 'identitas';
+}
+
+export function getMaternityTabErrorCounts(
+  errors: Record<string, string>
+): Record<MaternityInspectorTab, number> {
+  const counts: Record<MaternityInspectorTab, number> = {
+    identitas: 0,
+    obstetri: 0,
+    klinis: 0,
+    skrining: 0
+  };
+
+  for (const [key, msg] of Object.entries(errors)) {
+    if (!msg) continue;
+    const tab = getTabForErrorKey(key);
+    counts[tab]++;
+  }
+
+  return counts;
+}
+
 export function getMaternityTabWithErrors(
   errors: Record<string, string>
 ): MaternityInspectorTab | null {
-  const errorKeys = Object.keys(errors);
+  const errorKeys = Object.keys(errors).filter((k) => Boolean(errors[k]));
   if (errorKeys.length === 0) return null;
 
-  const identitasKeys = [
-    'motherName',
-    'motherNik',
-    'motherBirthDate',
-    'phoneNumber',
-    'religion',
-    'motherEducation',
-    'motherJob',
-    'marriageOrder',
-    'marriageDate',
-    'partnerName',
-    'partnerNik',
-    'partnerBirthDate',
-    'partnerAge',
-    'partnerJob',
-    'partnerEducation',
-    'partnerBloodType',
-    'partnerPhone',
-    'domicileAddress',
-    'identityCardAddress',
-    'dasawisma',
-    'posyandu',
-    'puskesmas'
-  ];
-
-  const obstetriKeys = [
-    'hpht',
-    'estimatedDueDate',
-    'gestationalAgeWeeks',
-    'gravidaCount',
-    'parityCount',
-    'abortionCount',
-    'livingChildrenCount',
-    'previousPregnancies'
-  ];
-
-  const klinisKeys = [
-    'heightCm',
-    'prePregnancyWeightKg',
-    'upperArmCircumferenceCm',
-    'initialBmi',
-    'tetanusStatus',
-    'motherBloodType',
-    'contraceptiveHistories'
-  ];
-
-  for (const key of errorKeys) {
-    if (identitasKeys.includes(key)) return 'identitas';
-  }
-  for (const key of errorKeys) {
-    if (obstetriKeys.includes(key) || key.startsWith('prev_preg_')) return 'obstetri';
-  }
-  for (const key of errorKeys) {
-    if (klinisKeys.includes(key) || key.startsWith('contra_')) return 'klinis';
-  }
-  for (const key of errorKeys) {
-    if (key.startsWith('condition_') || key === 'conditionResponses') return 'skrining';
+  const counts = getMaternityTabErrorCounts(errors);
+  const tabsInOrder: MaternityInspectorTab[] = ['identitas', 'obstetri', 'klinis', 'skrining'];
+  for (const tab of tabsInOrder) {
+    if (counts[tab] > 0) return tab;
   }
 
   return 'identitas';

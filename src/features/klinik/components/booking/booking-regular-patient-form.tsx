@@ -133,37 +133,37 @@ export function BookingRegularPatientForm({
       {
         step: 2,
         label: 'Nama lengkap',
-        value: fullName || '-',
+        value: fullName || '',
         valueClass: 'font-bold text-foreground'
       },
       {
         step: 3,
         label: 'NIK',
-        value: nik ? formatMaskedNik(nik) : '-',
+        value: nik ? formatMaskedNik(nik) : '',
         valueClass: 'font-mono font-bold text-primary'
       },
       {
         step: 4,
         label: 'Nama ibu kandung',
-        value: motherName || '-',
+        value: motherName || '',
         valueClass: 'font-semibold text-foreground'
       },
       {
         step: 5,
         label: 'Tempat lahir',
-        value: placeOfBirth || '-',
+        value: placeOfBirth || '',
         valueClass: 'font-semibold text-foreground'
       },
       {
         step: 5,
         label: 'Tanggal lahir',
-        value: dateOfBirth || '-',
+        value: dateOfBirth || '',
         valueClass: 'font-semibold text-foreground'
       },
       {
         step: 6,
         label: 'Jenis kelamin',
-        value: gender ? getGenderLabel(gender) : '-',
+        value: gender ? getGenderLabel(gender) : '',
         valueClass: 'font-semibold text-foreground'
       },
       {
@@ -175,13 +175,13 @@ export function BookingRegularPatientForm({
       {
         step: 8,
         label: 'No. Telepon / WhatsApp',
-        value: phone || '-',
+        value: phone || '',
         valueClass: 'font-mono font-bold text-primary'
       },
       {
         step: 12,
         label: 'Email Akun (Tersinkron)',
-        value: email || '-',
+        value: email || '',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
@@ -189,19 +189,19 @@ export function BookingRegularPatientForm({
         label: 'Kontak Darurat',
         value: emergencyContactPhone
           ? `${emergencyContactName || 'Kerabat'}${emergencyContactRelationship ? ` (${emergencyContactRelationship})` : ''} - ${emergencyContactPhone}`
-          : '-',
+          : '',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
         step: 10,
         label: 'Alamat',
-        value: region.line1 || '-',
+        value: region.line1 || '',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
         step: 11,
         label: 'Pekerjaan',
-        value: activeOccupationName || '-',
+        value: activeOccupationName || '',
         valueClass:
           'font-semibold text-foreground break-words max-w-[160px] sm:max-w-[210px] leading-snug whitespace-normal'
       }

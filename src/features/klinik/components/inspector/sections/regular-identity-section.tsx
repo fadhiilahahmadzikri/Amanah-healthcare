@@ -56,18 +56,18 @@ export function RegularIdentitySection({
     return false;
   }, [patient, relationship, answers.birthDate]);
 
-  const mrn = patient?.medicalRecordNumber || '-';
-  const nik = patient?.nik || '-';
+  const mrn = patient?.medicalRecordNumber || '';
+  const nik = patient?.nik || '';
   const gender = getGenderLabel(patient?.gender);
-  const bloodType = patient?.bloodType || '-';
-  const motherName = patient?.motherName || '-';
+  const bloodType = patient?.bloodType || '';
+  const motherName = patient?.motherName || '';
   const rawOccupation = patient?.occupation;
-  const occupation = isChild && !rawOccupation ? 'Belum Bekerja' : rawOccupation || '-';
-  const phone = patient?.phone || '-';
-  const email = patient?.email || '-';
+  const occupation = rawOccupation || '';
+  const phone = patient?.phone || '';
+  const email = patient?.email || '';
   const emergency =
     patient?.emergencyContactName || patient?.emergencyContactPhone
-      ? `${patient?.emergencyContactName || '-'} (${patient?.emergencyContactRelationship || 'Kontak'}) - ${patient?.emergencyContactPhone || '-'}`
+      ? `${patient?.emergencyContactName || ''} (${patient?.emergencyContactRelationship || 'Kontak'})${patient?.emergencyContactPhone ? ` - ${patient?.emergencyContactPhone}` : ''}`
       : null;
 
   const regionValues: PatientRegionValues = React.useMemo(
@@ -115,7 +115,7 @@ export function RegularIdentitySection({
           <PatientLineInput
             id='reg-mrn-input'
             label='Nomor Rekam Medis (RM)'
-            value={regularFormData.medicalRecordNumber ?? (mrn !== '-' ? mrn : '')}
+            value={regularFormData.medicalRecordNumber ?? mrn}
             onChange={(val) => onRegularFieldChange('medicalRecordNumber', val)}
             placeholder='RM-XXXX-XXXX'
             isMonospace
@@ -140,7 +140,7 @@ export function RegularIdentitySection({
           <PatientLineInput
             id='reg-nik-input'
             label='NIK Pasien (16 Digit)'
-            value={regularFormData.nik ?? (nik !== '-' ? nik : '')}
+            value={regularFormData.nik ?? nik}
             onChange={(val) => {
               const numeric = val.replace(/\D/g, '').slice(0, 16);
               onRegularFieldChange('nik', numeric);
@@ -193,7 +193,7 @@ export function RegularIdentitySection({
           <PatientLineInput
             id='reg-mother-input'
             label='Nama Ibu Kandung'
-            value={regularFormData.motherName ?? (motherName !== '-' ? motherName : '')}
+            value={regularFormData.motherName ?? motherName}
             onChange={(val) => onRegularFieldChange('motherName', val)}
             placeholder='Nama ibu kandung...'
           />
@@ -219,7 +219,7 @@ export function RegularIdentitySection({
             id='reg-phone-input'
             label='No. Telepon / WhatsApp'
             type='tel'
-            value={regularFormData.phone ?? (phone !== '-' ? phone : '')}
+            value={regularFormData.phone ?? phone}
             onChange={(val) => {
               onRegularFieldChange('phone', val);
               if (validationErrors?.phone) {
@@ -279,7 +279,7 @@ export function RegularIdentitySection({
         </div>
       ) : (
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 select-text'>
-          {mrn !== '-' && (
+          {mrn && (
             <PatientLineInput
               id='read-mrn'
               label='Nomor Rekam Medis (RM)'
@@ -299,7 +299,7 @@ export function RegularIdentitySection({
           <PatientLineInput
             id='read-fullname'
             label='Nama Lengkap Pasien'
-            value={patient?.fullName || '-'}
+            value={patient?.fullName || ''}
             readOnly
           />
 
@@ -314,14 +314,14 @@ export function RegularIdentitySection({
           <PatientLineInput
             id='read-birthplace'
             label='Tempat Lahir'
-            value={patient?.birthPlace || '-'}
+            value={patient?.birthPlace || ''}
             readOnly
           />
 
           <PatientLineInput
             id='read-birthdate'
             label='Tanggal Lahir'
-            value={formatClinicDate(patient?.birthDate, { style: 'human_medium' })}
+            value={patient?.birthDate ? formatClinicDate(patient.birthDate, { style: 'human_medium' }) : ''}
             isMonospace
             readOnly
           />
@@ -389,7 +389,7 @@ export function RegularIdentitySection({
                 <PatientLineInput
                   id='read-province'
                   label='Provinsi'
-                  value={regionValues.provinceName || '-'}
+                  value={regionValues.provinceName || ''}
                   readOnly
                 />
               </div>
@@ -397,27 +397,27 @@ export function RegularIdentitySection({
                 <PatientLineInput
                   id='read-regency'
                   label='Kota / Kabupaten'
-                  value={regionValues.regencyName || '-'}
+                  value={regionValues.regencyName || ''}
                   readOnly
                 />
               </div>
               <PatientLineInput
                 id='read-district'
                 label='Kecamatan'
-                value={regionValues.districtName || '-'}
+                value={regionValues.districtName || ''}
                 readOnly
               />
               <PatientLineInput
                 id='read-village'
                 label='Kelurahan / Desa'
-                value={regionValues.villageName || '-'}
+                value={regionValues.villageName || ''}
                 readOnly
               />
               <div className='col-span-1 sm:col-span-2'>
                 <PatientLineTextarea
                   id='read-line1'
                   label='Alamat Detail (Jalan, RT/RW, No. Rumah)'
-                  value={regionValues.line1 || '-'}
+                  value={regionValues.line1 || ''}
                   readOnly
                 />
               </div>
@@ -432,7 +432,7 @@ export function RegularIdentitySection({
                 value={
                   regularFormData?.emergencyContactName ||
                   patient?.emergencyContactName ||
-                  '-'
+                  ''
                 }
                 readOnly
               />
@@ -442,7 +442,7 @@ export function RegularIdentitySection({
                 value={
                   regularFormData?.emergencyContactPhone ||
                   patient?.emergencyContactPhone ||
-                  '-'
+                  ''
                 }
                 isMonospace
                 readOnly
