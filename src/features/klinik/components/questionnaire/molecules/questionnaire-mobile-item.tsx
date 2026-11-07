@@ -19,6 +19,7 @@ export interface QuestionnaireMobileItemProps {
   statusValue: string;
   yearValue: string;
   notesValue?: string;
+  yearError?: string;
   onSelectStatus: (status: 'Tidak' | 'Ya') => void;
   onChangeYear: (year: string) => void;
   onChangeNotes?: (notes: string) => void;
@@ -33,6 +34,7 @@ export function QuestionnaireMobileItem({
   statusValue,
   yearValue,
   notesValue = '',
+  yearError,
   onSelectStatus,
   onChangeYear,
   onChangeNotes,
@@ -313,6 +315,7 @@ export function QuestionnaireMobileItem({
                         placeholder='Contoh: 2020'
                         onEnter={handleSaveYearAndAdvance}
                         ariaLabel={`Tahun untuk ${item.title}`}
+                        error={yearError}
                       />
                     </div>
                   </div>
@@ -332,6 +335,7 @@ export function QuestionnaireMobileItem({
                       placeholder='Contoh: 2021'
                       onEnter={handleSaveYearAndAdvance}
                       ariaLabel={`Tahun untuk ${item.title}`}
+                      error={yearError}
                     />
                   </>
                 )}

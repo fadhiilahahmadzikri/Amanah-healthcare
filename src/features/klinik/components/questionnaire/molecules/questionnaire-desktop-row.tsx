@@ -20,6 +20,7 @@ export interface QuestionnaireDesktopRowProps {
   hasAnyYear?: boolean;
   isLast?: boolean;
   tableConfig?: TableConfig;
+  yearError?: string;
 }
 
 export function QuestionnaireDesktopRow({
@@ -27,6 +28,7 @@ export function QuestionnaireDesktopRow({
   statusValue,
   yearValue,
   notesValue = '',
+  yearError,
   onSelectStatus,
   onChangeYear,
   onChangeNotes,
@@ -206,7 +208,12 @@ export function QuestionnaireDesktopRow({
             </div>
 
             {hasAnyYear ? (
-              <div className='w-40 shrink-0 flex items-center'>
+              <div
+                className={cn(
+                  'w-40 shrink-0 flex flex-col justify-center',
+                  !yearError && 'items-center'
+                )}
+              >
                 {!hasNotes && item.yearFieldId ? (
                   isYes ? (
                     <div
@@ -220,6 +227,7 @@ export function QuestionnaireDesktopRow({
                         onChange={handleChangeYear}
                         placeholder='Tahun (cth: 2021)'
                         ariaLabel={`Tahun terdiagnosis ${item.label}`}
+                        error={yearError}
                       />
                     </div>
                   ) : (
@@ -265,6 +273,7 @@ export function QuestionnaireDesktopRow({
               onChange={handleChangeYear}
               placeholder='Contoh: 2020'
               ariaLabel={`Tahun terdiagnosis ${item.label}`}
+              error={yearError}
             />
           </div>
         </div>

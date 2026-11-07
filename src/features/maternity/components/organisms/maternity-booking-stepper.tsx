@@ -219,7 +219,21 @@ export function MaternityBookingStepper({
 
   const validateStep3 = () => {
     const errs: Record<string, string> = {};
-    if (!hpht) errs.hpht = 'HPHT (Hari Pertama Haid Terakhir) wajib diisi';
+    if (!hpht) {
+      errs.hpht = 'HPHT (Hari Pertama Haid Terakhir) wajib diisi';
+    } else {
+      const hDate = new Date(hpht);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      if (hDate > today) {
+        errs.hpht = 'Tanggal HPHT tidak boleh di masa depan';
+      } else if (motherBirthDate) {
+        const bDate = new Date(motherBirthDate);
+        if (hDate <= bDate) {
+          errs.hpht = 'Tanggal HPHT tidak boleh lebih awal dari tanggal lahir pasien';
+        }
+      }
+    }
     if (!currentComplaints.trim()) errs.currentComplaints = 'Keluhan saat ini wajib diisi';
     setErrors(errs);
     return Object.keys(errs).length === 0;

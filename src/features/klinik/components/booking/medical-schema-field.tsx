@@ -8,7 +8,6 @@ import { PatientLineSelect } from '@/features/data-pasien/components/registratio
 import { PatientLineCreatableSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-creatable-select';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
-import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 import { cn } from '@/lib/utils';
 import { GENDER_OPTIONS, getGenderLabel } from '@/constants/gender.constants';
 
@@ -30,6 +29,13 @@ const fieldFormatConfig: Record<
   text: {}
 };
 
+const OBSTETRIC_COUNT_FIELDS = new Set([
+  'gravidaCount',
+  'parityCount',
+  'abortionCount',
+  'livingChildrenCount'
+]);
+
 export function MedicalSchemaField({
   fieldApi,
   schemaField
@@ -37,51 +43,18 @@ export function MedicalSchemaField({
   fieldApi: AnyFieldApi;
   schemaField: MedicalFormField;
 }) {
-  const rawError = getErrorMessage(fieldApi.state.meta.errors);
-  const isInvalid = fieldApi.state.meta.isTouched && Boolean(rawError);
-  const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
   const value = String(fieldApi.state.value ?? '');
+  const rawError = getErrorMessage(fieldApi.state.meta.errors);
+  const hasValue = Boolean(value.trim());
+  const isInvalid = Boolean(rawError) && (fieldApi.state.meta.isTouched || hasValue);
+  const displayError =
+    isInvalid && rawError && (rawError !== 'Wajib diisi' || fieldApi.state.meta.isTouched)
+      ? rawError
+      : undefined;
   const placeholder = schemaField.placeholder || '';
   const [showNik, setShowNik] = React.useState(false);
-  const [nikStatus, setNikStatus] = React.useState<
-    'idle' | 'checking' | 'available' | 'taken'
-  >('idle');
-
   const format = getMedicalFieldFormat(schemaField);
   const isNik = format === 'nik';
-
-  React.useEffect(() => {
-    if (!isNik) return;
-
-    const clean = value.replace(/\D/g, '');
-    if (clean.length < 16) {
-      setNikStatus('idle');
-      return;
-    }
-
-    setNikStatus('checking');
-
-    const abortController = new AbortController();
-    const timer = setTimeout(async () => {
-      try {
-        const res = await patientAffiliationService.verifyNikAvailability(clean);
-        if (abortController.signal.aborted) return;
-        if (res.available) {
-          setNikStatus('available');
-        } else {
-          setNikStatus('taken');
-        }
-      } catch {
-        if (abortController.signal.aborted) return;
-        setNikStatus('idle');
-      }
-    }, 400);
-
-    return () => {
-      abortController.abort();
-      clearTimeout(timer);
-    };
-  }, [isNik, value]);
 
   const isColSpanFull =
     schemaField.colSpan === 'full' ||
@@ -361,53 +334,6 @@ export function MedicalSchemaField({
       'weightKg'
     ].includes(schemaField.id) || schemaField.id.endsWith('BirthLength');
 
-  if (isNik) {
-    return (
-      <div className={cn('flex flex-col gap-1', colSpanClass)}>
-        <PatientLineInput
-          id={schemaField.id}
-          type={showNik ? 'text' : 'password'}
-          label={
-            <span>
-              {schemaField.title}
-              {requiredAsterisk}
-            </span>
-          }
-          value={value}
-          onChange={(nextVal) =>
-            fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
-          }
-          onBlur={fieldApi.handleBlur}
-          error={displayError}
-          invalid={isInvalid}
-          placeholder={placeholder}
-          disabled={schemaField.disabled}
-          isMonospace={true}
-          inputMode='numeric'
-          maxLength={16}
-          trailingIcon={trailingIcon}
-        />
-        {nikStatus === 'checking' && (
-          <p className='text-xs text-muted-foreground animate-pulse flex items-center gap-1.5 pt-0.5'>
-            <span className='inline-block size-1.5 rounded-full bg-primary/70 animate-ping' />
-            Memeriksa ketersediaan NIK...
-          </p>
-        )}
-        {nikStatus === 'available' && !displayError && (
-          <p className='text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5 pt-0.5'>
-            ✓ NIK belum terdaftar di klinik
-          </p>
-        )}
-        {nikStatus === 'taken' && !displayError && (
-          <p className='text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1.5 pt-0.5'>
-            <Icons.info className='size-3.5 shrink-0' />
-            NIK sudah terdaftar di sistem klinik
-          </p>
-        )}
-      </div>
-    );
-  }
-
   return (
     <PatientLineInput
       id={schemaField.id}
@@ -419,17 +345,26 @@ export function MedicalSchemaField({
         </span>
       }
       value={value}
-      onChange={(nextVal) =>
-        fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
-      }
+      onChange={(nextVal) => {
+        const normalized = normalizeMedicalFieldInput(schemaField, nextVal);
+        fieldApi.handleChange(normalized);
+        if (OBSTETRIC_COUNT_FIELDS.has(schemaField.id)) {
+          OBSTETRIC_COUNT_FIELDS.forEach((siblingId) => {
+            if (siblingId !== schemaField.id) {
+              (fieldApi.form as any)?.validateField?.(siblingId, 'change');
+            }
+          });
+        }
+      }}
       onBlur={fieldApi.handleBlur}
       error={displayError}
       invalid={isInvalid}
       placeholder={placeholder}
       disabled={schemaField.disabled}
       containerClassName={colSpanClass}
-      isMonospace={false}
-      inputMode={isDecimal ? 'decimal' : formatProps.inputMode}
+      isMonospace={isNik}
+      isMasked={isNik && !showNik}
+      inputMode={isNik ? 'numeric' : isDecimal ? 'decimal' : formatProps.inputMode}
       maxLength={formatProps.maxLength}
       trailingIcon={trailingIcon}
     />
@@ -441,11 +376,19 @@ export function getFieldValidators(
   birthYear?: number | null,
   allValues?: any
 ) {
-  const schema = getMedicalFieldValidationSchema(field, birthYear, allValues);
+  const validate = ({ value, fieldApi }: { value: unknown; fieldApi: AnyFieldApi }) => {
+    const currentValues = fieldApi?.form?.state?.values ?? allValues;
+    const valStr = String(value ?? '');
+    const result = getMedicalFieldValidationSchema(field, birthYear, currentValues).safeParse(valStr);
+    if (!result.success) {
+      return result.error.issues[0]?.message;
+    }
+    return undefined;
+  };
 
   return {
-    onChange: schema,
-    onBlur: schema
+    onChange: validate,
+    onBlur: validate
   };
 }
 

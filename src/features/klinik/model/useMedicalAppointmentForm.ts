@@ -241,18 +241,43 @@ export function useMedicalAppointmentForm({
     initialHistoryCounts: initialDraft?.historyCounts
   });
 
+  React.useEffect(() => {
+    if (flow !== 'pregnancy') return;
+    const pStr = values.parityCount;
+    if (pStr === undefined || pStr.trim() === '') return;
+    const pVal = parseInt(pStr, 10);
+    if (isNaN(pVal)) return;
+
+    if (pVal === 0 && values.hasPreviousPregnancyHistory !== PREVIOUS_PREGNANCY_CHOICE.NO) {
+      form.setFieldValue('hasPreviousPregnancyHistory', PREVIOUS_PREGNANCY_CHOICE.NO);
+    } else if (pVal > 0 && values.hasPreviousPregnancyHistory !== PREVIOUS_PREGNANCY_CHOICE.YES) {
+      form.setFieldValue('hasPreviousPregnancyHistory', PREVIOUS_PREGNANCY_CHOICE.YES);
+    }
+  }, [flow, form, values.parityCount, values.hasPreviousPregnancyHistory]);
+
   const activeMedicalSections = React.useMemo(() => {
     const baseSections = getActiveMedicalSections(definition, values);
     if (flow !== 'pregnancy') {
       return baseSections;
     }
 
-    const pregnancyMax = Math.max(
+    const parityStr = values.parityCount;
+    const hasParity = parityStr !== undefined && parityStr.trim() !== '';
+    const parityNum = hasParity ? parseInt(parityStr, 10) : undefined;
+    const isParityKnown = parityNum !== undefined && !isNaN(parityNum);
+    const isParityZero = isParityKnown && parityNum === 0;
+    const targetParityMax = isParityKnown && parityNum > 0 ? parityNum : undefined;
+
+    const basePregnancyMax = Math.max(
       history.historyCounts.pregnancy,
       history.catalogAction?.groupKey === REPEATABLE_GROUP_KEYS.PREGNANCY
         ? history.catalogAction.recordNumber
         : 0
     );
+    const pregnancyMax =
+      targetParityMax !== undefined
+        ? Math.min(basePregnancyMax, targetParityMax)
+        : basePregnancyMax;
     const contraceptionMax = Math.max(
       history.historyCounts.contraception,
       history.catalogAction?.groupKey === REPEATABLE_GROUP_KEYS.CONTRACEPTION
@@ -260,8 +285,13 @@ export function useMedicalAppointmentForm({
         : 0
     );
 
+    const hasPregHistory =
+      !isParityZero &&
+      (values.hasPreviousPregnancyHistory === PREVIOUS_PREGNANCY_CHOICE.YES ||
+        Boolean(targetParityMax && targetParityMax > 0));
+
     const dynamicPregSections =
-      values.hasPreviousPregnancyHistory === PREVIOUS_PREGNANCY_CHOICE.YES && pregnancyMax > 0
+      hasPregHistory && pregnancyMax > 0
         ? Array.from({ length: pregnancyMax }, (_, i) => createPreviousPregnancySection(i + 1))
         : [];
 
@@ -271,6 +301,8 @@ export function useMedicalAppointmentForm({
         : [];
 
     const result: MedicalFormSection[] = [];
+    const hasObstetricGateway = baseSections.some((s) => s.id === 'obstetricGateway');
+
     for (const section of baseSections) {
       if (section.id.startsWith('previousPregnancy')) {
         continue;
@@ -280,6 +312,8 @@ export function useMedicalAppointmentForm({
       }
       result.push(section);
       if (section.id === 'obstetricGateway') {
+        result.push(...dynamicPregSections);
+      } else if (section.id === 'obstetricSummary' && !hasObstetricGateway) {
         result.push(...dynamicPregSections);
       } else if (section.id === 'contraceptionGateway') {
         result.push(...dynamicContraSections);
@@ -568,6 +602,24 @@ export function useMedicalAppointmentForm({
         }
 
         if (historyMeta.recordNumber === history.historyCounts[historyMeta.group.key]) {
+          if (historyMeta.group.key === REPEATABLE_GROUP_KEYS.PREGNANCY) {
+            const pStr = values.parityCount;
+            const pVal = pStr ? parseInt(pStr, 10) : undefined;
+            if (pVal !== undefined && !isNaN(pVal) && historyMeta.recordNumber >= pVal) {
+              const catalogIndex = activeSteps.findIndex(
+                (step) =>
+                  step.type === STEP_DESCRIPTOR_TYPES.HISTORY_CATALOG &&
+                  step.historyKey === historyMeta.group.key
+              );
+              if (catalogIndex !== -1) {
+                setCurrentStep(Math.min(totalSteps, catalogIndex + 2));
+                return;
+              }
+              setCurrentStep((step) => Math.min(totalSteps, step + 1));
+              return;
+            }
+          }
+
           history.setHistoryPrompt({
             groupKey: historyMeta.group.key,
             currentRecord: historyMeta.recordNumber

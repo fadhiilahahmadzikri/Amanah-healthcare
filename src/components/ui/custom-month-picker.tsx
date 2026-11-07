@@ -52,9 +52,12 @@ export function CustomMonthPicker({
   ariaLabel = 'Pilihan bulan',
   className,
   triggerClassName,
-  minYear = 2020,
-  maxYear = 2035
+  minYear: customMinYear,
+  maxYear: customMaxYear
 }: CustomMonthPickerProps) {
+  const currentYear = new Date().getFullYear();
+  const minYear = customMinYear ?? currentYear - 5;
+  const maxYear = customMaxYear ?? currentYear + 5;
   const containerRef = React.useRef<HTMLDivElement>(null);
   const popupRef = React.useRef<HTMLDivElement>(null);
   const [isOpen, setIsOpen] = React.useState(false);

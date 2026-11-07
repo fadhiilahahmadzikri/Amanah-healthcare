@@ -14,6 +14,7 @@ export interface MedicalQuestionnaireProps {
   section: MedicalFormSection;
   values: Record<string, string>;
   onFieldChange: (fieldId: string, value: string) => void;
+  birthYear?: number | null;
   className?: string;
 }
 
@@ -21,9 +22,20 @@ export function MedicalQuestionnaire({
   section,
   values,
   onFieldChange,
+  birthYear,
   className
 }: MedicalQuestionnaireProps) {
   const items = React.useMemo(() => extractQuestionnaireItems(section.fields), [section.fields]);
+
+  const effectiveBirthYear = React.useMemo(() => {
+    if (birthYear !== undefined && birthYear !== null) return birthYear;
+    const bDate = values['motherBirthDate'] || values['birthDate'];
+    if (bDate) {
+      const parsed = new Date(bDate).getFullYear();
+      if (!Number.isNaN(parsed)) return parsed;
+    }
+    return null;
+  }, [birthYear, values]);
 
   return (
     <div data-slot='medical-questionnaire' className={cn('w-full flex flex-col', className)}>
@@ -33,6 +45,7 @@ export function MedicalQuestionnaire({
           values={values}
           onFieldChange={onFieldChange}
           tableConfig={section.tableConfig}
+          birthYear={effectiveBirthYear}
         />
       </div>
 
@@ -41,6 +54,7 @@ export function MedicalQuestionnaire({
           items={items}
           values={values}
           onFieldChange={onFieldChange}
+          birthYear={effectiveBirthYear}
         />
       </div>
     </div>

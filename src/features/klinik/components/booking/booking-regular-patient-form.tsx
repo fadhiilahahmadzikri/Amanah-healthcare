@@ -59,7 +59,6 @@ export function BookingRegularPatientForm({
     setFullName,
     nik,
     setNik,
-    nikStatus,
     nikError,
     phone,
     setPhone,
@@ -308,7 +307,10 @@ export function BookingRegularPatientForm({
               data-field-id='nik'
               label='Nomor Induk Kependudukan (NIK)'
               placeholder='16 digit NIK sesuai KTP atau KK'
-              type={showNik ? 'text' : 'password'}
+              type='text'
+              inputMode='numeric'
+              isMonospace={true}
+              isMasked={!showNik}
               value={nik}
               onChange={(val) => {
                 const numericOnly = val.replace(/\D/g, '');
@@ -333,17 +335,6 @@ export function BookingRegularPatientForm({
                 </button>
               }
             />
-            {nikStatus === 'checking' && (
-              <p className='text-xs text-muted-foreground animate-pulse flex items-center gap-1.5'>
-                <span className='inline-block size-1.5 rounded-full bg-primary/70 animate-ping' />
-                Memeriksa ketersediaan NIK...
-              </p>
-            )}
-            {nikStatus === 'available' && (
-              <p className='text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5'>
-                ✓ NIK tersedia dan dapat didaftarkan
-              </p>
-            )}
           </div>
         )}
 

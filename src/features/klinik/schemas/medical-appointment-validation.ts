@@ -43,8 +43,37 @@ export function getMedicalFieldFormat(
   if (nikFieldIds.has(field.id)) return 'nik';
   if (phoneFieldIds.has(field.id)) return 'phone';
   if (countFieldIds.has(field.id)) return 'count';
-  if (yearFieldIds.has(field.id)) return 'year';
+  if (yearFieldIds.has(field.id) || field.id.endsWith('BirthYear') || field.id.endsWith('Year')) return 'year';
   return 'text';
+}
+
+export function validateQuestionnaireYear(
+  yearValue: string,
+  birthYear?: number | null
+): string | undefined {
+  const trimmed = yearValue.trim();
+  if (!trimmed) return undefined;
+
+  const currentYear = new Date().getFullYear();
+
+  if (!/^\d{4}$/.test(trimmed)) {
+    return 'Tahun harus berupa 4 digit angka (contoh: 2021)';
+  }
+
+  const year = Number(trimmed);
+  if (year < 1900) {
+    return 'Tahun tidak boleh lebih awal dari 1900';
+  }
+
+  if (year > currentYear) {
+    return `Tahun tidak boleh melebihi tahun saat ini (${currentYear})`;
+  }
+
+  if (birthYear && !Number.isNaN(birthYear) && year < birthYear) {
+    return `Tahun tidak boleh lebih awal dari tahun kelahiran pasien (${birthYear})`;
+  }
+
+  return undefined;
 }
 
 export function getMedicalFieldValidationSchema(
@@ -104,12 +133,43 @@ export function getMedicalFieldValidationSchema(
         const pVal = allValues['parityCount']
           ? parseInt(allValues['parityCount'], 10)
           : undefined;
+        const abVal = allValues['abortionCount']
+          ? parseInt(allValues['abortionCount'], 10)
+          : undefined;
 
         if (field.id === 'gravidaCount') {
           if (countVal < 1) {
             context.addIssue({
               code: z.ZodIssueCode.custom,
               message: 'Total kehamilan minimal 1'
+            });
+            return;
+          }
+          const prior = countVal - 1;
+          if (pVal !== undefined && !isNaN(pVal) && pVal > prior) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Total kehamilan (${countVal}) tidak mencukupi untuk riwayat persalinan (${pVal})`
+            });
+            return;
+          }
+          if (abVal !== undefined && !isNaN(abVal) && abVal > prior) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Total kehamilan (${countVal}) tidak mencukupi untuk riwayat keguguran (${abVal})`
+            });
+            return;
+          }
+          if (
+            pVal !== undefined &&
+            abVal !== undefined &&
+            !isNaN(pVal) &&
+            !isNaN(abVal) &&
+            pVal + abVal > prior
+          ) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Total kehamilan (${countVal}) tidak mencukupi untuk persalinan (${pVal}) dan keguguran (${abVal})`
             });
             return;
           }
@@ -123,6 +183,13 @@ export function getMedicalFieldValidationSchema(
               context.addIssue({
                 code: z.ZodIssueCode.custom,
                 message: `Tidak boleh melebihi kehamilan sebelumnya (maks. ${prior})`
+              });
+              return;
+            }
+            if (abVal !== undefined && !isNaN(abVal) && countVal + abVal > prior) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Total persalinan dan keguguran melebihi kehamilan sebelumnya (maks. ${prior})`
               });
               return;
             }
@@ -166,38 +233,23 @@ export function getMedicalFieldValidationSchema(
       }
     }
 
+    let effectiveBirthYear = birthYear;
+    if ((effectiveBirthYear === undefined || effectiveBirthYear === null) && allValues) {
+      const bDateStr = allValues['motherBirthDate'] || allValues['birthDate'];
+      if (bDateStr) {
+        const parsed = new Date(bDateStr).getFullYear();
+        if (!Number.isNaN(parsed)) {
+          effectiveBirthYear = parsed;
+        }
+      }
+    }
+
     if (format === 'year') {
-      const year = Number(trimmedValue);
-      const currentYear = new Date().getFullYear();
-
-      if (!/^\d{4}$/.test(trimmedValue)) {
+      const errorMsg = validateQuestionnaireYear(trimmedValue, effectiveBirthYear);
+      if (errorMsg) {
         context.addIssue({
           code: z.ZodIssueCode.custom,
-          message: 'Tahun harus berupa 4 digit angka (contoh: 2021)'
-        });
-        return;
-      }
-
-      if (year < 1900) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Tahun tidak boleh lebih awal dari 1900'
-        });
-        return;
-      }
-
-      if (year > currentYear) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Tahun tidak boleh melebihi tahun saat ini (${currentYear})`
-        });
-        return;
-      }
-
-      if (birthYear && !Number.isNaN(birthYear) && year < birthYear) {
-        context.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `Tahun tidak boleh lebih awal dari tahun kelahiran pasien (${birthYear})`
+          message: errorMsg
         });
         return;
       }
@@ -278,6 +330,26 @@ export function getMedicalFieldValidationSchema(
             message: 'Tanggal HPHT tidak boleh di masa depan'
           });
           return;
+        }
+
+        const motherBirth = allValues?.['motherBirthDate'] || allValues?.['birthDate'];
+        if (motherBirth && isValidIsoDate(motherBirth)) {
+          const birthObj = new Date(motherBirth);
+          if (dateObj <= birthObj) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Tanggal HPHT tidak boleh lebih awal dari tanggal lahir pasien'
+            });
+            return;
+          }
+        } else if (birthYear && !Number.isNaN(birthYear)) {
+          if (dateObj.getFullYear() < birthYear) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Tahun HPHT tidak boleh lebih awal dari tahun kelahiran pasien (${birthYear})`
+            });
+            return;
+          }
         }
       }
     }

@@ -7,6 +7,7 @@ import type { MedicalFormField } from '../../../constants/medical-appointment-sc
 import type { TableConfig } from '../../../constants/medical-appointment-types';
 import type { QuestionnaireItem } from '../types';
 import { QuestionnaireDesktopRow } from '../molecules/questionnaire-desktop-row';
+import { validateQuestionnaireYear } from '../../../schemas/medical-appointment-validation';
 import { cn } from '@/lib/utils';
 
 export interface MedicalQuestionnaireGridProps {
@@ -14,6 +15,7 @@ export interface MedicalQuestionnaireGridProps {
   values: Record<string, string>;
   onFieldChange: (fieldId: string, value: string) => void;
   tableConfig?: TableConfig;
+  birthYear?: number | null;
   className?: string;
 }
 
@@ -22,6 +24,7 @@ export function MedicalQuestionnaireGrid({
   values,
   onFieldChange,
   tableConfig,
+  birthYear,
   className
 }: MedicalQuestionnaireGridProps) {
   const answeredCount = items.filter((item) => Boolean(values[item.id])).length;
@@ -120,6 +123,10 @@ export function MedicalQuestionnaireGrid({
             }
           };
 
+          const yearError = item.yearFieldId
+            ? validateQuestionnaireYear(yearValue, birthYear)
+            : undefined;
+
           return (
             <QuestionnaireDesktopRow
               key={item.id}
@@ -127,6 +134,7 @@ export function MedicalQuestionnaireGrid({
               statusValue={statusValue}
               yearValue={yearValue}
               notesValue={notesValue}
+              yearError={yearError}
               onSelectStatus={handleSelectStatus}
               onChangeYear={handleChangeYear}
               onChangeNotes={handleChangeNotes}

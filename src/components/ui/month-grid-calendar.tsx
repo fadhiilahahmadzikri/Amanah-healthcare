@@ -32,12 +32,14 @@ export function MonthGridCalendar({
   value = 'ALL',
   onChange,
   className,
-  minYear = 2020,
-  maxYear = 2035
+  minYear: customMinYear,
+  maxYear: customMaxYear
 }: MonthGridCalendarProps) {
   const today = React.useMemo(() => new Date(), []);
   const todayYear = today.getFullYear();
   const todayMonthIndex = today.getMonth();
+  const minYear = customMinYear ?? todayYear - 5;
+  const maxYear = customMaxYear ?? todayYear + 5;
 
   // Parse initial year from value string (e.g. "Okt 2026")
   const parsedYear = React.useMemo(() => {
@@ -53,7 +55,7 @@ export function MonthGridCalendar({
   const [currentYear, setCurrentYear] = React.useState<number>(parsedYear);
 
   React.useEffect(() => {
-    if (parsedYear && parsedYear !== currentYear) {
+    if (parsedYear) {
       setCurrentYear(parsedYear);
     }
   }, [parsedYear]);

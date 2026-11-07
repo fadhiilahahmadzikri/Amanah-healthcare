@@ -101,7 +101,8 @@ export function PatientModalIdentityFields({
                 id='nik'
                 label='NIK KTP (16 Digit)'
                 placeholder='3201xxxxxxxxxxxx'
-                type={showNik ? 'text' : 'password'}
+                type='text'
+                isMasked={!showNik}
                 value={field.state.value ?? ''}
                 onChange={(val: string) => {
                   const numericOnly = val.replace(/\D/g, '').slice(0, 16);

@@ -21,7 +21,7 @@ export interface MedicalHistoryCatalogProps {
 export function MedicalHistoryCatalog({
   groupKey,
   recordsCount,
-  values: _values,
+  values,
   onEditRecord,
   onRemoveRecord,
   onAddRecord,
@@ -29,6 +29,11 @@ export function MedicalHistoryCatalog({
   showHeader = true
 }: MedicalHistoryCatalogProps) {
   const isPregnancy = groupKey === 'pregnancy';
+  const pStr = values['parityCount'];
+  const pVal = pStr ? parseInt(pStr, 10) : undefined;
+  const isMaxPregnancyReached =
+    isPregnancy && pVal !== undefined && !isNaN(pVal) && recordsCount >= pVal;
+
   const title = isPregnancy
     ? 'Katalog Riwayat Kehamilan & Persalinan'
     : 'Katalog Riwayat KB / Kontrasepsi';
@@ -59,8 +64,14 @@ export function MedicalHistoryCatalog({
               type='button'
               variant='outline'
               size='sm'
+              disabled={isMaxPregnancyReached}
               onClick={onAddRecord}
-              className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5'
+              title={
+                isMaxPregnancyReached
+                  ? `Maksimal riwayat persalinan sesuai jumlah melahirkan (${pVal})`
+                  : undefined
+              }
+              className='border-dashed text-xs font-medium hover:border-primary hover:bg-primary/5 disabled:opacity-50'
             >
               <Icons.add className='mr-1 size-3.5 shrink-0' />
               <span>{isPregnancy ? 'Tambah Kehamilan' : 'Tambah KB'}</span>
@@ -83,8 +94,9 @@ export function MedicalHistoryCatalog({
               <Button
                 type='button'
                 variant='outline'
+                disabled={isMaxPregnancyReached}
                 onClick={onAddRecord}
-                className='text-xs font-medium border-dashed hover:border-primary hover:bg-primary/5'
+                className='text-xs font-medium border-dashed hover:border-primary hover:bg-primary/5 disabled:opacity-50'
               >
                 <Icons.add className='size-3.5 mr-1.5' />
                 {isPregnancy ? 'Tambah Riwayat Kehamilan' : 'Tambah Riwayat KB'}

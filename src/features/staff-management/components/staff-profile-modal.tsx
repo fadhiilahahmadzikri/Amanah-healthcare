@@ -164,7 +164,8 @@ export function StaffProfileModal(props: StaffProfileModalProps) {
                       id='staff_nationalId'
                       label='NIK KTP (16 Digit)'
                       placeholder='3201xxxxxxxxxxxx'
-                      type={showNik ? 'text' : 'password'}
+                      type='text'
+                      isMasked={!showNik}
                       value={form.formData.nationalId}
                       onChange={(val) => {
                         const numericOnly = val.replace(/\D/g, '').slice(0, 16);

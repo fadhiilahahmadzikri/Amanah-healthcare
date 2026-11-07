@@ -14,6 +14,7 @@ export interface PatientLineInputProps extends Omit<
   error?: string;
   invalid?: boolean;
   isMonospace?: boolean;
+  isMasked?: boolean;
   trailingIcon?: React.ReactNode;
   containerClassName?: string;
 }
@@ -28,12 +29,17 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
       error,
       invalid,
       isMonospace,
+      isMasked,
       trailingIcon,
       containerClassName,
       className,
       placeholder,
       disabled,
       readOnly,
+      autoComplete = 'off',
+      autoCorrect = 'off',
+      spellCheck = false,
+      type = 'text',
       onFocus,
       onBlur,
       ...rest
@@ -60,10 +66,20 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
           <input
             ref={ref}
             id={id}
+            type={type}
             value={value}
             disabled={disabled}
             readOnly={readOnly}
             tabIndex={readOnly ? -1 : rest.tabIndex}
+            autoComplete={autoComplete}
+            autoCorrect={autoCorrect}
+            spellCheck={spellCheck}
+            style={{
+              ...(isMasked
+                ? ({ WebkitTextSecurity: 'disc', textSecurity: 'disc' } as React.CSSProperties)
+                : undefined),
+              ...rest.style
+            }}
             onFocus={(e) => {
               setIsFocused(true);
               onFocus?.(e);

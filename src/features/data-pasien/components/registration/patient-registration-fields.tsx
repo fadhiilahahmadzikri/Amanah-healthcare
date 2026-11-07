@@ -109,7 +109,8 @@ export function PatientRegistrationStepFields({ controller }: PatientRegistratio
               id='nik'
               label='NIK KTP (16 Digit)'
               placeholder='3271012345670001'
-              type={showNik ? 'text' : 'password'}
+              type='text'
+              isMasked={!showNik}
               value={field.state.value}
               onChange={(val) => {
                 const numericOnly = val.replace(/\D/g, '').slice(0, 16);

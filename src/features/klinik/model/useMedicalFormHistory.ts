@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { toast } from 'sonner';
 import type { MedicalFormSection } from '../constants/medical-appointment-schemas';
 import type { MedicalAppointmentValues } from '../utils/medical-appointment';
 import {
@@ -15,7 +16,7 @@ import {
   type RepeatableHistoryKey
 } from './medical-form-history-types';
 import { getHistorySection, getHistorySectionMeta } from '../utils/medical-form-helpers';
-import { CATALOG_ACTION_TYPES } from '../constants/kia-constants';
+import { CATALOG_ACTION_TYPES, REPEATABLE_GROUP_KEYS } from '../constants/kia-constants';
 
 interface UseMedicalFormHistoryParams {
   sections: MedicalFormSection[];
@@ -107,6 +108,14 @@ export function useMedicalFormHistory({
 
     const groupKey = historyPrompt.groupKey;
     const currentCount = historyCounts[groupKey];
+    if (groupKey === REPEATABLE_GROUP_KEYS.PREGNANCY) {
+      const pStr = values['parityCount'];
+      const pVal = pStr ? parseInt(pStr, 10) : undefined;
+      if (pVal !== undefined && !isNaN(pVal) && currentCount >= pVal) {
+        setHistoryPrompt(null);
+        return;
+      }
+    }
     setHistoryPrompt(null);
 
     const nextRecordNumber = currentCount + 1;
@@ -118,11 +127,21 @@ export function useMedicalFormHistory({
 
     const targetSectionId = getHistorySectionId(groupKey, nextRecordNumber);
     setPendingNavigateSectionId(targetSectionId);
-  }, [historyPrompt, historyCounts]);
+  }, [historyPrompt, historyCounts, values]);
 
   const handleAddHistoryFromCatalog = React.useCallback(
     (groupKey: RepeatableHistoryKey) => {
       const currentCount = historyCounts[groupKey];
+      if (groupKey === REPEATABLE_GROUP_KEYS.PREGNANCY) {
+        const pStr = values['parityCount'];
+        const pVal = pStr ? parseInt(pStr, 10) : undefined;
+        if (pVal !== undefined && !isNaN(pVal) && currentCount >= pVal) {
+          toast.error(
+            `Jumlah riwayat persalinan tidak boleh melebihi jumlah pernah melahirkan (${pVal})`
+          );
+          return;
+        }
+      }
       const targetRecordNumber = currentCount + 1;
       setCatalogAction({
         type: CATALOG_ACTION_TYPES.ADD,
@@ -133,7 +152,7 @@ export function useMedicalFormHistory({
       const targetSectionId = getHistorySectionId(groupKey, targetRecordNumber);
       setPendingNavigateSectionId(targetSectionId);
     },
-    [historyCounts]
+    [historyCounts, values]
   );
 
   const handleEditHistoryFromCatalog = React.useCallback(

@@ -47,7 +47,7 @@ export function buildRegistrationPrefill(
 
   const result: Record<string, string> = {
     fullName: patient.fullName,
-    nik,
+    nik: '',
     birthDate,
     bloodType,
     phone,
@@ -58,7 +58,7 @@ export function buildRegistrationPrefill(
 
   if (flow === 'pregnancy') {
     result.motherName = patient.fullName;
-    result.motherNik = nik;
+    result.motherNik = '';
     result.motherBirthDate = birthDate;
     result.motherJob = occupation;
     result.motherBloodType = bloodType;
@@ -82,7 +82,6 @@ export function buildRegistrationPrefill(
 
       if (spouse) {
         if (spouse.fullName) result.partnerName = spouse.fullName;
-        if (spouse.nik) result.partnerNik = spouse.nik;
         if (spouse.birthDate) result.partnerBirthDate = spouse.birthDate;
         if (spouse.bloodType) result.partnerBloodType = spouse.bloodType;
         if (spouse.occupationName) result.partnerJob = spouse.occupationName;
@@ -93,7 +92,7 @@ export function buildRegistrationPrefill(
     }
   } else if (flow === 'immunization') {
     result.childName = patient.fullName;
-    result.childNik = nik;
+    result.childNik = '';
     result.childBirthDate = birthDate;
     result.childSex = patient.gender || '';
     result.parentPhone = phone;

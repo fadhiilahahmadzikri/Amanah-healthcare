@@ -90,9 +90,17 @@ export const SecureNikInput = React.forwardRef<HTMLInputElement, SecureNikInputP
       <div className='relative flex items-center w-full'>
         <Input
           ref={ref}
-          type={isVisible ? 'text' : 'password'}
+          type='text'
           inputMode='numeric'
           autoComplete='off'
+          autoCorrect='off'
+          spellCheck={false}
+          style={{
+            ...(isVisible
+              ? undefined
+              : ({ WebkitTextSecurity: 'disc', textSecurity: 'disc' } as React.CSSProperties)),
+            ...props.style
+          }}
           value={value}
           onChange={handleChange}
           disabled={disabled}

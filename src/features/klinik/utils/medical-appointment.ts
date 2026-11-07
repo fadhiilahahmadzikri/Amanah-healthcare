@@ -52,8 +52,22 @@ export function getActiveMedicalSections(
   definition: MedicalFlowDefinition,
   values: MedicalAppointmentValues
 ): MedicalFormSection[] {
+  const parityStr = values['parityCount'];
+  const hasParity = parityStr !== undefined && parityStr.trim() !== '';
+  const parityNum = hasParity ? parseInt(parityStr, 10) : undefined;
+  const isParityKnown = parityNum !== undefined && !isNaN(parityNum);
+  const isParityZero = isParityKnown && parityNum === 0;
+
   return definition.sections.filter((section) => {
     if (section.id === 'closing') {
+      return false;
+    }
+
+    if (isParityZero && (section.id === 'obstetricGateway' || section.id.startsWith('previousPregnancy'))) {
+      return false;
+    }
+
+    if (isParityKnown && parityNum > 0 && section.id === 'obstetricGateway') {
       return false;
     }
 
@@ -61,7 +75,7 @@ export function getActiveMedicalSections(
       return values.hasPreviousPregnancyHistory === PREVIOUS_PREGNANCY_CHOICE.YES;
     }
 
-    if (section.id.startsWith('contraception')) {
+    if (section.id.startsWith('contraception') && section.id !== 'contraceptionGateway') {
       return values.hasContraceptionHistory === CONTRACEPTION_CHOICE.YES;
     }
 

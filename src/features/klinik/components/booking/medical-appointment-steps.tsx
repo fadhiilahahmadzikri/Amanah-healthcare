@@ -142,7 +142,7 @@ export function MedicalSectionStep({
                 Gunakan data akun Anda ({selfProfile.fullName}) sebagai suami?
               </p>
               <p className='text-[11px] text-muted-foreground'>
-                Klik untuk mengisi otomatis nama, NIK, dan kontak dari akun Anda.
+                Klik untuk mengisi otomatis nama dan profil pendukung dari akun Anda.
               </p>
             </div>
             <Button
@@ -152,7 +152,6 @@ export function MedicalSectionStep({
               shape='pill'
               onClick={() => {
                 onFieldChange?.('partnerName', selfProfile.fullName);
-                if (selfProfile.nik) onFieldChange?.('partnerNik', selfProfile.nik);
                 if (selfProfile.birthDate) onFieldChange?.('partnerBirthDate', selfProfile.birthDate);
                 if (selfProfile.bloodType) onFieldChange?.('partnerBloodType', selfProfile.bloodType);
                 if (selfProfile.occupationName) onFieldChange?.('partnerJob', selfProfile.occupationName);
@@ -167,7 +166,16 @@ export function MedicalSectionStep({
 
       {isQuestionnaire && values && onFieldChange ? (
         <div className='px-0.5 pt-1.5 pb-2'>
-          <MedicalQuestionnaire section={section} values={values} onFieldChange={onFieldChange} />
+          <MedicalQuestionnaire
+            section={section}
+            values={values}
+            onFieldChange={onFieldChange}
+            birthYear={
+              values['motherBirthDate'] || values['birthDate']
+                ? new Date(values['motherBirthDate'] || values['birthDate']).getFullYear()
+                : null
+            }
+          />
         </div>
       ) : (
         <FieldGroup

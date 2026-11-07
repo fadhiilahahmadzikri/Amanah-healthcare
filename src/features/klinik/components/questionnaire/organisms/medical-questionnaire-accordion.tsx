@@ -3,12 +3,14 @@
 import * as React from 'react';
 import type { QuestionnaireItem } from '../types';
 import { QuestionnaireMobileItem } from '../molecules/questionnaire-mobile-item';
+import { validateQuestionnaireYear } from '../../../schemas/medical-appointment-validation';
 import { cn } from '@/lib/utils';
 
 export interface MedicalQuestionnaireAccordionProps {
   items: QuestionnaireItem[];
   values: Record<string, string>;
   onFieldChange: (fieldId: string, value: string) => void;
+  birthYear?: number | null;
   className?: string;
 }
 
@@ -16,6 +18,7 @@ export function MedicalQuestionnaireAccordion({
   items,
   values,
   onFieldChange,
+  birthYear,
   className
 }: MedicalQuestionnaireAccordionProps) {
   const firstUnansweredIndex = React.useMemo(() => {
@@ -95,6 +98,10 @@ export function MedicalQuestionnaireAccordion({
             }
           };
 
+          const yearError = item.yearFieldId
+            ? validateQuestionnaireYear(yearValue, birthYear)
+            : undefined;
+
           return (
             <QuestionnaireMobileItem
               key={item.id}
@@ -106,6 +113,7 @@ export function MedicalQuestionnaireAccordion({
               statusValue={statusValue}
               yearValue={yearValue}
               notesValue={notesValue}
+              yearError={yearError}
               onSelectStatus={handleSelectStatus}
               onChangeYear={handleChangeYear}
               onChangeNotes={handleChangeNotes}

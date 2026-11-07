@@ -196,6 +196,50 @@ export function refineMarriageDate(
   }
 }
 
+export function refineHphtDate(
+  data: {
+    hpht?: string | null;
+    motherBirthDate?: string | null;
+  },
+  ctx: z.RefinementCtx
+) {
+  if (!data.hpht || data.hpht.trim() === '') return;
+  const hDate = new Date(data.hpht);
+  if (isNaN(hDate.getTime())) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Format tanggal HPHT tidak valid',
+      path: ['hpht']
+    });
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  if (hDate > today) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Tanggal HPHT tidak boleh di masa depan',
+      path: ['hpht']
+    });
+    return;
+  }
+
+  if (data.motherBirthDate && data.motherBirthDate.trim() !== '') {
+    const bDate = new Date(data.motherBirthDate);
+    if (!isNaN(bDate.getTime())) {
+      if (hDate <= bDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Tanggal HPHT tidak boleh lebih awal dari tanggal lahir pasien',
+          path: ['hpht']
+        });
+        return;
+      }
+    }
+  }
+}
+
 export const maternalFormZodSchema = z
   .object({
     motherName: z.string().min(1, 'Nama lengkap ibu wajib diisi'),
@@ -206,6 +250,7 @@ export const maternalFormZodSchema = z
       .or(z.literal('')),
     motherBirthDate: z.string().nullable().optional(),
     marriageDate: z.string().nullable().optional(),
+    hpht: z.string().nullable().optional(),
     partnerNik: z
       .string()
       .regex(/^\d{16}$/, { message: 'NIK suami harus berupa 16 digit angka' })
@@ -282,7 +327,8 @@ export const maternalFormZodSchema = z
     conditionResponses: z.array(maternalConditionItemZodSchema).optional()
   })
   .superRefine(refineObstetricCounts)
-  .superRefine(refineMarriageDate);
+  .superRefine(refineMarriageDate)
+  .superRefine(refineHphtDate);
 
 export interface MaternalValidationResult {
   isValid: boolean;
@@ -330,6 +376,9 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
   const result = maternalFormZodSchema.safeParse({
     motherName: data.motherName ?? '',
     motherNik: data.motherNik ? data.motherNik.trim() : '',
+    motherBirthDate: data.motherBirthDate ? data.motherBirthDate.trim() : null,
+    marriageDate: data.marriageDate ? data.marriageDate.trim() : null,
+    hpht: data.hpht ? data.hpht.trim() : null,
     partnerNik: data.partnerNik ? data.partnerNik.trim() : '',
     phoneNumber: data.phoneNumber ? data.phoneNumber.trim() : '',
     partnerPhone: data.partnerPhone ? data.partnerPhone.trim() : '',
