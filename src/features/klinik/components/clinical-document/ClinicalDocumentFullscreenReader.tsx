@@ -23,7 +23,7 @@ import {
   exportImunisasiExcel,
   exportRegulerExcel
 } from './services/excelExportService';
-import { printDocument, downloadPdfFromElement } from './services/printService';
+import { printDocument } from './services/printService';
 import type { PmbFormData, ImunisasiFormData, RegulerFormData, ClinicalFormFlow } from './types';
 
 export interface ClinicalDocumentFullscreenReaderProps {
@@ -151,10 +151,9 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
     }
   };
 
-  const handleDownload = async (format: 'docx' | 'pdf' | 'xlsx') => {
+  const handleDownload = async (format: 'docx' | 'xlsx') => {
     try {
       setIsExporting(true);
-      const targetEl = canvasRef.current?.querySelector('.document-a4-page') as HTMLElement | null;
 
       if (flow === 'pregnancy') {
         const topRowValues = pmbData?.identity?.topRowValues;
@@ -163,8 +162,6 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
         const suffix = patientName ? `_${patientName.replace(/\s+/g, '_')}` : '';
         if (format === 'docx') {
           await exportPmbDocx(pmbData, `Formulir_ANC${suffix}.docx`);
-        } else if (format === 'pdf') {
-          await downloadPdfFromElement(targetEl, `Formulir_ANC${suffix}.pdf`);
         } else {
           await exportPmbExcel(pmbData, `Formulir_ANC${suffix}.xlsx`);
         }
@@ -173,8 +170,6 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
         const suffix = childName ? `_${childName.replace(/\s+/g, '_')}` : '';
         if (format === 'docx') {
           await exportImunisasiDocx(imunisasiData, `Formulir_Imunisasi${suffix}.docx`);
-        } else if (format === 'pdf') {
-          await downloadPdfFromElement(targetEl, `Formulir_Imunisasi${suffix}.pdf`);
         } else {
           await exportImunisasiExcel(imunisasiData, `Formulir_Imunisasi${suffix}.xlsx`);
         }
@@ -183,8 +178,6 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
         const suffix = patientName ? `_${patientName.replace(/\s+/g, '_')}` : '';
         if (format === 'docx') {
           await exportRegulerDocx(regulerData, `Formulir_Rawat_Jalan${suffix}.docx`);
-        } else if (format === 'pdf') {
-          await downloadPdfFromElement(targetEl, `Formulir_Rawat_Jalan${suffix}.pdf`);
         } else {
           await exportRegulerExcel(regulerData, `Formulir_Rawat_Jalan${suffix}.xlsx`);
         }
@@ -338,21 +331,14 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
                 className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
               >
                 <Icons.fileTypeDoc className='size-3.5 text-blue-400' />
-                <span>Docx</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleDownload('pdf')}
-                className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
-              >
-                <Icons.fileTypePdf className='size-3.5 text-rose-400' />
-                <span>Pdf</span>
+                <span>Word (.docx)</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => handleDownload('xlsx')}
                 className='gap-2 cursor-pointer hover:bg-slate-800 focus:bg-slate-800 focus:text-white'
               >
                 <Icons.fileTypeXls className='size-3.5 text-emerald-400' />
-                <span>Excel</span>
+                <span>Excel (.xlsx)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

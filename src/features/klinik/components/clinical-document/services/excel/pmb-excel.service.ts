@@ -80,7 +80,7 @@ export async function exportPmbExcel(
 
   // Section I: IDENTITAS IBU, SUAMI & WILAYAH
   let currentLine = 8;
-  addSectionHeader(ws, currentLine, 'I.A. IDENTITAS IBU (ISTRI)', 8);
+  addSectionHeader(ws, currentLine, 'I.A. DATA DIRI', 8);
 
   const topRows = data?.identity?.topRowValues || [];
   const fullRows = data?.identity?.fullRowValues || [];
@@ -102,14 +102,17 @@ export async function exportPmbExcel(
   });
 
   currentLine += 1;
-  addSectionHeader(ws, currentLine, 'I.B. IDENTITAS SUAMI & DATA PERNIKAHAN', 8);
+  addSectionHeader(ws, currentLine, 'I.B. DATA SUAMI', 8);
 
   const husbandFieldRows = [
     ['Nama Suami', data?.identity?.husbandRows?.[0]?.[0]?.[1] || topRows[2]?.[0] || ''],
     ['NIK Suami', data?.identity?.husbandRows?.[1]?.[0]?.[1] || topRows[3]?.[0] || ''],
     ['Tanggal Lahir / Umur', data?.identity?.husbandRows?.[2]?.[0]?.[1] || topRows[3]?.[1] || ''],
     ['Pekerjaan / Pendidikan', data?.identity?.husbandRows?.[2]?.[1]?.[1] || topRows[3]?.[2] || ''],
-    ['Golongan Darah Suami', data?.identity?.husbandRows?.[3]?.[0]?.[1] || measurements[1]?.[3] || ''],
+    [
+      'Golongan Darah Suami',
+      data?.identity?.husbandRows?.[3]?.[0]?.[1] || measurements[1]?.[3] || ''
+    ],
     ['Nomor Telepon Suami', data?.identity?.husbandRows?.[3]?.[1]?.[1] || topRows[4]?.[0] || ''],
     ['Pernikahan Ke', data?.identity?.husbandRows?.[0]?.[1]?.[1] || topRows[0]?.[1] || ''],
     ['Tanggal Menikah', data?.identity?.husbandRows?.[1]?.[1]?.[1] || topRows[0]?.[2] || '']
@@ -121,29 +124,36 @@ export async function exportPmbExcel(
   });
 
   currentLine += 1;
-  addSectionHeader(ws, currentLine, 'I.C. ALAMAT & PEMERIKSAAN FISIK AWAL', 8);
+  addSectionHeader(ws, currentLine, 'I.C. ALAMAT DAN DOMISILI', 8);
 
   const locSummary = [
     data?.identity?.locationRows?.[0]?.[1] || locations[0],
     data?.identity?.locationRows?.[1]?.[1] || locations[1],
     data?.identity?.locationRows?.[2]?.[1] || locations[2]
-  ].filter(Boolean).join(' | ');
+  ]
+    .filter(Boolean)
+    .join(' | ');
 
-  const physSummary =
-    data?.identity?.physicalRows?.map((p) => `${p[0]} ${p[1]}`).join('  |  ') ||
-    `TB: ${measurements[0]?.[0]}  |  BB: ${measurements[1]?.[0]}  |  LiLA: ${measurements[0]?.[1]}  |  IMT: ${measurements[1]?.[1]}`;
-
-  const otherFieldRows = [
+  const addressFieldRows = [
     ['Alamat Domisili', data?.identity?.addressRows?.[0]?.[1] || fullRows[1] || ''],
     ['Alamat KTP', data?.identity?.addressRows?.[1]?.[1] || fullRows[2] || ''],
-    ['Dasawisma / Posyandu / Puskesmas', locSummary],
-    ['Pengukuran Fisik Klinis Ibu', physSummary]
+    ['Dasawisma / Posyandu / Puskesmas', locSummary]
   ];
 
-  otherFieldRows.forEach((item) => {
+  addressFieldRows.forEach((item) => {
     currentLine += 1;
     addFullFieldRow(ws, currentLine, item[0], item[1]);
   });
+
+  currentLine += 1;
+  addSectionHeader(ws, currentLine, 'I.D. PEMERIKSAAN FISIK', 8);
+
+  const physSummary =
+    data?.identity?.physicalRows?.map((p) => `${p[0]}: ${p[1]}`).join('  |  ') ||
+    `TB: ${measurements[0]?.[0]}  |  BB: ${measurements[1]?.[0]}  |  LiLA: ${measurements[0]?.[1]}  |  IMT: ${measurements[1]?.[1]}`;
+
+  currentLine += 1;
+  addFullFieldRow(ws, currentLine, 'Hasil Pengukuran Fisik', physSummary);
 
   // Section II: ANAMNESA
   currentLine += 2;
@@ -234,7 +244,10 @@ export async function exportPmbExcel(
     r.getCell(1).font = { name: 'Calibri', size: 9 };
     r.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
 
-    r.getCell(2).value = condDef.code === 'OTHER' && rec?.notes ? rec.notes : (condDef.docLabel || '..............................');
+    r.getCell(2).value =
+      condDef.code === 'OTHER' && rec?.notes
+        ? rec.notes
+        : condDef.docLabel || '..............................';
     r.getCell(2).font = { name: 'Calibri', size: 9 };
     r.getCell(2).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
 
@@ -297,12 +310,17 @@ export async function exportPmbExcel(
       row.getCell(5).value = r[4] || '';
       row.getCell(6).value = r[5] || '';
       row.getCell(7).value = r[6] || '';
-      row.getCell(8).value = r[7] ? (r[8] ? `${r[7]} (${r[8]})` : r[7]) : (r[8] || '');
+      row.getCell(8).value = r[7] ? (r[8] ? `${r[7]} (${r[8]})` : r[7]) : r[8] || '';
 
       for (let c = 1; c <= 8; c += 1) {
         row.getCell(c).font = { name: 'Calibri', size: 9 };
         if (c > 2) {
-          row.getCell(c).alignment = { vertical: 'middle', horizontal: 'left', wrapText: true, indent: 1 };
+          row.getCell(c).alignment = {
+            vertical: 'middle',
+            horizontal: 'left',
+            wrapText: true,
+            indent: 1
+          };
         }
       }
       applyRowBorders(row, 1, 8);
@@ -362,7 +380,7 @@ export async function exportPmbExcel(
       row.getCell(5).alignment = { horizontal: 'center', vertical: 'middle' };
       row.getCell(6).value = r[4] || '';
       row.getCell(6).alignment = { horizontal: 'center', vertical: 'middle' };
-      row.getCell(7).value = r[5] ? (r[6] ? `${r[5]} (${r[6]})` : r[5]) : (r[6] || '');
+      row.getCell(7).value = r[5] ? (r[6] ? `${r[5]} (${r[6]})` : r[5]) : r[6] || '';
       row.getCell(7).alignment = { horizontal: 'left', vertical: 'middle', indent: 1 };
 
       for (let c = 1; c <= 8; c += 1) {

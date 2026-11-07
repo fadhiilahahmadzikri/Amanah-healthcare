@@ -162,7 +162,7 @@ export async function exportPmbDocx(
     identityRows.push(
       row(
         [
-          textCell('A. IDENTITAS IBU (ISTRI)', cfg.page.contentWidth, {
+          textCell('A. DATA DIRI', cfg.page.contentWidth, {
             bold: true,
             size: 7.0,
             columnSpan: 4
@@ -190,7 +190,7 @@ export async function exportPmbDocx(
     identityRows.push(
       row(
         [
-          textCell('B. IDENTITAS SUAMI & DATA PERNIKAHAN', cfg.page.contentWidth, {
+          textCell('B. DATA SUAMI', cfg.page.contentWidth, {
             bold: true,
             size: 7.0,
             columnSpan: 4
@@ -218,7 +218,7 @@ export async function exportPmbDocx(
     identityRows.push(
       row(
         [
-          textCell('C. ALAMAT & LOKASI REGISTRASI', cfg.page.contentWidth, {
+          textCell('C. ALAMAT DAN DOMISILI', cfg.page.contentWidth, {
             bold: true,
             size: 7.0,
             columnSpan: 4
@@ -264,7 +264,7 @@ export async function exportPmbDocx(
     identityRows.push(
       row(
         [
-          textCell('D. PEMERIKSAAN FISIK KLINIS IBU (ANTROPOMETRI)', cfg.page.contentWidth, {
+          textCell('D. PEMERIKSAAN FISIK', cfg.page.contentWidth, {
             bold: true,
             size: 7.0,
             columnSpan: 4
@@ -275,18 +275,21 @@ export async function exportPmbDocx(
     );
 
     if (data.identity.physicalRows && data.identity.physicalRows.length > 0) {
-      const physWidths = [2173, 2173, 2173, 2173, 2174];
-      identityRows.push(
-        row(
-          data.identity.physicalRows.map((item, pIdx) =>
-            lineCell(item[0], physWidths[pIdx], {
-              size: identitySize,
-              value: item[1]
-            })
-          ),
-          265
-        )
-      );
+      for (let i = 0; i < data.identity.physicalRows.length; i += 2) {
+        const item1 = data.identity.physicalRows[i];
+        const item2 = data.identity.physicalRows[i + 1];
+        identityRows.push(
+          row(
+            [
+              textCell(item1?.[0] || '', identityColumns[0], { size: identitySize }),
+              lineCell('', identityColumns[1], { size: identitySize, value: item1?.[1] || '' }),
+              textCell(item2?.[0] || '', identityColumns[2], { size: identitySize }),
+              lineCell('', identityColumns[3], { size: identitySize, value: item2?.[1] || '' })
+            ],
+            265
+          )
+        );
+      }
     }
   } else {
     for (const [rowIndex, values] of cfg.identity.topRows.entries()) {

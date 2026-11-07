@@ -17,7 +17,7 @@ interface InspectorHeaderProps {
   hideHeader?: boolean;
   onStartEdit: () => void;
   onOpenReader: () => void;
-  onDownload: (format: 'docx' | 'pdf' | 'xlsx') => void;
+  onDownload: (format: 'docx' | 'xlsx') => void;
   onClose?: () => void;
 }
 
@@ -103,15 +103,11 @@ export function InspectorHeader({
             <DropdownMenuContent align='end' className='w-48 text-xs font-medium'>
               <DropdownMenuItem onClick={() => onDownload('docx')} className='gap-2 cursor-pointer'>
                 <Icons.fileTypeDoc className='size-3.5 text-blue-600 dark:text-blue-400' />
-                <span>Docx</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onDownload('pdf')} className='gap-2 cursor-pointer'>
-                <Icons.fileTypePdf className='size-3.5 text-rose-600 dark:text-rose-400' />
-                <span>Pdf</span>
+                <span>Word (.docx)</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onDownload('xlsx')} className='gap-2 cursor-pointer'>
                 <Icons.fileTypeXls className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-                <span>Excel</span>
+                <span>Excel (.xlsx)</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -178,15 +174,11 @@ export function InspectorHeader({
           <DropdownMenuContent align='end' className='w-48 text-xs font-medium'>
             <DropdownMenuItem onClick={() => onDownload('docx')} className='gap-2 cursor-pointer'>
               <Icons.fileTypeDoc className='size-3.5 text-blue-600 dark:text-blue-400' />
-              <span>Docx</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onDownload('pdf')} className='gap-2 cursor-pointer'>
-              <Icons.fileTypePdf className='size-3.5 text-rose-600 dark:text-rose-400' />
-              <span>Pdf</span>
+              <span>Word (.docx)</span>
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => onDownload('xlsx')} className='gap-2 cursor-pointer'>
               <Icons.fileTypeXls className='size-3.5 text-emerald-600 dark:text-emerald-400' />
-              <span>Excel</span>
+              <span>Excel (.xlsx)</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

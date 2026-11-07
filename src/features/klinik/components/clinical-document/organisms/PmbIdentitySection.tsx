@@ -27,11 +27,11 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
             ))}
           </colgroup>
           <tbody>
-            {/* SUB-SECTION A: IDENTITAS IBU */}
+            {/* SUB-SECTION A: DATA DIRI */}
             <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
               <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
                 <FormText customPt={6.8} bold>
-                  A. IDENTITAS IBU (ISTRI)
+                  A. DATA DIRI
                 </FormText>
               </td>
             </tr>
@@ -52,11 +52,11 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
               </tr>
             ))}
 
-            {/* SUB-SECTION B: IDENTITAS SUAMI & DATA PERNIKAHAN */}
+            {/* SUB-SECTION B: DATA SUAMI */}
             <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
               <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
                 <FormText customPt={6.8} bold>
-                  B. IDENTITAS SUAMI & DATA PERNIKAHAN
+                  B. DATA SUAMI
                 </FormText>
               </td>
             </tr>
@@ -77,11 +77,11 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
               </tr>
             ))}
 
-            {/* SUB-SECTION C: ALAMAT & LOKASI REGISTRASI */}
+            {/* SUB-SECTION C: ALAMAT DAN DOMISILI */}
             <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
               <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
                 <FormText customPt={6.8} bold>
-                  C. ALAMAT & LOKASI REGISTRASI
+                  C. ALAMAT DAN DOMISILI
                 </FormText>
               </td>
             </tr>
@@ -101,7 +101,9 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
                   <div className='flex items-center justify-between w-full gap-4'>
                     {data.locationRows.map((loc, lIdx) => (
                       <div key={`loc-${lIdx}`} className='flex items-center gap-1.5 flex-1 min-w-0'>
-                        <FormText customPt={6.6} className='shrink-0'>{loc[0]}</FormText>
+                        <FormText customPt={6.6} className='shrink-0'>
+                          {loc[0]}
+                        </FormText>
                         <div className='flex-1 min-w-0'>
                           <DottedLine value={loc[1]} customPt={6.6} minHeight='13px' />
                         </div>
@@ -112,30 +114,37 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
               </tr>
             )}
 
-            {/* SUB-SECTION D: PEMERIKSAAN FISIK AWAL (ANTROPOMETRI) */}
+            {/* SUB-SECTION D: PEMERIKSAAN FISIK */}
             <tr className='h-[16px] bg-slate-50 border-t border-b border-black'>
               <td colSpan={4} className='border border-black px-1.5 py-[0.5px] align-middle'>
                 <FormText customPt={6.8} bold>
-                  D. PEMERIKSAAN FISIK KLINIS IBU (ANTROPOMETRI)
+                  D. PEMERIKSAAN FISIK
                 </FormText>
               </td>
             </tr>
-            {data.physicalRows && data.physicalRows.length > 0 && (
-              <tr className='h-[17px]'>
-                <td colSpan={4} className='border border-black px-[4px] py-[0.5px] align-middle'>
-                  <div className='flex items-center justify-between w-full gap-2'>
-                    {data.physicalRows.map((item, pIdx) => (
-                      <div key={`phys-${pIdx}`} className='flex items-center gap-1 flex-1 min-w-0'>
-                        <FormText customPt={6.6} className='shrink-0'>{item[0]}</FormText>
-                        <div className='flex-1 min-w-0'>
-                          <DottedLine value={item[1]} customPt={6.6} minHeight='13px' />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </td>
-              </tr>
-            )}
+            {(() => {
+              const rows = data.physicalRows || [];
+              const pairs: [string, string | undefined][][] = [];
+              for (let i = 0; i < rows.length; i += 2) {
+                pairs.push([rows[i], rows[i + 1]]);
+              }
+              return pairs.map((pair, pIdx) => (
+                <tr key={`phys-${pIdx}`} className='h-[17px]'>
+                  <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                    <FormText customPt={6.6}>{pair[0]?.[0] || ''}</FormText>
+                  </td>
+                  <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                    <DottedLine value={pair[0]?.[1]} customPt={6.6} minHeight='13px' />
+                  </td>
+                  <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                    <FormText customPt={6.6}>{pair[1]?.[0] || ''}</FormText>
+                  </td>
+                  <td className='border border-black px-[2px] py-[0.5px] align-middle'>
+                    <DottedLine value={pair[1]?.[1]} customPt={6.6} minHeight='13px' />
+                  </td>
+                </tr>
+              ));
+            })()}
           </tbody>
         </table>
       </div>
@@ -143,7 +152,7 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
   }
 
   // Legacy fallback
-  const colWidths = [11.50, 26.69, 14.26, 10.12, 14.73, 22.70];
+  const colWidths = [11.5, 26.69, 14.26, 10.12, 14.73, 22.7];
 
   return (
     <div className='w-full mb-1'>
@@ -165,10 +174,7 @@ export const PmbIdentitySection: React.FC<PmbIdentitySectionProps> = ({ config, 
                 const value = isLabel ? undefined : data?.topRowValues?.[rowIdx]?.[valueIdx];
 
                 return (
-                  <td
-                    key={colIdx}
-                    className='border border-black px-[2px] py-[0.5px] align-middle'
-                  >
+                  <td key={colIdx} className='border border-black px-[2px] py-[0.5px] align-middle'>
                     {isLabel ? (
                       <FormText customPt={6.6}>{item}</FormText>
                     ) : (

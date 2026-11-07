@@ -1,6 +1,3 @@
-import { toPng } from 'html-to-image';
-import { jsPDF } from 'jspdf';
-
 export function printIsolatedElement(element: HTMLElement | null, title = 'Dokumen-Klinis'): void {
   if (!element) {
     if (typeof window !== 'undefined') window.print();
@@ -112,50 +109,4 @@ export function printDocument(title = 'Dokumen-Klinis', element?: HTMLElement | 
       document.title = originalTitle;
     }, 1000);
   }
-}
-
-/**
- * Direct file download for PDF (distinct from Print dialog).
- * Uses native browser SVG rasterization (html-to-image) to avoid
- * modern CSS color parser crashes (oklch, lab).
- */
-export async function downloadPdfFromElement(
-  element?: HTMLElement | null,
-  filename = 'Dokumen-Klinis.pdf'
-): Promise<void> {
-  const target =
-    element ||
-    (document
-      .getElementById('isolated-clinical-printable')
-      ?.querySelector('.document-a4-page') as HTMLElement) ||
-    (document.querySelector('.document-a4-page') as HTMLElement);
-
-  if (!target) {
-    throw new Error('Target A4 document element not found');
-  }
-
-  const dataUrl = await toPng(target, {
-    pixelRatio: 2,
-    backgroundColor: '#ffffff',
-    cacheBust: true,
-    style: {
-      transform: 'none',
-      margin: '0',
-      boxShadow: 'none'
-    }
-  });
-
-  const pdf = new jsPDF({
-    orientation: 'portrait',
-    unit: 'mm',
-    format: 'a4'
-  });
-
-  const imgProps = pdf.getImageProperties(dataUrl);
-  const pdfWidth = 210;
-  const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-  pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, Math.min(297, pdfHeight));
-  const cleanFilename = filename.endsWith('.pdf') ? filename : `${filename}.pdf`;
-  pdf.save(cleanFilename);
 }
