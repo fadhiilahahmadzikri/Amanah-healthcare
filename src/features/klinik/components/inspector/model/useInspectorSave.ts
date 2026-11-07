@@ -27,6 +27,7 @@ import {
   getRegularPatientDiff
 } from './patient-diff-helper';
 import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
+import { appointmentDraftService } from '../../../services/appointment-draft.service';
 
 interface UseInspectorSaveParams {
   appointment: Appointment;
@@ -237,6 +238,9 @@ export function useInspectorSave({
       appointment.complaint = formData.currentComplaints;
     }
     await invalidateCommonQueries(patientId);
+    if (appointment?.id) {
+      appointmentDraftService.clearInspectorDraft(appointment.id);
+    }
     toast.success('Perubahan formulir KIA & Kehamilan berhasil disimpan!');
     setIsEditing(false);
   }, [formData, parsedData, appointment, invalidateCommonQueries, setIsEditing, setValidationErrors]);
@@ -321,6 +325,9 @@ export function useInspectorSave({
 
     await kiaIntakeService.updateImmunizationIntake(targetId, payload);
     await invalidateCommonQueries(patientId);
+    if (appointment?.id) {
+      appointmentDraftService.clearInspectorDraft(appointment.id);
+    }
     toast.success('Perubahan formulir imunisasi anak berhasil disimpan!');
     setIsEditing(false);
   }, [immunizationFormData, parsedData, appointment, invalidateCommonQueries, setIsEditing, setValidationErrors]);
@@ -362,6 +369,9 @@ export function useInspectorSave({
       appointment.complaint = regularFormData.complaint;
     }
     await invalidateCommonQueries(patientId);
+    if (appointment?.id) {
+      appointmentDraftService.clearInspectorDraft(appointment.id);
+    }
     toast.success('Perubahan formulir intake pasien berhasil disimpan!');
     setIsEditing(false);
   }, [regularFormData, serverIntake, appointment, parsedData, invalidateCommonQueries, setIsEditing, setValidationErrors]);

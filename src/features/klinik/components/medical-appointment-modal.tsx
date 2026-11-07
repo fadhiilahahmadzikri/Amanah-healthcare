@@ -233,7 +233,7 @@ export function MedicalAppointmentModal({
                       <form.AppField
                         key={field.id}
                         name={field.id}
-                        validators={getFieldValidators(field, birthYear)}
+                        validators={getFieldValidators(field, birthYear, values)}
                       >
                         {(fieldApi: AnyFieldApi) => (
                           <MedicalSchemaField

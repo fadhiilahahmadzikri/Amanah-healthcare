@@ -51,73 +51,238 @@ export const maternalContraceptiveHistoryZodSchema = z.object({
   sideEffects: z.string().nullable().optional()
 });
 
-export const maternalFormZodSchema = z.object({
-  motherName: z.string().min(1, 'Nama lengkap ibu wajib diisi'),
-  motherNik: z
-    .string()
-    .regex(/^\d{16}$/, { message: 'NIK ibu harus berupa 16 digit angka' })
-    .optional()
-    .or(z.literal('')),
-  partnerNik: z
-    .string()
-    .regex(/^\d{16}$/, { message: 'NIK suami harus berupa 16 digit angka' })
-    .optional()
-    .or(z.literal('')),
-  phoneNumber: z
-    .string()
-    .regex(/^(\+62|62|0)[0-9]{8,15}$/, { message: 'Nomor telepon tidak valid' })
-    .optional()
-    .or(z.literal('')),
-  partnerPhone: z
-    .string()
-    .regex(/^(\+62|62|0)[0-9]{8,15}$/, {
-      message: 'Nomor HP suami tidak valid'
-    })
-    .optional()
-    .or(z.literal('')),
-  heightCm: z
-    .number()
-    .min(0, 'Tinggi badan minimal 0 cm')
-    .max(300, 'Tinggi badan maksimal 300 cm')
-    .nullable()
-    .optional(),
-  prePregnancyWeightKg: z
-    .number()
-    .min(0, 'Berat badan minimal 0 kg')
-    .max(500, 'Berat badan maksimal 500 kg')
-    .nullable()
-    .optional(),
-  upperArmCircumferenceCm: z
-    .number()
-    .min(0, 'Lingkar lengan atas minimal 0 cm')
-    .max(150, 'Lingkar lengan atas maksimal 150 cm')
-    .nullable()
-    .optional(),
-  initialBmi: z
-    .number()
-    .min(0, 'BMI minimal 0')
-    .max(150, 'BMI maksimal 150')
-    .nullable()
-    .optional(),
-  gestationalAgeWeeks: z
-    .number()
-    .min(0, 'Usia kehamilan minimal 0 minggu')
-    .max(60, 'Usia kehamilan maksimal 60 minggu')
-    .nullable()
-    .optional(),
-  gravidaCount: z.number().int().min(1, 'Gravida minimal 1').max(50, 'Gravida maksimal 50').optional(),
-  parityCount: z.number().int().min(0, 'Paritas minimal 0').max(50, 'Paritas maksimal 50').optional(),
-  abortionCount: z.number().int().min(0, 'Abortus minimal 0').max(50, 'Abortus maksimal 50').optional(),
-  livingChildrenCount: z
-    .number()
-    .int()
-    .min(0, 'Jumlah anak hidup minimal 0')
-    .max(50, 'Jumlah anak hidup maksimal 50')
-    .optional(),
-  previousPregnancies: z.array(maternalPreviousPregnancyZodSchema).optional(),
-  contraceptiveHistories: z.array(maternalContraceptiveHistoryZodSchema).optional(),
-  conditionResponses: z.array(maternalConditionItemZodSchema).optional()
-});
+export function refineObstetricCounts(
+  data: {
+    gravidaCount?: number | null;
+    parityCount?: number | null;
+    abortionCount?: number | null;
+    livingChildrenCount?: number | null;
+    hasPreviousPregnancyHistory?: boolean | null;
+  },
+  ctx: z.RefinementCtx
+) {
+  const G =
+    data.gravidaCount !== undefined && data.gravidaCount !== null
+      ? Number(data.gravidaCount)
+      : undefined;
+  const P =
+    data.parityCount !== undefined && data.parityCount !== null
+      ? Number(data.parityCount)
+      : undefined;
+  const Ab =
+    data.abortionCount !== undefined && data.abortionCount !== null
+      ? Number(data.abortionCount)
+      : undefined;
+  const Ah =
+    data.livingChildrenCount !== undefined && data.livingChildrenCount !== null
+      ? Number(data.livingChildrenCount)
+      : undefined;
+
+  // 1. Gravida harus >= 1 untuk kehamilan saat ini
+  if (G !== undefined && G < 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Total kehamilan (Gravida) minimal bernilai 1 karena sedang hamil saat ini',
+      path: ['gravidaCount']
+    });
+  }
+
+  // 2. Batas persalinan dan keguguran terhadap riwayat kehamilan sebelumnya (G - 1)
+  if (G !== undefined && G >= 1) {
+    const priorPregnancies = G - 1;
+
+    if (P !== undefined && P > priorPregnancies) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Jumlah pernah melahirkan (${P}) tidak boleh melebihi riwayat kehamilan sebelumnya (${priorPregnancies})`,
+        path: ['parityCount']
+      });
+    }
+
+    if (Ab !== undefined && Ab > priorPregnancies) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Jumlah pernah keguguran (${Ab}) tidak boleh melebihi riwayat kehamilan sebelumnya (${priorPregnancies})`,
+        path: ['abortionCount']
+      });
+    }
+
+    if (P !== undefined && Ab !== undefined && P + Ab > priorPregnancies) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Total persalinan dan keguguran (${P + Ab}) melebihi riwayat kehamilan sebelumnya (${priorPregnancies})`,
+        path: ['abortionCount']
+      });
+    }
+
+    if (data.hasPreviousPregnancyHistory === true && priorPregnancies === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Tidak dapat memiliki riwayat kehamilan sebelumnya pada kehamilan pertama (G1)',
+        path: ['hasPreviousPregnancyHistory']
+      });
+    }
+  }
+
+  // 3. Batas anak hidup terhadap jumlah pernah melahirkan
+  if (P !== undefined) {
+    if (P === 0 && Ah !== undefined && Ah > 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Jumlah anak yang masih hidup harus 0 karena belum pernah melahirkan',
+        path: ['livingChildrenCount']
+      });
+    } else if (Ah !== undefined && Ah > P) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Jumlah anak yang masih hidup (${Ah}) tidak boleh melebihi jumlah pernah melahirkan (${P})`,
+        path: ['livingChildrenCount']
+      });
+    }
+  }
+}
+
+export function refineMarriageDate(
+  data: {
+    marriageDate?: string | null;
+    motherBirthDate?: string | null;
+  },
+  ctx: z.RefinementCtx
+) {
+  if (!data.marriageDate || data.marriageDate.trim() === '') return;
+  const mDate = new Date(data.marriageDate);
+  if (isNaN(mDate.getTime())) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Format tanggal menikah tidak valid',
+      path: ['marriageDate']
+    });
+    return;
+  }
+
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+  if (mDate > today) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'Tanggal menikah tidak boleh di masa depan',
+      path: ['marriageDate']
+    });
+    return;
+  }
+
+  if (data.motherBirthDate && data.motherBirthDate.trim() !== '') {
+    const bDate = new Date(data.motherBirthDate);
+    if (!isNaN(bDate.getTime())) {
+      if (mDate <= bDate) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Tanggal menikah tidak boleh lebih awal dari tanggal lahir pasien',
+          path: ['marriageDate']
+        });
+        return;
+      }
+
+      const minMarriage = new Date(bDate);
+      minMarriage.setFullYear(minMarriage.getFullYear() + 12);
+      if (mDate < minMarriage) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Usia saat menikah minimal 12 tahun setelah kelahiran',
+          path: ['marriageDate']
+        });
+      }
+    }
+  }
+}
+
+export const maternalFormZodSchema = z
+  .object({
+    motherName: z.string().min(1, 'Nama lengkap ibu wajib diisi'),
+    motherNik: z
+      .string()
+      .regex(/^\d{16}$/, { message: 'NIK ibu harus berupa 16 digit angka' })
+      .optional()
+      .or(z.literal('')),
+    motherBirthDate: z.string().nullable().optional(),
+    marriageDate: z.string().nullable().optional(),
+    partnerNik: z
+      .string()
+      .regex(/^\d{16}$/, { message: 'NIK suami harus berupa 16 digit angka' })
+      .optional()
+      .or(z.literal('')),
+    phoneNumber: z
+      .string()
+      .regex(/^(\+62|62|0)[0-9]{8,15}$/, { message: 'Nomor telepon tidak valid' })
+      .optional()
+      .or(z.literal('')),
+    partnerPhone: z
+      .string()
+      .regex(/^(\+62|62|0)[0-9]{8,15}$/, {
+        message: 'Nomor HP suami tidak valid'
+      })
+      .optional()
+      .or(z.literal('')),
+    heightCm: z
+      .number()
+      .min(0, 'Tinggi badan minimal 0 cm')
+      .max(300, 'Tinggi badan maksimal 300 cm')
+      .nullable()
+      .optional(),
+    prePregnancyWeightKg: z
+      .number()
+      .min(0, 'Berat badan minimal 0 kg')
+      .max(500, 'Berat badan maksimal 500 kg')
+      .nullable()
+      .optional(),
+    upperArmCircumferenceCm: z
+      .number()
+      .min(0, 'Lingkar lengan atas minimal 0 cm')
+      .max(150, 'Lingkar lengan atas maksimal 150 cm')
+      .nullable()
+      .optional(),
+    initialBmi: z
+      .number()
+      .min(0, 'BMI minimal 0')
+      .max(150, 'BMI maksimal 150')
+      .nullable()
+      .optional(),
+    gestationalAgeWeeks: z
+      .number()
+      .min(0, 'Usia kehamilan minimal 0 minggu')
+      .max(60, 'Usia kehamilan maksimal 60 minggu')
+      .nullable()
+      .optional(),
+    gravidaCount: z
+      .number()
+      .int()
+      .min(1, 'Gravida minimal 1')
+      .max(50, 'Gravida maksimal 50')
+      .optional(),
+    parityCount: z
+      .number()
+      .int()
+      .min(0, 'Paritas minimal 0')
+      .max(50, 'Paritas maksimal 50')
+      .optional(),
+    abortionCount: z
+      .number()
+      .int()
+      .min(0, 'Abortus minimal 0')
+      .max(50, 'Abortus maksimal 50')
+      .optional(),
+    livingChildrenCount: z
+      .number()
+      .int()
+      .min(0, 'Jumlah anak hidup minimal 0')
+      .max(50, 'Jumlah anak hidup maksimal 50')
+      .optional(),
+    previousPregnancies: z.array(maternalPreviousPregnancyZodSchema).optional(),
+    contraceptiveHistories: z.array(maternalContraceptiveHistoryZodSchema).optional(),
+    conditionResponses: z.array(maternalConditionItemZodSchema).optional()
+  })
+  .superRefine(refineObstetricCounts)
+  .superRefine(refineMarriageDate);
 
 export interface MaternalValidationResult {
   isValid: boolean;

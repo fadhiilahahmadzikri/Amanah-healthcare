@@ -202,6 +202,7 @@ export function MedicalSchemaField({
           fieldApi.handleChange(nextValue);
           fieldApi.handleBlur();
         }}
+        onBlur={() => fieldApi.handleBlur()}
         variant='underline'
         label={
           <span>
@@ -330,9 +331,10 @@ export function MedicalSchemaField({
 
 export function getFieldValidators(
   field: MedicalFormField,
-  birthYear?: number | null
+  birthYear?: number | null,
+  allValues?: any
 ) {
-  const schema = getMedicalFieldValidationSchema(field, birthYear);
+  const schema = getMedicalFieldValidationSchema(field, birthYear, allValues);
 
   return {
     onChange: schema,

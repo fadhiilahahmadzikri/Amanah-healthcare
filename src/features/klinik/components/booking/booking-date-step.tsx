@@ -22,7 +22,7 @@ export function BookingDateStep({
   title = 'Kapan mau berkunjung ke klinik?',
   subtitle = 'Pilih tanggal periksa yang paling cocok buat jadwal kamu.',
   label = 'Tanggal kunjungan*',
-  placeholder = 'Pilih tanggal kunjungan...',
+  placeholder = 'DD/MM/YYYY',
   id = 'tanggalKunjunganTrigger',
   ariaLabel = 'Tanggal kunjungan',
   disablePastDates = true,

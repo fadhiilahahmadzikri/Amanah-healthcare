@@ -109,13 +109,13 @@ export function MaternityBookingStepper({
     initialValues?.husband?.birthDate || initialValues?.partnerBirthDate || ''
   );
   const [partnerJob, setPartnerJob] = React.useState(
-    initialValues?.husband?.job || initialValues?.partnerJob || 'Wiraswasta'
+    initialValues?.husband?.job || initialValues?.partnerJob || ''
   );
   const [partnerEducation, setPartnerEducation] = React.useState(
-    initialValues?.husband?.education || initialValues?.partnerEducation || 'SMA/SMK'
+    initialValues?.husband?.education || initialValues?.partnerEducation || ''
   );
   const [partnerBloodType, setPartnerBloodType] = React.useState(
-    initialValues?.husband?.bloodType || initialValues?.partnerBloodType || 'Tidak Tahu'
+    initialValues?.husband?.bloodType || initialValues?.partnerBloodType || ''
   );
   const [partnerPhone, setPartnerPhone] = React.useState(
     initialValues?.husband?.phoneNumber || ''

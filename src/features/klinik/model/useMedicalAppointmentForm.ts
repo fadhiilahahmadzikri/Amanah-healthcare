@@ -56,6 +56,8 @@ import {
   createContraceptionSection,
   createPreviousPregnancySection
 } from '../constants/pregnancy-sections/history-sections';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { appointmentDraftService } from '../services/appointment-draft.service';
 import { useMedicalFormHistory } from './useMedicalFormHistory';
 import { useMedicalFormCalculations } from './useMedicalFormCalculations';
 import { useMedicalAppointmentSubmit } from './useMedicalAppointmentSubmit';
@@ -105,6 +107,7 @@ export function useMedicalAppointmentForm({
   onCompleteIntake,
   onBackToService
 }: UseMedicalAppointmentFormOptions) {
+  const { user } = useAuthContext();
   const baseDefinition = React.useMemo(() => {
     const def = getMedicalFlowDefinition(flow);
     if (!def) {
@@ -154,8 +157,16 @@ export function useMedicalAppointmentForm({
         if (val !== undefined && val !== null && val !== '') target[fieldId] = String(val);
       });
     }
+    if (user?.id) {
+      const draft = appointmentDraftService.getBookingDraft(user.id);
+      if (draft?.medicalValues) {
+        Object.entries(draft.medicalValues).forEach(([fieldId, val]) => {
+          if (val !== undefined && val !== null && val !== '') target[fieldId] = String(val);
+        });
+      }
+    }
     return base;
-  }, [baseDefinition, effectiveRequirement, flow, selectedPatient, patients]);
+  }, [baseDefinition, effectiveRequirement, flow, selectedPatient, patients, user?.id]);
 
   const doctors = React.useMemo<Doctor[]>(
     () => getDoctorsByService(definition.serviceName),
@@ -163,7 +174,13 @@ export function useMedicalAppointmentForm({
   );
   const firstDoctorName = doctors[0]?.name || '';
 
-  const [currentStep, setCurrentStep] = React.useState(1);
+  const initialDraft = React.useMemo(() => {
+    return user?.id ? appointmentDraftService.getBookingDraft(user.id) : null;
+  }, [user?.id]);
+
+  const [currentStep, setCurrentStep] = React.useState(() => {
+    return initialDraft?.medicalStep && initialDraft.medicalStep > 1 ? initialDraft.medicalStep : 1;
+  });
   const [schedule, setSchedule] = React.useState<ScheduleValues>({
     doctor: firstDoctorName,
     dateStr: '',
@@ -177,12 +194,17 @@ export function useMedicalAppointmentForm({
     }
   });
 
+  const isRestoredRef = React.useRef(false);
+
   React.useEffect(() => {
-    if (!isOpen || !selectedPatient) return;
-    const prefill = buildRegistrationPrefill(flow, selectedPatient, patients);
-    Object.entries(prefill).forEach(([fieldId, val]) => {
-      if (val) form.setFieldValue(fieldId as any, val);
-    });
+    if (!isOpen) return;
+    const draft = user?.id ? appointmentDraftService.getBookingDraft(user.id) : null;
+    if (selectedPatient) {
+      const prefill = buildRegistrationPrefill(flow, selectedPatient, patients);
+      Object.entries(prefill).forEach(([fieldId, val]) => {
+        if (val) form.setFieldValue(fieldId as any, val);
+      });
+    }
     if (effectiveRequirement?.reusableIdentity) {
       Object.entries(effectiveRequirement.reusableIdentity).forEach(([fieldId, val]) => {
         if (val !== undefined && val !== null && val !== '') form.setFieldValue(fieldId as any, String(val));
@@ -193,7 +215,15 @@ export function useMedicalAppointmentForm({
         if (val !== undefined && val !== null && val !== '') form.setFieldValue(fieldId as any, String(val));
       });
     }
-  }, [isOpen, selectedPatient, patients, effectiveRequirement, flow, form]);
+    if (draft?.medicalValues && Object.keys(draft.medicalValues).length > 0) {
+      Object.entries(draft.medicalValues).forEach(([fieldId, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          form.setFieldValue(fieldId as any, String(val));
+        }
+      });
+    }
+    isRestoredRef.current = true;
+  }, [isOpen, selectedPatient, patients, effectiveRequirement, flow, form, user?.id]);
 
   const values = useStore(form.store, (state) => state.values) as MedicalAppointmentValues;
 
@@ -207,7 +237,8 @@ export function useMedicalAppointmentForm({
     values,
     setFieldValue: form.setFieldValue,
     flow,
-    isOpen
+    isOpen,
+    initialHistoryCounts: initialDraft?.historyCounts
   });
 
   const activeMedicalSections = React.useMemo(() => {
@@ -325,9 +356,21 @@ export function useMedicalAppointmentForm({
     }));
   }, [firstDoctorName]);
 
+  const hasRestoredStepRef = React.useRef(false);
+
   React.useEffect(() => {
-    setCurrentStep((step) => Math.min(step, totalSteps));
-  }, [totalSteps]);
+    if (
+      !hasRestoredStepRef.current &&
+      initialDraft?.medicalStep &&
+      initialDraft.medicalStep > 1 &&
+      totalSteps >= initialDraft.medicalStep
+    ) {
+      setCurrentStep(initialDraft.medicalStep);
+      hasRestoredStepRef.current = true;
+    } else if (totalSteps > 0 && hasRestoredStepRef.current) {
+      setCurrentStep((step) => Math.min(step, totalSteps));
+    }
+  }, [totalSteps, initialDraft?.medicalStep]);
 
   const prevHistoriesRef = React.useRef({
     contraception: values.hasContraceptionHistory,
@@ -447,6 +490,21 @@ export function useMedicalAppointmentForm({
       history.setPendingNavigateCatalogKey(null);
     }
   }, [history, activeSteps]);
+
+  // Real-time draft persistence for specialized medical flow
+  React.useEffect(() => {
+    if (!isRestoredRef.current) {
+      return;
+    }
+    if (isOpen && user?.id && !submit.isQueueSuccessOpen) {
+      appointmentDraftService.saveBookingDraft(user.id, {
+        activeMedicalFlow: flow,
+        medicalValues: values,
+        medicalStep: currentStep,
+        historyCounts: history.historyCounts
+      });
+    }
+  }, [isOpen, user?.id, submit.isQueueSuccessOpen, flow, values, currentStep, history.historyCounts]);
 
   function handleBack() {
     if (history.catalogAction) {
@@ -585,6 +643,9 @@ export function useMedicalAppointmentForm({
       removeHistoryRecord: history.handleRemoveHistoryRecord,
       cancelCatalogAction: history.handleCancelCatalogAction,
       closeQueueSuccess: () => {
+        if (user?.id) {
+          appointmentDraftService.clearBookingDraft(user.id);
+        }
         submit.setIsQueueSuccessOpen(false);
         onClose();
       },

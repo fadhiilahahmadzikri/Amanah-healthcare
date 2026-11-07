@@ -16,6 +16,7 @@ import {
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import { appointmentDraftService } from '../services/appointment-draft.service';
 import {
   getBookingStepMeta,
   REGULAR_BOOKING_STEPS,
@@ -37,7 +38,15 @@ export function useBookingRegularPatientForm({
   const { user } = useAuthContext();
   const references = usePatientFormReferences();
 
-  const [currentStep, setCurrentStep] = React.useState(1);
+  const initialDraft = React.useMemo(() => {
+    return user?.id ? appointmentDraftService.getBookingDraft(user.id) : null;
+  }, [user?.id]);
+
+  const [currentStep, setCurrentStep] = React.useState(() => {
+    return initialDraft?.newPatientStep && initialDraft.newPatientStep > 1
+      ? initialDraft.newPatientStep
+      : 1;
+  });
   const [isEditingFromReview, setIsEditingFromReview] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
@@ -55,6 +64,10 @@ export function useBookingRegularPatientForm({
   }, [allowedRelationships, references.relationships]);
 
   const initialRelationshipValue: PatientRelationshipType = React.useMemo(() => {
+    const draftRel = initialDraft?.newPatientData?.relationship;
+    if (draftRel && relationshipOptions.some((r) => r.value === draftRel)) {
+      return draftRel as PatientRelationshipType;
+    }
     if (initialRelationship && relationshipOptions.some((r) => r.value === initialRelationship)) {
       return initialRelationship as PatientRelationshipType;
     }
@@ -63,8 +76,8 @@ export function useBookingRegularPatientForm({
       if (systemOpt) return systemOpt.value as PatientRelationshipType;
       return relationshipOptions[0].value as PatientRelationshipType;
     }
-    return '' as PatientRelationshipType;
-  }, [initialRelationship, relationshipOptions]);
+    return (draftRel || '') as PatientRelationshipType;
+  }, [initialDraft?.newPatientData?.relationship, initialRelationship, relationshipOptions]);
 
   const [relationship, setRelationship] =
     React.useState<PatientRelationshipType>(initialRelationshipValue);
@@ -86,8 +99,13 @@ export function useBookingRegularPatientForm({
     }
   }, [relationshipOptions, relationship]);
 
-  const [fullName, setFullName] = React.useState(() => (isSelf && user?.name ? user.name : ''));
-  const [nik, setNik] = React.useState('');
+  const [fullName, setFullName] = React.useState(() => {
+    if (initialDraft?.newPatientData?.fullName !== undefined) {
+      return initialDraft.newPatientData.fullName;
+    }
+    return isSelf && user?.name ? user.name : '';
+  });
+  const [nik, setNik] = React.useState(() => initialDraft?.newPatientData?.nik ?? '');
   const [nikStatus, setNikStatus] = React.useState<'idle' | 'checking' | 'available' | 'taken'>('idle');
   const [nikError, setNikError] = React.useState<string | null>(null);
 
@@ -131,13 +149,34 @@ export function useBookingRegularPatientForm({
     };
   }, [nik]);
 
-  const [phone, setPhone] = React.useState(() => (isSelf && user?.phone ? user.phone : ''));
-  const [email, setEmail] = React.useState(() => user?.email || '');
-  const [emergencyContactName, setEmergencyContactName] = React.useState('');
-  const [emergencyContactPhone, setEmergencyContactPhone] = React.useState('');
-  const [emergencyContactRelationship, setEmergencyContactRelationship] = React.useState('');
-  const [emergencyContactPatientId, setEmergencyContactPatientId] = React.useState<string>('');
-  const [isEnteringManualEmergency, setIsEnteringManualEmergency] = React.useState(false);
+  const [phone, setPhone] = React.useState(() => {
+    if (initialDraft?.newPatientData?.phone !== undefined) {
+      return initialDraft.newPatientData.phone;
+    }
+    return isSelf && user?.phone ? user.phone : '';
+  });
+  const [email, setEmail] = React.useState(() => {
+    if (initialDraft?.newPatientData?.email !== undefined) {
+      return initialDraft.newPatientData.email;
+    }
+    return user?.email || '';
+  });
+  const [emergencyContactName, setEmergencyContactName] = React.useState(
+    () => initialDraft?.newPatientData?.emergencyContactName ?? ''
+  );
+  const [emergencyContactPhone, setEmergencyContactPhone] = React.useState(
+    () => initialDraft?.newPatientData?.emergencyContactPhone ?? ''
+  );
+  const [emergencyContactRelationship, setEmergencyContactRelationship] = React.useState(
+    () => initialDraft?.newPatientData?.emergencyContactRelationship ?? ''
+  );
+  const [emergencyContactPatientId, setEmergencyContactPatientId] = React.useState<string>(
+    () => initialDraft?.newPatientData?.emergencyContactPatientId ?? ''
+  );
+  const [isEnteringManualEmergency, setIsEnteringManualEmergency] = React.useState(() => {
+    const d = initialDraft?.newPatientData;
+    return Boolean(d?.emergencyContactName || d?.emergencyContactPhone);
+  });
 
   const handleSkipEmergencyContact = React.useCallback(() => {
     setEmergencyContactName('');
@@ -156,24 +195,54 @@ export function useBookingRegularPatientForm({
   const handleChooseManualEmergencyContact = React.useCallback(() => {
     setIsEnteringManualEmergency(true);
   }, []);
-  const [motherName, setMotherName] = React.useState('');
-  const [placeOfBirth, setPlaceOfBirth] = React.useState('');
-  const [dateOfBirth, setDateOfBirth] = React.useState('');
-  const [gender, setGender] = React.useState<PatientGender | ''>('');
-  const [bloodType, setBloodType] = React.useState<PatientBloodType | ''>('');
-  const [knowsBloodType, setKnowsBloodType] = React.useState<boolean | null>(null);
-  const [region, setRegion] = React.useState<PatientRegionValues>({
-    provinceName: '',
-    provinceCode: '',
-    regencyName: '',
-    regencyCode: '',
-    districtName: '',
-    districtCode: '',
-    villageName: '',
-    villageCode: '',
-    line1: ''
+  const [motherName, setMotherName] = React.useState(
+    () => initialDraft?.newPatientData?.motherName ?? ''
+  );
+  const [placeOfBirth, setPlaceOfBirth] = React.useState(
+    () => initialDraft?.newPatientData?.placeOfBirth ?? ''
+  );
+  const [dateOfBirth, setDateOfBirth] = React.useState(
+    () => initialDraft?.newPatientData?.dateOfBirth ?? ''
+  );
+  const [gender, setGender] = React.useState<PatientGender | ''>(
+    () => (initialDraft?.newPatientData?.gender as PatientGender) ?? ''
+  );
+  const [bloodType, setBloodType] = React.useState<PatientBloodType | ''>(
+    () => (initialDraft?.newPatientData?.bloodType as PatientBloodType) ?? ''
+  );
+  const [knowsBloodType, setKnowsBloodType] = React.useState<boolean | null>(
+    () => initialDraft?.newPatientData?.knowsBloodType ?? null
+  );
+  const [region, setRegion] = React.useState<PatientRegionValues>(() => {
+    if (initialDraft?.newPatientData?.region) {
+      const reg = initialDraft.newPatientData.region;
+      return {
+        provinceName: reg.provinceName || '',
+        provinceCode: reg.provinceCode || '',
+        regencyName: reg.regencyName || '',
+        regencyCode: reg.regencyCode || '',
+        districtName: reg.districtName || '',
+        districtCode: reg.districtCode || '',
+        villageName: reg.villageName || '',
+        villageCode: reg.villageCode || '',
+        line1: reg.line1 || ''
+      };
+    }
+    return {
+      provinceName: '',
+      provinceCode: '',
+      regencyName: '',
+      regencyCode: '',
+      districtName: '',
+      districtCode: '',
+      villageName: '',
+      villageCode: '',
+      line1: ''
+    };
   });
-  const [occupationCode, setOccupationCode] = React.useState('');
+  const [occupationCode, setOccupationCode] = React.useState(
+    () => initialDraft?.newPatientData?.occupationCode ?? ''
+  );
 
   // Auto-fill user identity when switching to Self
   React.useEffect(() => {
@@ -183,6 +252,91 @@ export function useBookingRegularPatientForm({
       if (user?.phone && !phone) setPhone(user.phone);
     }
   }, [isSelf, user, email, fullName, phone]);
+
+  const isRestoredRef = React.useRef(false);
+
+  React.useEffect(() => {
+    if (!user?.id) return;
+    const draft = appointmentDraftService.getBookingDraft(user.id);
+    if (!isRestoredRef.current && draft?.newPatientData) {
+      const d = draft.newPatientData;
+      if (d.relationship) setRelationship(d.relationship as PatientRelationshipType);
+      if (d.fullName !== undefined) setFullName(d.fullName);
+      if (d.nik !== undefined) setNik(d.nik);
+      if (d.motherName !== undefined) setMotherName(d.motherName);
+      if (d.placeOfBirth !== undefined) setPlaceOfBirth(d.placeOfBirth);
+      if (d.dateOfBirth !== undefined) setDateOfBirth(d.dateOfBirth);
+      if (d.gender !== undefined) setGender(d.gender as PatientGender);
+      if (d.bloodType !== undefined) setBloodType(d.bloodType as PatientBloodType);
+      if (d.knowsBloodType !== undefined) setKnowsBloodType(d.knowsBloodType);
+      if (d.phone !== undefined) setPhone(d.phone);
+      if (d.email !== undefined) setEmail(d.email);
+      if (d.emergencyContactName !== undefined) setEmergencyContactName(d.emergencyContactName);
+      if (d.emergencyContactPhone !== undefined) setEmergencyContactPhone(d.emergencyContactPhone);
+      if (d.emergencyContactRelationship !== undefined) setEmergencyContactRelationship(d.emergencyContactRelationship);
+      if (d.emergencyContactPatientId !== undefined) setEmergencyContactPatientId(d.emergencyContactPatientId);
+      if (d.region) {
+        setRegion((prev) => ({
+          ...prev,
+          ...d.region
+        }));
+      }
+      if (d.occupationCode !== undefined) setOccupationCode(d.occupationCode);
+      if (draft.newPatientStep && draft.newPatientStep > 1) {
+        setCurrentStep(draft.newPatientStep);
+      }
+    }
+    isRestoredRef.current = true;
+  }, [user?.id]);
+
+  // Real-time auto-save for new patient registration
+  React.useEffect(() => {
+    if (!isRestoredRef.current || !user?.id) return;
+
+    appointmentDraftService.saveBookingDraft(user.id, {
+      step: 'create_profile',
+      newPatientStep: currentStep,
+      newPatientData: {
+        relationship,
+        fullName,
+        nik,
+        motherName,
+        placeOfBirth,
+        dateOfBirth,
+        gender,
+        bloodType,
+        knowsBloodType,
+        phone,
+        email,
+        emergencyContactName,
+        emergencyContactPhone,
+        emergencyContactRelationship,
+        emergencyContactPatientId,
+        region,
+        occupationCode
+      }
+    });
+  }, [
+    user?.id,
+    currentStep,
+    relationship,
+    fullName,
+    nik,
+    motherName,
+    placeOfBirth,
+    dateOfBirth,
+    gender,
+    bloodType,
+    knowsBloodType,
+    phone,
+    email,
+    emergencyContactName,
+    emergencyContactPhone,
+    emergencyContactRelationship,
+    emergencyContactPatientId,
+    region,
+    occupationCode
+  ]);
 
   // DevTool AutoFill listener for standard patient registration
   React.useEffect(() => {
@@ -376,6 +530,13 @@ export function useBookingRegularPatientForm({
     }
 
     if (currentStep <= 1) {
+      if (user?.id) {
+        appointmentDraftService.saveBookingDraft(user.id, {
+          step: existingPatients.length > 0 ? 'select_profile' : 'service',
+          newPatientStep: 1,
+          newPatientData: null
+        });
+      }
       onCancel();
       return;
     }
@@ -436,6 +597,12 @@ export function useBookingRegularPatientForm({
     try {
       setIsSubmitting(true);
       const newPatient = await patientAffiliationService.createAffiliation(dto);
+      if (user?.id) {
+        appointmentDraftService.saveBookingDraft(user.id, {
+          newPatientStep: 1,
+          newPatientData: null
+        });
+      }
       onSuccess(newPatient);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Gagal menyimpan profil pasien';

@@ -49,7 +49,8 @@ export function getMedicalFieldFormat(
 
 export function getMedicalFieldValidationSchema(
   field: MedicalFormField,
-  birthYear?: number | null
+  birthYear?: number | null,
+  allValues?: MedicalAppointmentValues
 ) {
   return z.string().superRefine((value, context) => {
     const trimmedValue = value.trim();
@@ -86,12 +87,83 @@ export function getMedicalFieldValidationSchema(
       }
     }
 
-    if (format === 'count' && !/^\d+$/.test(trimmedValue)) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Isi dengan angka'
-      });
-      return;
+    if (format === 'count') {
+      if (!/^\d+$/.test(trimmedValue)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Isi dengan angka'
+        });
+        return;
+      }
+
+      if (allValues) {
+        const countVal = parseInt(trimmedValue, 10);
+        const gVal = allValues['gravidaCount']
+          ? parseInt(allValues['gravidaCount'], 10)
+          : undefined;
+        const pVal = allValues['parityCount']
+          ? parseInt(allValues['parityCount'], 10)
+          : undefined;
+
+        if (field.id === 'gravidaCount') {
+          if (countVal < 1) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Total kehamilan minimal 1'
+            });
+            return;
+          }
+        }
+
+        if (gVal !== undefined && !isNaN(gVal) && gVal >= 1) {
+          const prior = gVal - 1;
+
+          if (field.id === 'parityCount') {
+            if (countVal > prior) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Tidak boleh melebihi kehamilan sebelumnya (maks. ${prior})`
+              });
+              return;
+            }
+          }
+
+          if (field.id === 'abortionCount') {
+            if (countVal > prior) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Tidak boleh melebihi kehamilan sebelumnya (maks. ${prior})`
+              });
+              return;
+            }
+            if (pVal !== undefined && !isNaN(pVal) && countVal + pVal > prior) {
+              context.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: `Total persalinan dan keguguran melebihi kehamilan sebelumnya (maks. ${prior})`
+              });
+              return;
+            }
+          }
+        }
+
+        if (field.id === 'livingChildrenCount') {
+          const effectiveP = pVal !== undefined && !isNaN(pVal) ? pVal : undefined;
+          if (effectiveP === 0 && countVal > 0) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Jumlah anak hidup harus 0 karena belum pernah melahirkan'
+            });
+            return;
+          }
+          if (effectiveP !== undefined && countVal > effectiveP) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Tidak boleh melebihi jumlah pernah melahirkan (maks. ${effectiveP})`
+            });
+            return;
+          }
+        }
+      }
     }
 
     if (format === 'year') {
@@ -131,12 +203,83 @@ export function getMedicalFieldValidationSchema(
       }
     }
 
-    if (field.type === 'DATE' && !isValidIsoDate(trimmedValue)) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Pilih tanggal yang valid'
-      });
-      return;
+    if (field.type === 'DATE') {
+      if (!isValidIsoDate(trimmedValue)) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Pilih tanggal yang valid'
+        });
+        return;
+      }
+
+      const dateObj = new Date(trimmedValue);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+
+      if (field.id === 'marriageDate') {
+        if (dateObj > today) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Tanggal menikah tidak boleh di masa depan'
+          });
+          return;
+        }
+
+        const motherBirth = allValues?.['motherBirthDate'] || allValues?.['birthDate'];
+        if (motherBirth && isValidIsoDate(motherBirth)) {
+          const birthObj = new Date(motherBirth);
+          if (dateObj <= birthObj) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Tanggal menikah tidak boleh lebih awal dari tanggal lahir pasien'
+            });
+            return;
+          }
+
+          const minMarriageDate = new Date(birthObj);
+          minMarriageDate.setFullYear(minMarriageDate.getFullYear() + 12);
+          if (dateObj < minMarriageDate) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Usia saat menikah minimal 12 tahun'
+            });
+            return;
+          }
+        } else if (birthYear && !Number.isNaN(birthYear)) {
+          if (dateObj.getFullYear() < birthYear) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Tahun menikah tidak boleh lebih awal dari tahun kelahiran pasien (${birthYear})`
+            });
+            return;
+          }
+        }
+      }
+
+      if (
+        field.id === 'motherBirthDate' ||
+        field.id === 'partnerBirthDate' ||
+        field.id === 'childBirthDate' ||
+        field.id === 'birthDate'
+      ) {
+        if (dateObj > today) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Tanggal lahir tidak boleh di masa depan'
+          });
+          return;
+        }
+      }
+
+      if (field.id === 'hphtDate' || field.id === 'hpht') {
+        if (dateObj > today) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Tanggal HPHT tidak boleh di masa depan'
+          });
+          return;
+        }
+      }
     }
 
     if (
@@ -182,7 +325,8 @@ export function isMedicalSectionValid(
 
     const isFieldValid = getMedicalFieldValidationSchema(
       field,
-      birthYear
+      birthYear,
+      values
     ).safeParse(values[field.id] || '').success;
     if (!isFieldValid) {
       return false;

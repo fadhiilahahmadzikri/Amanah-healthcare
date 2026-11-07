@@ -8,7 +8,7 @@ export type PatientBirthdatePickerProps = CustomDatePickerProps;
 export function PatientBirthdatePicker({
   id = 'tanggalLahirTrigger',
   label = 'tanggal lahir*',
-  placeholder = 'pilih tanggal lahir...',
+  placeholder = 'DD/MM/YYYY',
   ariaLabel = 'Tanggal lahir',
   minYear = 1930,
   maxYear,

@@ -374,7 +374,7 @@ export function BookingRegularPatientForm({
               <PatientBirthdatePicker
                 value={dateOfBirth}
                 label='Tanggal lahir (sesuai KTP)*'
-                placeholder='Pilih tanggal lahir sesuai KTP / KK...'
+                placeholder='DD/MM/YYYY'
                 onChange={(iso) => setDateOfBirth(iso)}
               />
             </div>

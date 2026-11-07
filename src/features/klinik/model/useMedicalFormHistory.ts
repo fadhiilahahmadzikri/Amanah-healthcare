@@ -23,6 +23,7 @@ interface UseMedicalFormHistoryParams {
   setFieldValue: (fieldId: string, value: string) => void;
   flow: string;
   isOpen: boolean;
+  initialHistoryCounts?: RepeatableHistoryCounts;
 }
 
 export function useMedicalFormHistory({
@@ -30,10 +31,12 @@ export function useMedicalFormHistory({
   values,
   setFieldValue,
   flow,
-  isOpen
+  isOpen,
+  initialHistoryCounts
 }: UseMedicalFormHistoryParams) {
-  const [historyCounts, setHistoryCounts] =
-    React.useState<RepeatableHistoryCounts>(defaultHistoryCounts);
+  const [historyCounts, setHistoryCounts] = React.useState<RepeatableHistoryCounts>(
+    () => initialHistoryCounts || defaultHistoryCounts
+  );
   const [historyPrompt, setHistoryPrompt] = React.useState<HistoryPromptState | null>(null);
   const [catalogAction, setCatalogAction] = React.useState<CatalogActionState | null>(null);
   const [pendingNavigateSectionId, setPendingNavigateSectionId] = React.useState<string | null>(
@@ -44,13 +47,13 @@ export function useMedicalFormHistory({
 
   React.useEffect(() => {
     if (isOpen) {
-      setHistoryCounts(defaultHistoryCounts);
+      setHistoryCounts(initialHistoryCounts || defaultHistoryCounts);
       setHistoryPrompt(null);
       setCatalogAction(null);
       setPendingNavigateSectionId(null);
       setPendingNavigateCatalogKey(null);
     }
-  }, [flow, isOpen]);
+  }, [flow, isOpen, initialHistoryCounts]);
 
   const clearHistoryRecordRange = React.useCallback(
     (group: RepeatableHistoryGroup, startRecord: number, endRecord: number) => {

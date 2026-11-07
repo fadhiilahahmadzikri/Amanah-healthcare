@@ -11,6 +11,7 @@ import {
   buildInitialImmunizationData,
   buildInitialRegularData
 } from './inspector-initial-state';
+import { appointmentDraftService } from '../../../services/appointment-draft.service';
 
 interface UseInspectorEditStateParams {
   parsedData: UnifiedInspectorData;
@@ -21,7 +22,11 @@ export function useInspectorEditState({
   parsedData,
   appointment
 }: UseInspectorEditStateParams) {
-  const [isEditing, setIsEditing] = React.useState(false);
+  const draft = React.useMemo(() => {
+    return appointment?.id ? appointmentDraftService.getInspectorDraft(appointment.id) : null;
+  }, [appointment?.id]);
+
+  const [isEditing, setIsEditing] = React.useState(() => Boolean(draft));
   const [validationErrors, setValidationErrors] = React.useState<Record<string, string>>({});
 
   const handleClearError = React.useCallback((field: string) => {
@@ -34,13 +39,20 @@ export function useInspectorEditState({
   }, []);
 
   const [formData, setFormData] = React.useState<EditableMaternalData>(() =>
-    buildInitialMaternalData(parsedData)
+    draft?.formData && Object.keys(draft.formData).length > 0
+      ? (draft.formData as EditableMaternalData)
+      : buildInitialMaternalData(parsedData)
   );
   const [immunizationFormData, setImmunizationFormData] = React.useState<EditableImmunizationData>(
-    () => buildInitialImmunizationData(parsedData)
+    () =>
+      draft?.immunizationFormData && Object.keys(draft.immunizationFormData).length > 0
+        ? (draft.immunizationFormData as EditableImmunizationData)
+        : buildInitialImmunizationData(parsedData)
   );
   const [regularFormData, setRegularFormData] = React.useState<EditableRegularData>(() =>
-    buildInitialRegularData(parsedData, appointment)
+    draft?.regularFormData && Object.keys(draft.regularFormData).length > 0
+      ? (draft.regularFormData as EditableRegularData)
+      : buildInitialRegularData(parsedData, appointment)
   );
 
   React.useEffect(() => {
@@ -50,6 +62,16 @@ export function useInspectorEditState({
       setRegularFormData(buildInitialRegularData(parsedData, appointment));
     }
   }, [parsedData, appointment, isEditing]);
+
+  React.useEffect(() => {
+    if (isEditing && appointment?.id) {
+      appointmentDraftService.saveInspectorDraft(appointment.id, {
+        formData,
+        immunizationFormData,
+        regularFormData
+      });
+    }
+  }, [isEditing, appointment?.id, formData, immunizationFormData, regularFormData]);
 
   const handleFieldChange = React.useCallback(
     (field: keyof EditableMaternalData, value: any) => {
@@ -165,6 +187,9 @@ export function useInspectorEditState({
   );
 
   const handleCancelEdit = React.useCallback(() => {
+    if (appointment?.id) {
+      appointmentDraftService.clearInspectorDraft(appointment.id);
+    }
     setFormData(buildInitialMaternalData(parsedData));
     setImmunizationFormData(buildInitialImmunizationData(parsedData));
     setRegularFormData(buildInitialRegularData(parsedData, appointment));

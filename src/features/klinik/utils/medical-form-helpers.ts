@@ -38,52 +38,78 @@ export function buildRegistrationPrefill(
   const birthDate = patient.birthDate || '';
   const bloodType = patient.bloodType || '';
   const phone = patient.phone || patient.phoneNumber || '';
-  const address = patient.address || patient.line1 || '';
   const nik = patient.nik || '';
   const occupation = patient.occupationName || '';
+  const domicileAddress =
+    patient.domicileAddress || patient.address || patient.line1 || '';
+  const identityCardAddress = patient.identityCardAddress || '';
+
   const result: Record<string, string> = {
     fullName: patient.fullName,
     nik,
     birthDate,
     bloodType,
     phone,
-    address,
-    motherName: patient.fullName,
-    motherNik: nik,
-    motherBirthDate: birthDate,
-    motherJob: occupation,
     phoneNumber: phone,
-    domicileAddress: address,
-    identityCardAddress: address,
-    motherBloodType: bloodType,
-    childName: patient.fullName,
-    childNik: nik,
-    childBirthDate: birthDate,
-    childSex: patient.gender || '',
-    parentPhone: phone,
-    childAddress: address
+    domicileAddress,
+    identityCardAddress,
   };
 
-  if (patient.motherName) {
-    result.motherName = patient.motherName;
-  }
+  if (flow === 'pregnancy') {
+    result.motherName = patient.fullName;
+    result.motherNik = nik;
+    result.motherBirthDate = birthDate;
+    result.motherJob = occupation;
+    result.motherBloodType = bloodType;
 
-  if (affiliations && affiliations.length > 0) {
-    const spouse = affiliations.find(
-      (a) => a.relationship === 'spouse' || a.relationship === 'pasangan'
-    );
-    if (spouse) {
-      result.partnerName = spouse.fullName;
-      result.partnerNik = spouse.nik;
-      if (spouse.birthDate) result.partnerBirthDate = spouse.birthDate;
-      if (spouse.bloodType) result.partnerBloodType = spouse.bloodType;
-      if (spouse.occupationName) result.partnerJob = spouse.occupationName;
+    // Resolve husband/partner honestly: NEVER match patient herself
+    if (affiliations && affiliations.length > 0) {
+      // Find candidate spouse: must be different ID from patient
+      const spouse = affiliations.find(
+        (a) =>
+          a.id !== patient.id &&
+          (a.relationship === 'spouse' ||
+            a.relationship === 'pasangan' ||
+            (patient.relationship === 'pasangan' &&
+              (a.isSelf || a.relationship === 'self' || a.relationship === 'diri_sendiri') &&
+              a.gender === 'male'))
+      );
+
+      if (spouse) {
+        if (spouse.fullName) result.partnerName = spouse.fullName;
+        if (spouse.nik) result.partnerNik = spouse.nik;
+        if (spouse.birthDate) result.partnerBirthDate = spouse.birthDate;
+        if (spouse.bloodType) result.partnerBloodType = spouse.bloodType;
+        if (spouse.occupationName) result.partnerJob = spouse.occupationName;
+        if (spouse.phoneNumber || spouse.phone) {
+          result.partnerPhone = spouse.phoneNumber || spouse.phone || '';
+        }
+      }
+    }
+  } else if (flow === 'immunization') {
+    result.childName = patient.fullName;
+    result.childNik = nik;
+    result.childBirthDate = birthDate;
+    result.childSex = patient.gender || '';
+    result.parentPhone = phone;
+    result.childAddress = domicileAddress;
+
+    // Mother name in immunization comes from patient record motherName or female parent affiliation
+    if (patient.motherName) {
+      result.motherName = patient.motherName;
     }
 
-    if (flow === 'immunization') {
+    if (affiliations && affiliations.length > 0) {
       const parent = affiliations.find(
-        (a) => a.relationship === 'parent' || a.relationship === 'orang_tua' || a.isSelf
+        (a) =>
+          a.id !== patient.id &&
+          (a.relationship === 'parent' ||
+            a.relationship === 'orang_tua' ||
+            a.isSelf ||
+            a.relationship === 'self' ||
+            a.relationship === 'diri_sendiri')
       );
+
       if (parent) {
         if (parent.gender === 'female' && !result.motherName) {
           result.motherName = parent.fullName;
@@ -92,6 +118,8 @@ export function buildRegistrationPrefill(
         }
       }
     }
+  } else {
+    result.address = domicileAddress;
   }
 
   return pruneEmptyValues(result);

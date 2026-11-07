@@ -20,6 +20,8 @@ export interface PatientAffiliationProfile {
   gender: Gender;
   bloodType?: PatientBloodType | null;
   address?: string | null;
+  domicileAddress?: string | null;
+  identityCardAddress?: string | null;
   line1?: string | null;
   provinceName?: string | null;
   provinceCode?: string | null;

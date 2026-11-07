@@ -25,11 +25,16 @@ import { ProposalInboxModal } from './proposal-inbox-modal';
 import { ReservationModal, type ReservationContext } from './reservation/reservation-modal';
 import { type MyPendingProposal, useMyPendingProposals } from '../hooks/use-my-pending-proposals';
 import { AUDIENCE } from '@/core/auth/permissions.constants';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { appointmentDraftService } from '../services/appointment-draft.service';
+import { useEffect } from 'react';
 
 type AppointmentModalSubmit = ComponentProps<typeof AppointmentModal>['onSubmit'];
 
 export function AppointmentsView() {
+  const { user } = useAuthContext();
   const appointmentsView = useAppointmentsView();
+  const [hasDraft, setHasDraft] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isProposalInboxOpen, setIsProposalInboxOpen] = useState(false);
   const [rescheduleModalContext, setRescheduleModalContext] = useState<ReservationContext | null>(
@@ -37,6 +42,22 @@ export function AppointmentsView() {
   );
   const { proposals = [] } = useMyPendingProposals();
   const { serviceOptions = [] } = useClinicFilterOptions();
+
+  useEffect(() => {
+    if (user?.id) {
+      setHasDraft(appointmentDraftService.hasBookingDraft(user.id));
+    } else {
+      setHasDraft(false);
+    }
+  }, [user?.id, appointmentsView.isFormModalOpen]);
+
+  const handleDiscardDraft = () => {
+    if (user?.id) {
+      appointmentDraftService.clearBookingDraft(user.id);
+      setHasDraft(false);
+      toast.info('Draft pengisian janji temu telah dibuang');
+    }
+  };
 
   const handleDeclineToReschedule = (proposal: MyPendingProposal) => {
     setRescheduleModalContext({
@@ -146,16 +167,44 @@ export function AppointmentsView() {
                 <Icons.qrCode className='size-4' />
                 {!isCompact && <span>Check-In Pasien</span>}
               </Button>
-              <Button
-                size={isCompact ? 'icon' : 'sm'}
-                onClick={appointmentsView.actions.openCreateModal}
-                className={cn(isCompact ? 'size-8 rounded-md shadow-2xs' : 'text-xs md:text-sm')}
-                title='Tambah Janji Temu'
-                aria-label='Tambah Janji Temu'
-              >
-                <Icons.add className={cn(isCompact ? 'size-4' : 'mr-2 size-4')} />
-                {!isCompact && <span>Tambah Janji Temu</span>}
-              </Button>
+              {hasDraft ? (
+                <div className='flex items-center gap-1 shrink-0'>
+                  <Button
+                    size={isCompact ? 'icon' : 'sm'}
+                    onClick={appointmentsView.actions.openCreateModal}
+                    className={cn(
+                      isCompact ? 'size-8 rounded-md shadow-2xs' : 'text-xs md:text-sm gap-2',
+                      'bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-700 border-amber-600'
+                    )}
+                    title='Lanjutkan Pengisian Janji Temu'
+                    aria-label='Lanjutkan Pengisian Janji Temu'
+                  >
+                    <Icons.edit className={cn(isCompact ? 'size-4' : 'size-4')} />
+                    {!isCompact && <span>Lanjutkan Pengisian</span>}
+                  </Button>
+                  <Button
+                    size='icon'
+                    variant='ghost'
+                    onClick={handleDiscardDraft}
+                    className='size-8 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                    title='Buang Draft'
+                    aria-label='Buang Draft'
+                  >
+                    <Icons.trash className='size-3.5' />
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  size={isCompact ? 'icon' : 'sm'}
+                  onClick={appointmentsView.actions.openCreateModal}
+                  className={cn(isCompact ? 'size-8 rounded-md shadow-2xs' : 'text-xs md:text-sm')}
+                  title='Tambah Janji Temu'
+                  aria-label='Tambah Janji Temu'
+                >
+                  <Icons.add className={cn(isCompact ? 'size-4' : 'mr-2 size-4')} />
+                  {!isCompact && <span>Tambah Janji Temu</span>}
+                </Button>
+              )}
             </div>
           }
         />
@@ -236,14 +285,36 @@ export function AppointmentsView() {
                       <Icons.qrCode className='h-4 w-4' />
                       <span>Check-In Pasien</span>
                     </Button>
-                    <Button
-                      onClick={appointmentsView.actions.openCreateModal}
-                      size='sm'
-                      className='text-xs md:text-sm'
-                    >
-                      <Icons.add className='mr-2 h-4 w-4' />
-                      <span>Tambah Janji Temu</span>
-                    </Button>
+                    {hasDraft ? (
+                      <div className='flex items-center gap-1.5'>
+                        <Button
+                          onClick={appointmentsView.actions.openCreateModal}
+                          size='sm'
+                          className='text-xs md:text-sm bg-amber-600 hover:bg-amber-700 text-white dark:bg-amber-600 dark:hover:bg-amber-700 gap-1.5'
+                        >
+                          <Icons.edit className='h-4 w-4' />
+                          <span>Lanjutkan Pengisian</span>
+                        </Button>
+                        <Button
+                          variant='outline'
+                          size='sm'
+                          onClick={handleDiscardDraft}
+                          className='text-xs md:text-sm text-destructive hover:bg-destructive/10 gap-1'
+                        >
+                          <Icons.trash className='h-3.5 w-3.5' />
+                          <span>Buang Draft</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={appointmentsView.actions.openCreateModal}
+                        size='sm'
+                        className='text-xs md:text-sm'
+                      >
+                        <Icons.add className='mr-2 h-4 w-4' />
+                        <span>Tambah Janji Temu</span>
+                      </Button>
+                    )}
                   </div>
                 )
               }

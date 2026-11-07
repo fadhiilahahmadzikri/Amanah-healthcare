@@ -25,6 +25,8 @@ import { formRequirementGuard } from './form-requirement-guard';
 import { requestImplicitWebPushRegistration } from '@/features/notifications';
 import { getClinicTodayDateString } from '@/lib/date-format';
 import { VISIT_TYPE, type CanonicalVisitType } from '@/constants/visit-type.constants';
+import { useAuthContext } from '@/lib/rbac/auth-context';
+import { appointmentDraftService } from '../services/appointment-draft.service';
 import type { Appointment, AppointmentFormData } from '../api/types';
 
 export type BookingModalStep =
@@ -51,6 +53,7 @@ export function useAppointmentModal({
   onClose: _onClose,
   onSubmit
 }: UseAppointmentModalProps) {
+  const { user } = useAuthContext();
   const isMobile = useIsMobile();
   const [step, setStep] = useState<BookingModalStep>('poli');
   const [categories, setCategories] = useState<ServiceCategoryCatalog[]>([]);
@@ -191,23 +194,110 @@ export function useAppointmentModal({
     prevIsOpenRef.current = isOpen;
 
     if (isOpen && !wasOpen) {
-      setStep('poli');
-      setSelectedPoliId('');
-      setSelectedCategoryId('');
-      setSelectedService(null);
-      setComplaint('');
-      setDateStr(defaultDateStr);
-      setSession('');
-      loadPatients();
+      const draft = user?.id ? appointmentDraftService.getBookingDraft(user.id) : null;
+      if (draft) {
+        setStep(draft.step as BookingModalStep);
+        setSelectedPoliId(draft.selectedPoliId || '');
+        setSelectedCategoryId(draft.selectedCategoryId || '');
+        setSelectedService(draft.selectedService || null);
+        setSelectedPatientId(draft.selectedPatientId || '');
+        setDateStr(draft.dateStr || defaultDateStr);
+        setSession(draft.session || '');
+        setSelectedSessionId(draft.selectedSessionId || '');
+        setVisitType((draft.visitType as CanonicalVisitType) || VISIT_TYPE.NEW_VISIT);
+        setComplaint(draft.complaint || '');
+        setActiveMedicalFlow(draft.activeMedicalFlow || null);
+        loadPatients(draft.selectedService?.id);
+      } else {
+        setStep('poli');
+        setSelectedPoliId('');
+        setSelectedCategoryId('');
+        setSelectedService(null);
+        setComplaint('');
+        setDateStr(defaultDateStr);
+        setSession('');
+        loadPatients();
+      }
     } else if (!isOpen && wasOpen) {
-      setSelectedService(null);
-      setComplaint('');
-      setActiveMedicalFlow(null);
-      formRequirementGuard.clearActiveRequirement();
+      if (
+        !createdAppointment &&
+        !isQueueSuccessOpen &&
+        user?.id &&
+        (selectedService || selectedPatientId || complaint || step !== 'poli' || activeMedicalFlow)
+      ) {
+        appointmentDraftService.saveBookingDraft(user.id, {
+          step,
+          selectedPoliId,
+          selectedCategoryId,
+          selectedService,
+          selectedPatientId,
+          dateStr,
+          session,
+          selectedSessionId,
+          visitType,
+          complaint,
+          activeMedicalFlow: activeMedicalFlow || undefined
+        });
+      }
       setIsQueueSuccessOpen(false);
       setCreatedAppointment(null);
     }
-  }, [isOpen, defaultDateStr, loadPatients]);
+  }, [
+    isOpen,
+    defaultDateStr,
+    loadPatients,
+    user?.id,
+    createdAppointment,
+    isQueueSuccessOpen,
+    selectedService,
+    selectedPatientId,
+    complaint,
+    step,
+    activeMedicalFlow,
+    selectedPoliId,
+    selectedCategoryId,
+    dateStr,
+    session,
+    selectedSessionId,
+    visitType
+  ]);
+
+  // Real-time booking draft persistence
+  useEffect(() => {
+    if (isOpen && user?.id && !isQueueSuccessOpen && !createdAppointment) {
+      if (selectedService || selectedPatientId || complaint || step !== 'poli' || activeMedicalFlow) {
+        appointmentDraftService.saveBookingDraft(user.id, {
+          step,
+          selectedPoliId,
+          selectedCategoryId,
+          selectedService,
+          selectedPatientId,
+          dateStr,
+          session,
+          selectedSessionId,
+          visitType,
+          complaint,
+          activeMedicalFlow: activeMedicalFlow || undefined
+        });
+      }
+    }
+  }, [
+    isOpen,
+    user?.id,
+    isQueueSuccessOpen,
+    createdAppointment,
+    step,
+    selectedPoliId,
+    selectedCategoryId,
+    selectedService,
+    selectedPatientId,
+    dateStr,
+    session,
+    selectedSessionId,
+    visitType,
+    complaint,
+    activeMedicalFlow
+  ]);
 
   useEffect(() => {
     if (stepContainerRef.current) {
@@ -374,7 +464,13 @@ export function useAppointmentModal({
     setSelectedPatientId('');
     setSelectedRelationship('');
     setStep('create_profile');
-  }, []);
+    if (user?.id) {
+      appointmentDraftService.saveBookingDraft(user.id, {
+        step: 'create_profile',
+        selectedPatientId: ''
+      });
+    }
+  }, [user?.id]);
 
   const handleRelationshipSubmitForMedicalFlow = useCallback(
     async (relationship: PatientRelationshipType) => {
@@ -555,6 +651,13 @@ export function useAppointmentModal({
       });
 
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
+      if (user?.id) {
+        appointmentDraftService.clearBookingDraft(user.id);
+      }
+      setSelectedService(null);
+      setComplaint('');
+      setActiveMedicalFlow(null);
+      formRequirementGuard.clearActiveRequirement();
     } catch (err: unknown) {
       const isOvercapacityConsentRequired =
         (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||

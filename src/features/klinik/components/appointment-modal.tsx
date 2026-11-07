@@ -481,7 +481,6 @@ export function AppointmentModal({
             setStep(patients.length > 0 ? 'select_profile' : 'create_profile');
           }}
           onClose={() => {
-            setActiveMedicalFlow(null);
             onClose();
           }}
           onCompleteIntake={(ctx) => {
