@@ -2,11 +2,13 @@ import type { AnyFieldApi } from '@tanstack/form-core';
 import * as React from 'react';
 
 import { FieldDescription, FieldError, FieldLegend, FieldSet } from '@/components/ui/field';
+import { Icons } from '@/components/icons';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { PatientLineCreatableSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-creatable-select';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientBirthdatePicker } from '@/features/data-pasien/components/registration/molecules/patient-birthdate-picker';
+import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 import { cn } from '@/lib/utils';
 import { GENDER_OPTIONS, getGenderLabel } from '@/constants/gender.constants';
 
@@ -40,6 +42,46 @@ export function MedicalSchemaField({
   const displayError = isInvalid && rawError && rawError !== 'Wajib diisi' ? rawError : undefined;
   const value = String(fieldApi.state.value ?? '');
   const placeholder = schemaField.placeholder || '';
+  const [showNik, setShowNik] = React.useState(false);
+  const [nikStatus, setNikStatus] = React.useState<
+    'idle' | 'checking' | 'available' | 'taken'
+  >('idle');
+
+  const format = getMedicalFieldFormat(schemaField);
+  const isNik = format === 'nik';
+
+  React.useEffect(() => {
+    if (!isNik) return;
+
+    const clean = value.replace(/\D/g, '');
+    if (clean.length < 16) {
+      setNikStatus('idle');
+      return;
+    }
+
+    setNikStatus('checking');
+
+    const abortController = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const res = await patientAffiliationService.verifyNikAvailability(clean);
+        if (abortController.signal.aborted) return;
+        if (res.available) {
+          setNikStatus('available');
+        } else {
+          setNikStatus('taken');
+        }
+      } catch {
+        if (abortController.signal.aborted) return;
+        setNikStatus('idle');
+      }
+    }, 400);
+
+    return () => {
+      abortController.abort();
+      clearTimeout(timer);
+    };
+  }, [isNik, value]);
 
   const isColSpanFull =
     schemaField.colSpan === 'full' ||
@@ -257,8 +299,6 @@ export function MedicalSchemaField({
     );
   }
 
-  const format = getMedicalFieldFormat(schemaField);
-  const isNik = format === 'nik';
   const formatProps = fieldFormatConfig[format];
 
   const getFieldSuffix = (id: string): string | undefined => {
@@ -286,7 +326,26 @@ export function MedicalSchemaField({
   };
 
   const suffix = getFieldSuffix(schemaField.id);
-  const trailingIcon = suffix ? (
+  const trailingIcon = isNik ? (
+    <button
+      type='button'
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowNik((prev) => !prev);
+      }}
+      className='p-1 text-muted-foreground hover:text-foreground transition-colors cursor-pointer'
+      title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+      aria-label={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+      tabIndex={-1}
+    >
+      {showNik ? (
+        <Icons.eyeOff className='size-4 text-primary' />
+      ) : (
+        <Icons.eye className='size-4' />
+      )}
+    </button>
+  ) : suffix ? (
     <span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>
       {suffix}
     </span>
@@ -302,9 +361,57 @@ export function MedicalSchemaField({
       'weightKg'
     ].includes(schemaField.id) || schemaField.id.endsWith('BirthLength');
 
+  if (isNik) {
+    return (
+      <div className={cn('flex flex-col gap-1', colSpanClass)}>
+        <PatientLineInput
+          id={schemaField.id}
+          type={showNik ? 'text' : 'password'}
+          label={
+            <span>
+              {schemaField.title}
+              {requiredAsterisk}
+            </span>
+          }
+          value={value}
+          onChange={(nextVal) =>
+            fieldApi.handleChange(normalizeMedicalFieldInput(schemaField, nextVal))
+          }
+          onBlur={fieldApi.handleBlur}
+          error={displayError}
+          invalid={isInvalid}
+          placeholder={placeholder}
+          disabled={schemaField.disabled}
+          isMonospace={true}
+          inputMode='numeric'
+          maxLength={16}
+          trailingIcon={trailingIcon}
+        />
+        {nikStatus === 'checking' && (
+          <p className='text-xs text-muted-foreground animate-pulse flex items-center gap-1.5 pt-0.5'>
+            <span className='inline-block size-1.5 rounded-full bg-primary/70 animate-ping' />
+            Memeriksa ketersediaan NIK...
+          </p>
+        )}
+        {nikStatus === 'available' && !displayError && (
+          <p className='text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5 pt-0.5'>
+            ✓ NIK belum terdaftar di klinik
+          </p>
+        )}
+        {nikStatus === 'taken' && !displayError && (
+          <p className='text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center gap-1.5 pt-0.5'>
+            <Icons.info className='size-3.5 shrink-0' />
+            NIK sudah terdaftar di sistem klinik
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <PatientLineInput
       id={schemaField.id}
+      type='text'
       label={
         <span>
           {schemaField.title}
@@ -321,7 +428,7 @@ export function MedicalSchemaField({
       placeholder={placeholder}
       disabled={schemaField.disabled}
       containerClassName={colSpanClass}
-      isMonospace={isNik}
+      isMonospace={false}
       inputMode={isDecimal ? 'decimal' : formatProps.inputMode}
       maxLength={formatProps.maxLength}
       trailingIcon={trailingIcon}

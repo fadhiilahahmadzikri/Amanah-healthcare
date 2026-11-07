@@ -31,6 +31,7 @@ import type {
   PatientRelationshipType
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { AppointmentFormData, MedicalAppointmentFlow } from '../api/types';
+import { PATIENT_RELATIONSHIP_CODE } from '@/constants/relationship.constants';
 import { historyGroups, useMedicalAppointmentForm } from '../model/useMedicalAppointmentForm';
 import { REPEATABLE_GROUP_KEYS, STEP_DESCRIPTOR_TYPES } from '../constants/kia-constants';
 import { MedicalSectionStep } from './booking/medical-appointment-steps';
@@ -91,6 +92,18 @@ export function MedicalAppointmentModal({
     onCompleteIntake: handleCompleteIntake,
     onBackToService
   });
+
+  const selfProfile = React.useMemo(() => {
+    return (
+      patients?.find(
+        (p) =>
+          p.isSelf ||
+          p.relationship === PATIENT_RELATIONSHIP_CODE.SELF ||
+          p.relationship === 'self' ||
+          p.relationship === 'diri_sendiri'
+      ) || null
+    );
+  }, [patients]);
 
   const stepContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -215,6 +228,7 @@ export function MedicalAppointmentModal({
                   catalogActionType={catalogAction?.type ?? null}
                   onReturnToCatalog={actions.cancelCatalogAction}
                   values={values}
+                  selfProfile={selfProfile}
                   onFieldChange={(fieldId, nextValue) => {
                     form.setFieldValue(fieldId, nextValue);
                   }}

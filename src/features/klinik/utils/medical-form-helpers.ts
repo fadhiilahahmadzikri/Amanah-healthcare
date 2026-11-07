@@ -1,4 +1,5 @@
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
+import { PATIENT_RELATIONSHIP_CODE } from '@/constants/relationship.constants';
 import type { MedicalAppointmentFlow } from '../api/types';
 import type { MedicalFormSection } from '../constants/medical-appointment-schemas';
 import { isMedicalSectionValid } from '../schemas/medical-appointment-validation';
@@ -64,14 +65,18 @@ export function buildRegistrationPrefill(
 
     // Resolve husband/partner honestly: NEVER match patient herself
     if (affiliations && affiliations.length > 0) {
-      // Find candidate spouse: must be different ID from patient
+      // Find candidate spouse: must be active and different ID from patient
       const spouse = affiliations.find(
         (a) =>
           a.id !== patient.id &&
-          (a.relationship === 'spouse' ||
+          a.isActive !== false &&
+          (a.relationship === PATIENT_RELATIONSHIP_CODE.SPOUSE ||
             a.relationship === 'pasangan' ||
-            (patient.relationship === 'pasangan' &&
-              (a.isSelf || a.relationship === 'self' || a.relationship === 'diri_sendiri') &&
+            ((patient.relationship === PATIENT_RELATIONSHIP_CODE.SPOUSE ||
+              patient.relationship === 'pasangan') &&
+              (a.isSelf ||
+                a.relationship === PATIENT_RELATIONSHIP_CODE.SELF ||
+                a.relationship === 'diri_sendiri') &&
               a.gender === 'male'))
       );
 
@@ -103,10 +108,11 @@ export function buildRegistrationPrefill(
       const parent = affiliations.find(
         (a) =>
           a.id !== patient.id &&
-          (a.relationship === 'parent' ||
+          a.isActive !== false &&
+          (a.relationship === PATIENT_RELATIONSHIP_CODE.PARENT ||
             a.relationship === 'orang_tua' ||
             a.isSelf ||
-            a.relationship === 'self' ||
+            a.relationship === PATIENT_RELATIONSHIP_CODE.SELF ||
             a.relationship === 'diri_sendiri')
       );
 
