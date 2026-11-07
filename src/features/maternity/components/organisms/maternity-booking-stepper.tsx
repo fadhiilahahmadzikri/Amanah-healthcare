@@ -141,14 +141,18 @@ export function MaternityBookingStepper({
     initialValues?.currentComplaints || ''
   );
   const [heightCm, setHeightCm] = React.useState(
-    initialValues?.heightCm ? String(initialValues.heightCm) : ''
+    initialValues?.heightCm != null
+      ? String(Number(String(initialValues.heightCm).replace(',', '.')))
+      : ''
   );
   const [prePregnancyWeightKg, setPrePregnancyWeightKg] = React.useState(
-    initialValues?.prePregnancyWeightKg ? String(initialValues.prePregnancyWeightKg) : ''
+    initialValues?.prePregnancyWeightKg != null
+      ? String(Number(String(initialValues.prePregnancyWeightKg).replace(',', '.')))
+      : ''
   );
   const [upperArmCircumferenceCm, setUpperArmCircumferenceCm] = React.useState(
-    initialValues?.upperArmCircumferenceCm
-      ? String(initialValues.upperArmCircumferenceCm)
+    initialValues?.upperArmCircumferenceCm != null
+      ? String(Number(String(initialValues.upperArmCircumferenceCm).replace(',', '.')))
       : ''
   );
   const [tetanusStatus, setTetanusStatus] = React.useState(
@@ -338,10 +342,10 @@ export function MaternityBookingStepper({
       partnerBloodType: partnerBloodType || undefined,
       husband: husbandProfile,
 
-      heightCm: heightCm ? Number(heightCm) : undefined,
-      prePregnancyWeightKg: prePregnancyWeightKg ? Number(prePregnancyWeightKg) : undefined,
+      heightCm: heightCm ? Number(heightCm.replace(',', '.')) : undefined,
+      prePregnancyWeightKg: prePregnancyWeightKg ? Number(prePregnancyWeightKg.replace(',', '.')) : undefined,
       upperArmCircumferenceCm: upperArmCircumferenceCm
-        ? Number(upperArmCircumferenceCm)
+        ? Number(upperArmCircumferenceCm.replace(',', '.'))
         : undefined,
       tetanusStatus,
       motherBloodType,
@@ -1013,6 +1017,7 @@ export function MaternityBookingStepper({
                 items={previousPregnancies}
                 isEditing={true}
                 onChange={setPreviousPregnancies}
+                motherBirthDate={motherBirthDate}
               />
             </div>
 
@@ -1022,6 +1027,7 @@ export function MaternityBookingStepper({
                 items={contraceptiveHistories}
                 isEditing={true}
                 onChange={setContraceptiveHistories}
+                motherBirthDate={motherBirthDate}
               />
             </div>
           </div>

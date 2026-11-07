@@ -1,9 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { EmptyState } from '@/components/ui/empty-state';
 import {
   Table,
@@ -14,6 +13,8 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { formatClinicDate } from '@/lib/date-format';
+import { useHistoryTableModalCrud } from '@/features/klinik/model/useHistoryTableModalCrud';
+import { ContraceptiveHistoryModal } from '../organisms/contraceptive-history-modal';
 import type { MaternalContraceptiveHistory } from '../../types/maternity.types';
 
 export interface ContraceptiveHistoryTableProps {
@@ -22,6 +23,7 @@ export interface ContraceptiveHistoryTableProps {
   onChange?: (updated: MaternalContraceptiveHistory[]) => void;
   validationErrors?: Record<string, string>;
   onClearError?: (key: string) => void;
+  motherBirthDate?: string | null;
 }
 
 export function ContraceptiveHistoryTable({
@@ -29,41 +31,31 @@ export function ContraceptiveHistoryTable({
   isEditing = false,
   onChange,
   validationErrors,
-  onClearError
+  onClearError,
+  motherBirthDate
 }: ContraceptiveHistoryTableProps) {
-  const handleAddItem = () => {
-    if (!onChange) return;
-    const nextOrder = items.length + 1;
-    const newItem: MaternalContraceptiveHistory = {
+  const {
+    isOpen,
+    isEditing: isEditingItem,
+    draftItem,
+    openAdd,
+    openEdit,
+    close,
+    save,
+    remove
+  } = useHistoryTableModalCrud<MaternalContraceptiveHistory>({
+    items,
+    onChange,
+    createDefaultItem: (nextOrder) => ({
       orderNumber: nextOrder,
       startDate: '',
       contraceptiveType: 'Suntik 3 Bulan',
-      durationText: '1 tahun',
+      durationText: '',
       stopDate: '',
       problems: '',
       sideEffects: ''
-    };
-    onChange([...items, newItem]);
-  };
-
-  const handleRemoveItem = (index: number) => {
-    if (!onChange) return;
-    const next = items
-      .filter((_, idx) => idx !== index)
-      .map((item, idx) => ({ ...item, orderNumber: idx + 1 }));
-    onChange(next);
-  };
-
-  const handleFieldChange = (
-    index: number,
-    field: keyof MaternalContraceptiveHistory,
-    value: any
-  ) => {
-    if (!onChange) return;
-    const next = [...items];
-    next[index] = { ...next[index], [field]: value };
-    onChange(next);
-  };
+    })
+  });
 
   if (!isEditing && items.length === 0) {
     return (
@@ -88,7 +80,7 @@ export function ContraceptiveHistoryTable({
             type='button'
             variant='outline'
             size='sm'
-            onClick={handleAddItem}
+            onClick={openAdd}
             className='h-7 text-xs gap-1 cursor-pointer font-medium'
           >
             <Plus className='size-3.5' />
@@ -100,151 +92,99 @@ export function ContraceptiveHistoryTable({
       <div className='flex-1 min-h-[220px] overflow-x-auto border-y border-border/50'>
         <Table className='min-w-[760px] w-full'>
           <TableHeader className='bg-muted/30 border-b border-border/60'>
-              <TableRow className='hover:bg-transparent'>
-                <TableHead className='w-12 text-center text-xs font-semibold text-foreground h-9 px-2'>
-                  No
+            <TableRow className='hover:bg-transparent'>
+              <TableHead className='w-12 text-center text-xs font-semibold text-foreground h-9 px-2'>
+                No
+              </TableHead>
+              <TableHead className='w-36 text-xs font-semibold text-foreground h-9 px-3'>
+                Tgl Mulai
+              </TableHead>
+              <TableHead className='w-40 text-xs font-semibold text-foreground h-9 px-3'>
+                Jenis Kontrasepsi
+              </TableHead>
+              <TableHead className='w-32 text-xs font-semibold text-foreground h-9 px-3'>
+                Masa Pakai
+              </TableHead>
+              <TableHead className='w-36 text-xs font-semibold text-foreground h-9 px-3'>
+                Tgl Lepas
+              </TableHead>
+              <TableHead className='w-40 text-xs font-semibold text-foreground h-9 px-3'>
+                Masalah
+              </TableHead>
+              <TableHead className='min-w-40 text-xs font-semibold text-foreground h-9 px-3'>
+                Efek Samping
+              </TableHead>
+              {isEditing && (
+                <TableHead className='w-20 text-center text-xs font-semibold text-foreground h-9 px-2'>
+                  Aksi
                 </TableHead>
-                <TableHead className='w-44 text-xs font-semibold text-foreground h-9 px-3'>
-                  Tgl Mulai
-                </TableHead>
-                <TableHead className='w-40 text-xs font-semibold text-foreground h-9 px-3'>
-                  Jenis Kontrasepsi
-                </TableHead>
-                <TableHead className='w-32 text-xs font-semibold text-foreground h-9 px-3'>
-                  Masa Pakai
-                </TableHead>
-                <TableHead className='w-44 text-xs font-semibold text-foreground h-9 px-3'>
-                  Tgl Lepas
-                </TableHead>
-                <TableHead className='w-40 text-xs font-semibold text-foreground h-9 px-3'>
-                  Masalah
-                </TableHead>
-                <TableHead className='min-w-40 text-xs font-semibold text-foreground h-9 px-3'>
-                  Efek Samping
-                </TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.map((item, index) => (
+              <TableRow key={index} className='hover:bg-muted/30 border-b border-border/40'>
+                <TableCell className='text-center font-medium text-xs px-2 py-2.5'>
+                  {item.orderNumber || index + 1}
+                </TableCell>
+                <TableCell className='px-3 py-2.5 text-xs'>
+                  {item.startDate ? formatClinicDate(item.startDate, { style: 'human_medium' }) : '-'}
+                </TableCell>
+                <TableCell className='px-3 py-2.5 text-xs font-medium'>
+                  {item.contraceptiveType || '-'}
+                </TableCell>
+                <TableCell className='px-3 py-2.5 text-xs'>
+                  {item.durationText || '-'}
+                </TableCell>
+                <TableCell className='px-3 py-2.5 text-xs'>
+                  {item.stopDate ? formatClinicDate(item.stopDate, { style: 'human_medium' }) : '-'}
+                </TableCell>
+                <TableCell className='px-3 py-2.5 text-xs text-muted-foreground'>
+                  {item.problems || '-'}
+                </TableCell>
+                <TableCell className='px-3 py-2.5 text-xs text-muted-foreground'>
+                  {item.sideEffects || '-'}
+                </TableCell>
                 {isEditing && (
-                  <TableHead className='w-12 text-center text-xs font-semibold text-foreground h-9 px-2'>
-                    Aksi
-                  </TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item, index) => (
-                <TableRow key={index} className='hover:bg-muted/30 border-b border-border/40'>
-                  <TableCell className='text-center font-medium text-xs px-2 py-2.5'>
-                    {item.orderNumber || index + 1}
-                  </TableCell>
-                  <TableCell className='px-3 py-2.5 text-xs'>
-                    {isEditing ? (
-                      <CustomDatePicker
-                        value={item.startDate || ''}
-                        onChange={(val) =>
-                          handleFieldChange(index, 'startDate', val)
-                        }
-                        placeholder='Pilih tgl'
-                        className='h-7 text-xs border-0 border-b border-border/60 rounded-none bg-transparent shadow-none'
-                        variant='underline'
-                      />
-                    ) : (
-                      formatClinicDate(item.startDate, { style: 'human_medium' })
-                    )}
-                  </TableCell>
-                  <TableCell className='px-3 py-2.5 text-xs font-medium'>
-                    {isEditing ? (
-                      <input
-                        maxLength={64}
-                        value={item.contraceptiveType || ''}
-                        onChange={(e) =>
-                          handleFieldChange(
-                            index,
-                            'contraceptiveType',
-                            e.target.value
-                          )
-                        }
-                        placeholder='Suntik 3 Bulan'
-                        className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
-                      />
-                    ) : (
-                      item.contraceptiveType || ''
-                    )}
-                  </TableCell>
-                  <TableCell className='px-3 py-2.5 text-xs'>
-                    {isEditing ? (
-                      <input
-                        maxLength={64}
-                        value={item.durationText || ''}
-                        onChange={(e) =>
-                          handleFieldChange(index, 'durationText', e.target.value)
-                        }
-                        placeholder='1 tahun'
-                        className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
-                      />
-                    ) : (
-                      item.durationText || ''
-                    )}
-                  </TableCell>
-                  <TableCell className='px-3 py-2.5 text-xs'>
-                    {isEditing ? (
-                      <CustomDatePicker
-                        value={item.stopDate || ''}
-                        onChange={(val) =>
-                          handleFieldChange(index, 'stopDate', val)
-                        }
-                        placeholder='Pilih tgl'
-                        className='h-7 text-xs border-0 border-b border-border/60 rounded-none bg-transparent shadow-none'
-                        variant='underline'
-                      />
-                    ) : (
-                      item.stopDate ? formatClinicDate(item.stopDate, { style: 'human_medium' }) : ''
-                    )}
-                  </TableCell>
-                  <TableCell className='px-3 py-2.5 text-xs'>
-                    {isEditing ? (
-                      <input
-                        value={item.problems || ''}
-                        onChange={(e) =>
-                          handleFieldChange(index, 'problems', e.target.value)
-                        }
-                        placeholder='Masalah...'
-                        className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
-                      />
-                    ) : (
-                      item.problems || ''
-                    )}
-                  </TableCell>
-                  <TableCell className='px-3 py-2.5 text-xs'>
-                    {isEditing ? (
-                      <input
-                        value={item.sideEffects || ''}
-                        onChange={(e) =>
-                          handleFieldChange(index, 'sideEffects', e.target.value)
-                        }
-                        placeholder='Efek samping...'
-                        className='h-7 w-full text-xs px-1 bg-transparent rounded-none border-0 border-b border-border/60 focus:outline-none focus:border-primary shadow-none'
-                      />
-                    ) : (
-                      item.sideEffects || ''
-                    )}
-                  </TableCell>
-                  {isEditing && (
-                    <TableCell className='text-center px-2 py-2.5'>
+                  <TableCell className='text-center px-2 py-2.5'>
+                    <div className='flex items-center justify-center gap-1'>
                       <Button
                         type='button'
                         variant='ghost'
                         size='icon'
-                        onClick={() => handleRemoveItem(index)}
-                        className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10'
+                        onClick={() => openEdit(index)}
+                        className='size-7 text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer'
+                        title='Edit Riwayat KB'
+                      >
+                        <Pencil className='size-3.5' />
+                      </Button>
+                      <Button
+                        type='button'
+                        variant='ghost'
+                        size='icon'
+                        onClick={() => remove(index)}
+                        className='size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer'
+                        title='Hapus Riwayat KB'
                       >
                         <Trash2 className='size-3.5' />
                       </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                    </div>
+                  </TableCell>
+                )}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
-    );
-  }
+
+      <ContraceptiveHistoryModal
+        isOpen={isOpen}
+        onClose={close}
+        item={draftItem}
+        onSave={save}
+        isEditing={isEditingItem}
+        motherBirthDate={motherBirthDate}
+      />
+    </div>
+  );
+}

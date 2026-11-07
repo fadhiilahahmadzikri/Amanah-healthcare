@@ -19,12 +19,14 @@ export interface MilestoneRowEditorProps {
   entry: ImmunizationClinicalEntry;
   onChange: (updated: ImmunizationClinicalEntry) => void;
   disabled?: boolean;
+  dateError?: string | null;
 }
 
 export function MilestoneRowEditor({
   entry,
   onChange,
-  disabled = false
+  disabled = false,
+  dateError
 }: MilestoneRowEditorProps) {
   const handleFieldChange = <K extends keyof ImmunizationClinicalEntry>(
     field: K,
@@ -82,6 +84,8 @@ export function MilestoneRowEditor({
             placeholder='Pilih tanggal suntik'
             disableFutureDates
             triggerClassName={disabled ? 'pointer-events-none opacity-50' : undefined}
+            error={dateError || undefined}
+            invalid={Boolean(dateError)}
           />
         </div>
 

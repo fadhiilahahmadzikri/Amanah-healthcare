@@ -238,16 +238,6 @@ export function contraceptionFields(order: number): MedicalFormField[] {
       helpText: 'Pilih tanggal mulai menggunakan KB.',
       colSpan: 1
     }),
-    optionalField(`${prefix}Type`, LIST, 'Jenis KB/kontrasepsi', `${labelPrefix} - jenis`, {
-      helpText: 'Pilih jenis KB atau ketik sendiri.',
-      choices: contraceptiveTypeChoices,
-      allowCustomInput: true,
-      colSpan: 1
-    }),
-    optionalField(`${prefix}Duration`, TEXT, 'Berapa lama dipakai?', `${labelPrefix} - masa pakai`, {
-      helpText: 'Contoh: 6 bulan atau 2 tahun.',
-      colSpan: 1
-    }),
     optionalField(
       `${prefix}StopDate`,
       DATE,
@@ -258,6 +248,18 @@ export function contraceptionFields(order: number): MedicalFormField[] {
         colSpan: 1
       }
     ),
+    optionalField(`${prefix}Type`, LIST, 'Jenis KB/kontrasepsi', `${labelPrefix} - jenis`, {
+      helpText: 'Pilih jenis KB atau ketik sendiri.',
+      choices: contraceptiveTypeChoices,
+      allowCustomInput: true,
+      colSpan: 1
+    }),
+    optionalField(`${prefix}Duration`, TEXT, 'Berapa lama dipakai?', `${labelPrefix} - masa pakai`, {
+      helpText: 'Dihitung otomatis dari tanggal mulai dan tanggal lepas.',
+      placeholder: 'Otomatis dari rentang tanggal',
+      colSpan: 1,
+      disabled: true
+    }),
     optionalField(
       `${prefix}Problems`,
       PARAGRAPH,

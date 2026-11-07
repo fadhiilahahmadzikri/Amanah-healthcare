@@ -246,6 +246,67 @@ export function calculateAgeInYears(
   }
 }
 
+export function calculateContraceptiveDuration(
+  startDateStr?: string | null,
+  stopDateStr?: string | null
+): string {
+  if (!startDateStr || !stopDateStr) {
+    return '';
+  }
+
+  try {
+    const startDate = toDateOnly(startDateStr.split('T')[0]);
+    const stopDate = toDateOnly(stopDateStr.split('T')[0]);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(stopDate.getTime())) {
+      return '';
+    }
+
+    if (stopDate.getTime() < startDate.getTime()) {
+      return '';
+    }
+
+    let years = stopDate.getUTCFullYear() - startDate.getUTCFullYear();
+    let months = stopDate.getUTCMonth() - startDate.getUTCMonth();
+    let days = stopDate.getUTCDate() - startDate.getUTCDate();
+
+    if (days < 0) {
+      months -= 1;
+      const prevMonth = new Date(Date.UTC(stopDate.getUTCFullYear(), stopDate.getUTCMonth(), 0));
+      days += prevMonth.getUTCDate();
+    }
+
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+
+    if (years > 0) {
+      if (months > 0) {
+        return `${years} tahun ${months} bulan`;
+      }
+      return `${years} tahun`;
+    }
+
+    if (months > 0) {
+      const weeks = Math.floor(days / 7);
+      if (weeks > 0) {
+        return `${months} bulan ${weeks} minggu`;
+      }
+      return `${months} bulan`;
+    }
+
+    const weeks = Math.floor(days / 7);
+    if (weeks > 0) {
+      return `${weeks} minggu`;
+    }
+
+    return days > 0 ? `${days} hari` : '1 hari';
+  } catch {
+    return '';
+  }
+}
+
 function buildPregnancyAutomaticRecord(
   values: MedicalAppointmentValues,
   submittedAt: Date

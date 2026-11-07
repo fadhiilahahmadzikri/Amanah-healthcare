@@ -127,6 +127,7 @@ export function ImmunizationAdminInspector({
             entries={entries}
             isEditing={isEditing}
             onEntriesChange={onEntriesChange}
+            childBirthDate={intake?.childBirthDate}
           />
         </TabsContent>
       </div>

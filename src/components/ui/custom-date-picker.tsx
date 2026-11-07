@@ -378,7 +378,7 @@ export function CustomDatePicker({
                 requestAnimationFrame(() => animateOpen());
               }
             }}
-            placeholder={isFloating ? effectivePlaceholder : ''}
+            placeholder={label ? (isFloating ? effectivePlaceholder : '') : effectivePlaceholder}
             className='w-full min-w-0 border-0 bg-transparent px-0 py-1 text-sm font-medium text-foreground outline-none placeholder:font-normal placeholder:text-muted-foreground/50'
           />
           {label ? (

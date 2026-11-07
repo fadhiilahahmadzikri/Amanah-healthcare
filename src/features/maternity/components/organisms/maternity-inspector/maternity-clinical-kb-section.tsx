@@ -20,6 +20,13 @@ export interface MaternityClinicalKbSectionProps {
   bloodTypeOptions: string[];
 }
 
+function formatMetricValue(val: unknown): string {
+  if (val === null || val === undefined || val === '') return '';
+  const num = typeof val === 'string' ? Number(val.replace(',', '.')) : Number(val);
+  if (!Number.isFinite(num)) return String(val);
+  return String(num);
+}
+
 export function MaternityClinicalKbSection({
   intake,
   isEditing = false,
@@ -47,7 +54,7 @@ export function MaternityClinicalKbSection({
               label='Tinggi Badan'
               type='number'
               step='0.1'
-              value={intake?.heightCm}
+              value={formatMetricValue(intake?.heightCm)}
               onChange={(val) => {
                 onIntakeFieldChange('heightCm', val === '' ? '' : val);
                 if (validationErrors?.heightCm) onClearError?.('heightCm');
@@ -62,7 +69,7 @@ export function MaternityClinicalKbSection({
               label='Berat Badan Pra-Hamil'
               type='number'
               step='0.1'
-              value={intake?.prePregnancyWeightKg}
+              value={formatMetricValue(intake?.prePregnancyWeightKg)}
               onChange={(val) => {
                 onIntakeFieldChange('prePregnancyWeightKg', val === '' ? '' : val);
                 if (validationErrors?.prePregnancyWeightKg) onClearError?.('prePregnancyWeightKg');
@@ -77,7 +84,7 @@ export function MaternityClinicalKbSection({
               label='Lingkar Lengan Atas (LiLA)'
               type='number'
               step='0.1'
-              value={intake?.upperArmCircumferenceCm}
+              value={formatMetricValue(intake?.upperArmCircumferenceCm)}
               onChange={(val) => {
                 onIntakeFieldChange('upperArmCircumferenceCm', val === '' ? '' : val);
                 if (validationErrors?.upperArmCircumferenceCm) onClearError?.('upperArmCircumferenceCm');
@@ -90,7 +97,7 @@ export function MaternityClinicalKbSection({
             <PatientLineInput
               id='maternity-bmi'
               label='IMT / BMI Terhitung'
-              value={intake?.initialBmi ? String(intake.initialBmi) : ''}
+              value={formatMetricValue(intake?.initialBmi)}
               trailingIcon={<span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>kg/m²</span>}
               readOnly
             />
@@ -123,6 +130,7 @@ export function MaternityClinicalKbSection({
             onChange={onContraceptiveHistoriesChange}
             validationErrors={validationErrors}
             onClearError={onClearError}
+            motherBirthDate={intake?.motherBirthDate}
           />
         </div>
       </div>
@@ -142,25 +150,26 @@ export function MaternityClinicalKbSection({
           <PatientLineInput
             id='view-height'
             label='Tinggi Badan (cm)'
-            value={intake?.heightCm ? `${intake.heightCm} cm` : ''}
+            value={intake?.heightCm != null && intake.heightCm !== '' ? `${formatMetricValue(intake.heightCm)} cm` : ''}
             readOnly
           />
           <PatientLineInput
             id='view-weight'
             label='Berat Badan Pra-Hamil (kg)'
-            value={intake?.prePregnancyWeightKg ? `${intake.prePregnancyWeightKg} kg` : ''}
+            value={intake?.prePregnancyWeightKg != null && intake.prePregnancyWeightKg !== '' ? `${formatMetricValue(intake.prePregnancyWeightKg)} kg` : ''}
             readOnly
           />
           <PatientLineInput
             id='view-lila'
             label='Lingkar Lengan Atas / LILA (cm)'
-            value={intake?.upperArmCircumferenceCm ? `${intake.upperArmCircumferenceCm} cm` : ''}
+            value={intake?.upperArmCircumferenceCm != null && intake.upperArmCircumferenceCm !== '' ? `${formatMetricValue(intake.upperArmCircumferenceCm)} cm` : ''}
             readOnly
           />
           <PatientLineInput
             id='view-bmi'
             label='IMT / BMI Terhitung'
-            value={intake?.initialBmi ? String(intake.initialBmi) : ''}
+            value={intake?.initialBmi != null && intake.initialBmi !== '' ? formatMetricValue(intake.initialBmi) : ''}
+            trailingIcon={<span className='text-xs font-semibold text-muted-foreground select-none pointer-events-none'>kg/m²</span>}
             readOnly
           />
         </div>

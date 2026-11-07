@@ -3,7 +3,10 @@ import {
   getMedicalFieldFormat,
   getMedicalFieldValidationSchema,
   isMedicalSectionValid,
-  validateQuestionnaireYear
+  validateQuestionnaireYear,
+  validateContraceptiveEntry,
+  validatePregnancyHistoryEntry,
+  validateImmunizationDateEntry
 } from './medical-appointment-validation';
 import {
   baselineMeasurementsSection,
@@ -18,10 +21,14 @@ import {
   partnerIdentitySection
 } from '../constants/pregnancy-sections/identity-sections';
 import {
+  createContraceptionSection,
   createPreviousPregnancySection,
   obstetricSummarySection
 } from '../constants/pregnancy-sections/history-sections';
-import { getActiveMedicalSections } from '../utils/medical-appointment';
+import {
+  calculateContraceptiveDuration,
+  getActiveMedicalSections
+} from '../utils/medical-appointment';
 import { getMedicalFlowDefinition } from '../constants/medical-appointment-schemas';
 
 describe('Medical Appointment Validation - Non-blocking Optional Fields', () => {
@@ -277,5 +284,209 @@ describe('Medical Appointment Validation - Non-blocking Optional Fields', () => 
     const oneSections = getActiveMedicalSections(definition!, oneParityValues);
     expect(oneSections.some((s) => s.id === 'obstetricGateway')).toBe(false);
     expect(oneSections.some((s) => s.id.startsWith('previousPregnancy'))).toBe(true);
+  });
+
+  it('should validate contraception start date and stop date boundaries', () => {
+    const contraceptionSection = createContraceptionSection(1);
+    const startDateField = contraceptionSection.fields.find((f) => f.id === 'contraception1StartDate')!;
+    const stopDateField = contraceptionSection.fields.find((f) => f.id === 'contraception1StopDate')!;
+
+    expect(startDateField).toBeDefined();
+    expect(stopDateField).toBeDefined();
+
+    const patientValues = {
+      motherBirthDate: '1995-04-12'
+    };
+
+    // 1. Empty values are valid (optional fields)
+    expect(isMedicalSectionValid(contraceptionSection, patientValues)).toBe(true);
+
+    // 2. Start date in the future (2099) is rejected
+    const futureStartSchema = getMedicalFieldValidationSchema(startDateField, 1995, {
+      ...patientValues,
+      contraception1StartDate: '2099-01-01'
+    });
+    const futureStartRes = futureStartSchema.safeParse('2099-01-01');
+    expect(futureStartRes.success).toBe(false);
+    expect(futureStartRes.error?.issues[0]?.message).toBe('Tanggal mulai KB tidak boleh di masa depan');
+
+    // 3. Start date before patient birth date (1990 < 1995) is rejected
+    const beforeBirthSchema = getMedicalFieldValidationSchema(startDateField, 1995, {
+      ...patientValues,
+      contraception1StartDate: '1990-01-01'
+    });
+    const beforeBirthRes = beforeBirthSchema.safeParse('1990-01-01');
+    expect(beforeBirthRes.success).toBe(false);
+    expect(beforeBirthRes.error?.issues[0]?.message).toBe(
+      'Tanggal mulai KB tidak boleh lebih awal dari tanggal lahir pasien'
+    );
+
+    // 4. Start date when patient is under 10 years old (1995 birth, 2000 start -> age 4/5) is rejected
+    const underAgeSchema = getMedicalFieldValidationSchema(startDateField, 1995, {
+      ...patientValues,
+      contraception1StartDate: '2000-01-01'
+    });
+    const underAgeRes = underAgeSchema.safeParse('2000-01-01');
+    expect(underAgeRes.success).toBe(false);
+    expect(underAgeRes.error?.issues[0]?.message).toBe('Usia saat mulai menggunakan KB minimal 10 tahun');
+
+    // 5. Stop date in the future is rejected
+    const futureStopSchema = getMedicalFieldValidationSchema(stopDateField, 1995, {
+      ...patientValues,
+      contraception1StopDate: '2099-01-01'
+    });
+    const futureStopRes = futureStopSchema.safeParse('2099-01-01');
+    expect(futureStopRes.success).toBe(false);
+    expect(futureStopRes.error?.issues[0]?.message).toBe('Tanggal lepas KB tidak boleh di masa depan');
+
+    // 6. Stop date earlier than start date (start: 2020-01-01, stop: 2018-01-01) is rejected
+    const invalidStopSchema = getMedicalFieldValidationSchema(stopDateField, 1995, {
+      ...patientValues,
+      contraception1StartDate: '2020-01-01',
+      contraception1StopDate: '2018-01-01'
+    });
+    const invalidStopRes = invalidStopSchema.safeParse('2018-01-01');
+    expect(invalidStopRes.success).toBe(false);
+    expect(invalidStopRes.error?.issues[0]?.message).toBe(
+      'Tanggal lepas KB tidak boleh lebih awal dari tanggal mulai pemakaian'
+    );
+
+    // 7. Start date later than stop date (start: 2022-01-01, stop: 2020-01-01) is rejected
+    const invalidStartSchema = getMedicalFieldValidationSchema(startDateField, 1995, {
+      ...patientValues,
+      contraception1StartDate: '2022-01-01',
+      contraception1StopDate: '2020-01-01'
+    });
+    const invalidStartRes = invalidStartSchema.safeParse('2022-01-01');
+    expect(invalidStartRes.success).toBe(false);
+    expect(invalidStartRes.error?.issues[0]?.message).toBe(
+      'Tanggal mulai KB tidak boleh melebihi tanggal lepas atau berhenti'
+    );
+
+    // 8. Valid start date and stop date pass validation
+    const validContraceptionValues = {
+      ...patientValues,
+      contraception1StartDate: '2018-05-10',
+      contraception1StopDate: '2021-06-20',
+      contraception1Type: 'Suntik 3 Bulan',
+      contraception1Duration: '3 tahun 1 bulan'
+    };
+    expect(isMedicalSectionValid(contraceptionSection, validContraceptionValues)).toBe(true);
+  });
+
+  it('should arrange contraception start and stop dates side-by-side with auto-calculated duration', () => {
+    const section = createContraceptionSection(1);
+    const fields = section.fields;
+
+    // Field 0: StartDate (colSpan: 1)
+    expect(fields[0].id).toBe('contraception1StartDate');
+    expect(fields[0].colSpan).toBe(1);
+
+    // Field 1: StopDate (colSpan: 1)
+    expect(fields[1].id).toBe('contraception1StopDate');
+    expect(fields[1].colSpan).toBe(1);
+
+    // Field 3: Duration (colSpan: 1, disabled for auto-calc)
+    expect(fields[3].id).toBe('contraception1Duration');
+    expect(fields[3].colSpan).toBe(1);
+    expect(fields[3].disabled).toBe(true);
+
+    // Test duration calculator
+    expect(calculateContraceptiveDuration('2020-01-01', '2021-01-01')).toBe('1 tahun');
+    expect(calculateContraceptiveDuration('2020-01-01', '2021-06-01')).toBe('1 tahun 5 bulan');
+    expect(calculateContraceptiveDuration('2020-01-01', '2020-07-01')).toBe('6 bulan');
+    expect(calculateContraceptiveDuration('2020-01-01', '2020-01-22')).toBe('3 minggu');
+    expect(calculateContraceptiveDuration('2020-01-01', '2020-01-06')).toBe('5 hari');
+    expect(calculateContraceptiveDuration('', '2020-01-01')).toBe('');
+    expect(calculateContraceptiveDuration('2021-01-01', '2020-01-01')).toBe('');
+  });
+
+  describe('Reusable Modal & Entry Validations', () => {
+    it('validateContraceptiveEntry should validate start and stop date boundaries dynamically', () => {
+      const motherBirth = '1998-05-15';
+
+      // 1. Valid entry
+      const valid = validateContraceptiveEntry(
+        { startDate: '2020-01-01', stopDate: '2021-01-01' },
+        motherBirth
+      );
+      expect(valid.isValid).toBe(true);
+
+      // 2. Future start date
+      const futureStart = validateContraceptiveEntry(
+        { startDate: '2099-01-01' },
+        motherBirth
+      );
+      expect(futureStart.isValid).toBe(false);
+      expect(futureStart.errors.startDate).toContain('tidak boleh di masa depan');
+
+      // 3. Start date before mother born
+      const beforeBirth = validateContraceptiveEntry(
+        { startDate: '1990-01-01' },
+        motherBirth
+      );
+      expect(beforeBirth.isValid).toBe(false);
+      expect(beforeBirth.errors.startDate).toContain('tidak boleh lebih awal dari tanggal lahir');
+
+      // 3b. User exact case: mother born 2004-08-23, input 1999-07-23 (23071999)
+      const userCase = validateContraceptiveEntry(
+        { startDate: '1999-07-23' },
+        '2004-08-23'
+      );
+      expect(userCase.isValid).toBe(false);
+      expect(userCase.errors.startDate).toBe('Tanggal mulai KB tidak boleh lebih awal dari tanggal lahir pasien');
+
+      // 4. Age < 10 years
+      const youngStart = validateContraceptiveEntry(
+        { startDate: '2005-01-01' },
+        motherBirth
+      );
+      expect(youngStart.isValid).toBe(false);
+      expect(youngStart.errors.startDate).toContain('minimal 10 tahun');
+
+      // 5. Stop date before start date
+      const inverted = validateContraceptiveEntry(
+        { startDate: '2021-01-01', stopDate: '2020-01-01' },
+        motherBirth
+      );
+      expect(inverted.isValid).toBe(false);
+      expect(inverted.errors.stopDate).toContain('tidak boleh lebih awal dari tanggal mulai');
+    });
+
+    it('validatePregnancyHistoryEntry should validate birth year dynamically', () => {
+      const motherBirth = '1998-05-15';
+
+      // 1. Valid birth year
+      const valid = validatePregnancyHistoryEntry({ birthYear: '2021' }, motherBirth);
+      expect(valid.isValid).toBe(true);
+
+      // 2. Future year
+      const future = validatePregnancyHistoryEntry({ birthYear: '2099' }, motherBirth);
+      expect(future.isValid).toBe(false);
+      expect(future.errors.birthYear).toContain('tidak boleh melebihi tahun saat ini');
+
+      // 3. Before mother born
+      const beforeBirth = validatePregnancyHistoryEntry({ birthYear: '1990' }, motherBirth);
+      expect(beforeBirth.isValid).toBe(false);
+      expect(beforeBirth.errors.birthYear).toContain('tidak boleh lebih awal dari tahun kelahiran');
+    });
+
+    it('validateImmunizationDateEntry should validate injection date against child birth date', () => {
+      const childBirth = '2024-01-10';
+
+      // 1. Valid date
+      const valid = validateImmunizationDateEntry('2024-02-15', childBirth);
+      expect(valid.isValid).toBe(true);
+
+      // 2. Future date
+      const future = validateImmunizationDateEntry('2099-01-01', childBirth);
+      expect(future.isValid).toBe(false);
+      expect(future.errors.injectionDate).toContain('tidak boleh di masa depan');
+
+      // 3. Before child born
+      const beforeBirth = validateImmunizationDateEntry('2023-12-01', childBirth);
+      expect(beforeBirth.isValid).toBe(false);
+      expect(beforeBirth.errors.injectionDate).toContain('tidak boleh lebih awal dari tanggal lahir anak');
+    });
   });
 });

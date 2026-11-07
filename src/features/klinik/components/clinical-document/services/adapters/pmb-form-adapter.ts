@@ -77,17 +77,24 @@ export function adaptToPmbFormData(
   const motherBlood = (m?.motherBloodType || p?.bloodType || '').toUpperCase();
   const partnerBlood = (m?.husbandProfile?.bloodType || m?.partnerBloodType || '').toUpperCase();
 
-  const rawHeight = m?.heightCm;
+  const formatMetricVal = (val: unknown): string => {
+    if (val === null || val === undefined || val === '') return '';
+    const num = typeof val === 'string' ? Number(val.replace(',', '.')) : Number(val);
+    if (!Number.isFinite(num)) return String(val);
+    return String(num);
+  };
+
+  const rawHeight = formatMetricVal(m?.heightCm);
   const tb = rawHeight ? `${rawHeight} cm` : '';
 
-  const rawWeight = m?.prePregnancyWeightKg;
+  const rawWeight = formatMetricVal(m?.prePregnancyWeightKg);
   const bbAwal = rawWeight ? `${rawWeight} kg` : '';
 
-  const rawLila = m?.upperArmCircumferenceCm;
+  const rawLila = formatMetricVal(m?.upperArmCircumferenceCm);
   const lila = rawLila ? `${rawLila} cm` : '';
 
-  const rawBmi = m?.initialBmi;
-  const imt = rawBmi ? String(rawBmi) : '';
+  const rawBmi = formatMetricVal(m?.initialBmi);
+  const imt = rawBmi ? `${rawBmi} kg/m²` : '';
 
   const tetanus = m?.tetanusStatus || '';
 

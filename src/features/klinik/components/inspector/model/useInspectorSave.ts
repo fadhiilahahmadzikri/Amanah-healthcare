@@ -31,6 +31,18 @@ import {
 import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
 
+function parseSafeClampedNumber(
+  val: unknown,
+  min: number,
+  max: number
+): number | null {
+  if (val === undefined || val === null || val === '') return null;
+  const normalized = typeof val === 'string' ? val.trim().replace(',', '.') : val;
+  const n = Number(normalized);
+  if (!Number.isFinite(n)) return null;
+  return Math.min(max, Math.max(min, n));
+}
+
 interface UseInspectorSaveParams {
   appointment: Appointment;
   parsedData: UnifiedInspectorData;
@@ -150,18 +162,10 @@ export function useInspectorSave({
         phoneNumber: formData.partnerPhone !== undefined ? (formData.partnerPhone.trim() || null) : undefined
       },
 
-      heightCm: formData.heightCm
-        ? Math.min(300, Math.max(0, Number(formData.heightCm)))
-        : undefined,
-      prePregnancyWeightKg: formData.prePregnancyWeightKg
-        ? Math.min(500, Math.max(0, Number(formData.prePregnancyWeightKg)))
-        : undefined,
-      upperArmCircumferenceCm: formData.upperArmCircumferenceCm
-        ? Math.min(150, Math.max(0, Number(formData.upperArmCircumferenceCm)))
-        : undefined,
-      initialBmi: formData.initialBmi
-        ? Math.min(150, Math.max(0, Number(formData.initialBmi)))
-        : undefined,
+      heightCm: parseSafeClampedNumber(formData.heightCm, 0, 300) ?? undefined,
+      prePregnancyWeightKg: parseSafeClampedNumber(formData.prePregnancyWeightKg, 0, 500) ?? undefined,
+      upperArmCircumferenceCm: parseSafeClampedNumber(formData.upperArmCircumferenceCm, 0, 150) ?? undefined,
+      initialBmi: parseSafeClampedNumber(formData.initialBmi, 0, 150) ?? undefined,
       tetanusStatus: formData.tetanusStatus || undefined,
       motherBloodType: formData.motherBloodType || undefined,
 
@@ -281,26 +285,10 @@ export function useInspectorSave({
       fever: e.fever || null,
       cough: e.cough || null,
       runnyNose: e.runnyNose || null,
-      weightKg:
-        e.weightKg !== undefined && e.weightKg !== null && e.weightKg !== ''
-          ? Math.min(150, Math.max(0.5, Number(e.weightKg)))
-          : null,
-      heightCm:
-        e.heightCm !== undefined && e.heightCm !== null && e.heightCm !== ''
-          ? Math.min(250, Math.max(20, Number(e.heightCm)))
-          : null,
-      headCircumferenceCm:
-        e.headCircumferenceCm !== undefined &&
-        e.headCircumferenceCm !== null &&
-        e.headCircumferenceCm !== ''
-          ? Math.min(100, Math.max(10, Number(e.headCircumferenceCm)))
-          : null,
-      temperatureCelsius:
-        e.temperatureCelsius !== undefined &&
-        e.temperatureCelsius !== null &&
-        e.temperatureCelsius !== ''
-          ? Math.min(45, Math.max(30, Number(e.temperatureCelsius)))
-          : null,
+      weightKg: parseSafeClampedNumber(e.weightKg, 0.5, 150),
+      heightCm: parseSafeClampedNumber(e.heightCm, 20, 250),
+      headCircumferenceCm: parseSafeClampedNumber(e.headCircumferenceCm, 10, 100),
+      temperatureCelsius: parseSafeClampedNumber(e.temperatureCelsius, 30, 45),
       planning: e.planning || null,
       notes: e.notes || null
     }));

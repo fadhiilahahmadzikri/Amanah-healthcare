@@ -66,7 +66,8 @@ export function validateImmunizationForm(
   const parseNumber = (val: unknown): number | null | undefined => {
     if (val === undefined) return undefined;
     if (val === null || val === '') return null;
-    const n = Number(val);
+    const normalized = typeof val === 'string' ? val.trim().replace(',', '.') : val;
+    const n = Number(normalized);
     return Number.isFinite(n) ? n : undefined;
   };
 

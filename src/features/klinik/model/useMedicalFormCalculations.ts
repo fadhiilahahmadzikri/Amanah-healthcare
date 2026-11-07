@@ -2,7 +2,11 @@
 
 import * as React from 'react';
 import type { MedicalAppointmentValues } from '../utils/medical-appointment';
-import { calculateAgeInYears, calculateBmi } from '../utils/medical-appointment';
+import {
+  calculateAgeInYears,
+  calculateBmi,
+  calculateContraceptiveDuration
+} from '../utils/medical-appointment';
 import {
   calculateEddFromLmp,
   calculateGestationalAge as calculateObstetricGestationalAge,
@@ -69,4 +73,35 @@ export function useMedicalFormCalculations({
       setFieldValue('gestationalAge', '');
     }
   }, [values.hpht, values.estimatedDueDate, values.gestationalAge, setFieldValue]);
+
+  React.useEffect(() => {
+    let cIdx = 1;
+    while (true) {
+      const startKey = `contraception${cIdx}StartDate`;
+      const stopKey = `contraception${cIdx}StopDate`;
+      const durKey = `contraception${cIdx}Duration`;
+
+      const hasStart = startKey in values;
+      const hasStop = stopKey in values;
+
+      if (!hasStart && !hasStop && cIdx > 1) {
+        break;
+      }
+
+      const startVal = values[startKey];
+      const stopVal = values[stopKey];
+
+      if (startVal && stopVal) {
+        const autoDuration = calculateContraceptiveDuration(startVal, stopVal);
+        if (autoDuration && values[durKey] !== autoDuration) {
+          setFieldValue(durKey, autoDuration);
+        }
+      } else if ((!startVal || !stopVal) && values[durKey]) {
+        setFieldValue(durKey, '');
+      }
+
+      cIdx++;
+      if (cIdx > 10) break;
+    }
+  }, [values, setFieldValue]);
 }

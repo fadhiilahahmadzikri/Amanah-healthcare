@@ -5,11 +5,11 @@ export function parsePureNumeric(value: unknown): number | null {
   if (typeof value !== 'string') {
     return null;
   }
-  const trimmed = value.trim();
+  const trimmed = value.trim().replace(',', '.');
   if (trimmed.length === 0) {
     return null;
   }
-  const parsed = Number.parseFloat(trimmed);
+  const parsed = Number(trimmed);
   return Number.isFinite(parsed) ? parsed : null;
 }
 

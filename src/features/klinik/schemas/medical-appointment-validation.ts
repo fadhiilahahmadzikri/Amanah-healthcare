@@ -352,6 +352,117 @@ export function getMedicalFieldValidationSchema(
           }
         }
       }
+
+      const isContraceptionStartDate =
+        /^contracepti(?:on|ve)\d*StartDate$/i.test(field.id) ||
+        (field.id.endsWith('StartDate') && field.id.toLowerCase().includes('contra'));
+
+      if (isContraceptionStartDate) {
+        if (dateObj > today) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Tanggal mulai KB tidak boleh di masa depan'
+          });
+          return;
+        }
+
+        const motherBirth = allValues?.['motherBirthDate'] || allValues?.['birthDate'];
+        if (motherBirth && isValidIsoDate(motherBirth)) {
+          const birthObj = new Date(motherBirth);
+          if (dateObj <= birthObj) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Tanggal mulai KB tidak boleh lebih awal dari tanggal lahir pasien'
+            });
+            return;
+          }
+
+          const minContraceptionDate = new Date(birthObj);
+          minContraceptionDate.setFullYear(minContraceptionDate.getFullYear() + 10);
+          if (dateObj < minContraceptionDate) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Usia saat mulai menggunakan KB minimal 10 tahun'
+            });
+            return;
+          }
+        } else if (effectiveBirthYear && !Number.isNaN(effectiveBirthYear)) {
+          if (dateObj.getFullYear() < effectiveBirthYear) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Tahun mulai KB tidak boleh lebih awal dari tahun kelahiran pasien (${effectiveBirthYear})`
+            });
+            return;
+          }
+          if (dateObj.getFullYear() < effectiveBirthYear + 10) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Usia saat mulai menggunakan KB minimal 10 tahun'
+            });
+            return;
+          }
+        }
+
+        const correspondingStopFieldId = field.id.replace(/StartDate$/i, 'StopDate');
+        const stopDateStr = allValues?.[correspondingStopFieldId];
+        if (stopDateStr && isValidIsoDate(stopDateStr)) {
+          const stopObj = new Date(stopDateStr);
+          if (dateObj > stopObj) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Tanggal mulai KB tidak boleh melebihi tanggal lepas atau berhenti'
+            });
+            return;
+          }
+        }
+      }
+
+      const isContraceptionStopDate =
+        /^contracepti(?:on|ve)\d*StopDate$/i.test(field.id) ||
+        (field.id.endsWith('StopDate') && field.id.toLowerCase().includes('contra'));
+
+      if (isContraceptionStopDate) {
+        if (dateObj > today) {
+          context.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'Tanggal lepas KB tidak boleh di masa depan'
+          });
+          return;
+        }
+
+        const motherBirth = allValues?.['motherBirthDate'] || allValues?.['birthDate'];
+        if (motherBirth && isValidIsoDate(motherBirth)) {
+          const birthObj = new Date(motherBirth);
+          if (dateObj <= birthObj) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Tanggal lepas KB tidak boleh lebih awal dari tanggal lahir pasien'
+            });
+            return;
+          }
+        } else if (effectiveBirthYear && !Number.isNaN(effectiveBirthYear)) {
+          if (dateObj.getFullYear() < effectiveBirthYear) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `Tahun lepas KB tidak boleh lebih awal dari tahun kelahiran pasien (${effectiveBirthYear})`
+            });
+            return;
+          }
+        }
+
+        const correspondingStartFieldId = field.id.replace(/StopDate$/i, 'StartDate');
+        const startDateStr = allValues?.[correspondingStartFieldId];
+        if (startDateStr && isValidIsoDate(startDateStr)) {
+          const startObj = new Date(startDateStr);
+          if (dateObj < startObj) {
+            context.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: 'Tanggal lepas KB tidak boleh lebih awal dari tanggal mulai pemakaian'
+            });
+            return;
+          }
+        }
+      }
     }
 
     if (
@@ -454,4 +565,149 @@ function isValidIsoDate(value: string): boolean {
   return (
     date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day
   );
+}
+
+export interface ContraceptiveValidationInput {
+  startDate?: string | null;
+  stopDate?: string | null;
+  contraceptiveType?: string | null;
+}
+
+export function validateContraceptiveEntry(
+  entry: ContraceptiveValidationInput,
+  motherBirthDate?: string | null
+): { isValid: boolean; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  let startObj: Date | null = null;
+  let stopObj: Date | null = null;
+
+  let birthDateObj: Date | null = null;
+  if (motherBirthDate && isValidIsoDate(motherBirthDate)) {
+    birthDateObj = new Date(motherBirthDate);
+  }
+
+  if (entry.startDate && entry.startDate.trim() !== '') {
+    if (!isValidIsoDate(entry.startDate)) {
+      errors.startDate = 'Format tanggal mulai KB tidak valid';
+    } else {
+      const d = new Date(entry.startDate);
+      startObj = d;
+      if (d > today) {
+        errors.startDate = 'Tanggal mulai KB tidak boleh di masa depan';
+      } else if (birthDateObj) {
+        if (d <= birthDateObj) {
+          errors.startDate = 'Tanggal mulai KB tidak boleh lebih awal dari tanggal lahir pasien';
+        } else {
+          const minStart = new Date(birthDateObj);
+          minStart.setFullYear(minStart.getFullYear() + 10);
+          if (d < minStart) {
+            errors.startDate = 'Usia saat mulai menggunakan KB minimal 10 tahun';
+          }
+        }
+      }
+    }
+  }
+
+  if (entry.stopDate && entry.stopDate.trim() !== '') {
+    if (!isValidIsoDate(entry.stopDate)) {
+      errors.stopDate = 'Format tanggal lepas KB tidak valid';
+    } else {
+      const d = new Date(entry.stopDate);
+      stopObj = d;
+      if (d > today) {
+        errors.stopDate = 'Tanggal lepas KB tidak boleh di masa depan';
+      } else if (birthDateObj && d <= birthDateObj) {
+        errors.stopDate = 'Tanggal lepas KB tidak boleh lebih awal dari tanggal lahir pasien';
+      }
+    }
+  }
+
+  if (startObj && stopObj && stopObj < startObj) {
+    errors.stopDate = 'Tanggal lepas KB tidak boleh lebih awal dari tanggal mulai pemakaian';
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+}
+
+export interface PreviousPregnancyValidationInput {
+  birthYear?: string | null;
+  birthWeightGrams?: string | number | null;
+  birthLengthCm?: string | number | null;
+}
+
+export function validatePregnancyHistoryEntry(
+  entry: PreviousPregnancyValidationInput,
+  motherBirthDate?: string | null
+): { isValid: boolean; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+
+  let birthYearNum: number | null = null;
+  if (motherBirthDate) {
+    const parsed = new Date(motherBirthDate).getFullYear();
+    if (!Number.isNaN(parsed)) {
+      birthYearNum = parsed;
+    }
+  }
+
+  if (entry.birthYear && entry.birthYear.trim() !== '') {
+    const yearError = validateQuestionnaireYear(entry.birthYear, birthYearNum);
+    if (yearError) {
+      errors.birthYear = yearError;
+    }
+  }
+
+  if (entry.birthWeightGrams !== undefined && entry.birthWeightGrams !== null && entry.birthWeightGrams !== '') {
+    const w = Number(String(entry.birthWeightGrams).replace(',', '.'));
+    if (Number.isNaN(w) || w < 0 || w > 30000) {
+      errors.birthWeightGrams = 'Berat lahir harus antara 0 - 30.000 gram';
+    }
+  }
+
+  if (entry.birthLengthCm !== undefined && entry.birthLengthCm !== null && entry.birthLengthCm !== '') {
+    const l = Number(String(entry.birthLengthCm).replace(',', '.'));
+    if (Number.isNaN(l) || l < 0 || l > 150) {
+      errors.birthLengthCm = 'Panjang lahir harus antara 0 - 150 cm';
+    }
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
+}
+
+export function validateImmunizationDateEntry(
+  injectionDate?: string | null,
+  childBirthDate?: string | null
+): { isValid: boolean; errors: Record<string, string> } {
+  const errors: Record<string, string> = {};
+  const today = new Date();
+  today.setHours(23, 59, 59, 999);
+
+  if (injectionDate && injectionDate.trim() !== '') {
+    if (!isValidIsoDate(injectionDate)) {
+      errors.injectionDate = 'Format tanggal suntik tidak valid';
+    } else {
+      const d = new Date(injectionDate);
+      if (d > today) {
+        errors.injectionDate = 'Tanggal suntik tidak boleh di masa depan';
+      } else if (childBirthDate && isValidIsoDate(childBirthDate)) {
+        const birthObj = new Date(childBirthDate);
+        if (d < birthObj) {
+          errors.injectionDate = 'Tanggal suntik tidak boleh lebih awal dari tanggal lahir anak';
+        }
+      }
+    }
+  }
+
+  return {
+    isValid: Object.keys(errors).length === 0,
+    errors
+  };
 }

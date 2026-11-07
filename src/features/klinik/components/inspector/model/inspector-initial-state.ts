@@ -31,9 +31,9 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
   return {
     medicalRecordNumber: parsedData.patient?.medicalRecordNumber || '',
     birthPlace: parsedData.patient?.birthPlace || '',
-    motherName: m?.motherName || '',
-    motherNik: m?.motherNik || '',
-    motherBirthDate: m?.motherBirthDate || '',
+    motherName: m?.motherName || parsedData.patient?.fullName || '',
+    motherNik: m?.motherNik || parsedData.patient?.nik || '',
+    motherBirthDate: m?.motherBirthDate || parsedData.patient?.birthDate || '',
     motherAge: m?.motherAge || '',
     marriageOrder: m?.marriageOrder ?? '',
     marriageDate: m?.marriageDate || '',

@@ -128,6 +128,59 @@ describe('Inspector Form Zod Validation', () => {
       });
       expect(res.isValid).toBe(true);
     });
+
+    it('should validate contraceptive history start and stop dates', () => {
+      // 1. Future start date rejected
+      const futureRes = validateMaternalForm({
+        motherName: 'Siti Aminah',
+        motherBirthDate: '1995-04-12',
+        currentComplaints: 'Kontrol rutin',
+        contraceptiveHistories: [
+          {
+            orderNumber: 1,
+            startDate: '2099-01-01',
+            contraceptiveType: 'Pil'
+          }
+        ]
+      });
+      expect(futureRes.isValid).toBe(false);
+      expect(futureRes.errors.contra_0_startDate).toBe('Tanggal mulai KB tidak boleh di masa depan');
+
+      // 2. Stop date earlier than start date rejected
+      const invertedRes = validateMaternalForm({
+        motherName: 'Siti Aminah',
+        motherBirthDate: '1995-04-12',
+        currentComplaints: 'Kontrol rutin',
+        contraceptiveHistories: [
+          {
+            orderNumber: 1,
+            startDate: '2021-01-01',
+            stopDate: '2020-01-01',
+            contraceptiveType: 'Pil'
+          }
+        ]
+      });
+      expect(invertedRes.isValid).toBe(false);
+      expect(invertedRes.errors.contra_0_stopDate).toBe(
+        'Tanggal lepas KB tidak boleh lebih awal dari tanggal mulai pemakaian'
+      );
+
+      // 3. Valid contraceptive history passes
+      const validRes = validateMaternalForm({
+        motherName: 'Siti Aminah',
+        motherBirthDate: '1995-04-12',
+        currentComplaints: 'Kontrol rutin',
+        contraceptiveHistories: [
+          {
+            orderNumber: 1,
+            startDate: '2018-01-01',
+            stopDate: '2020-01-01',
+            contraceptiveType: 'Pil'
+          }
+        ]
+      });
+      expect(validRes.isValid).toBe(true);
+    });
   });
 
   describe('validateImmunizationForm', () => {

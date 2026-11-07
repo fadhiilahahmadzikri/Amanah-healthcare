@@ -1,8 +1,10 @@
 'use client';
 
 import * as React from 'react';
+import { Pencil } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { MilestoneStatusBadge } from '../../atoms/milestone-status-badge';
-import { MilestoneRowEditor } from '../../molecules/milestone-row-editor';
+import { MilestoneEntryModal } from '../milestone-entry-modal';
 import { CANONICAL_IMMUNIZATION_ROWS } from '../../../constants/immunization.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import type { ImmunizationClinicalEntry } from '../../../types/immunization.types';
@@ -11,14 +13,17 @@ export interface ImmunizationMilestoneTrajectorySectionProps {
   entries: ImmunizationClinicalEntry[];
   isEditing?: boolean;
   onEntriesChange?: (updated: ImmunizationClinicalEntry[]) => void;
+  childBirthDate?: string | null;
 }
 
 export function ImmunizationMilestoneTrajectorySection({
   entries,
   isEditing = false,
-  onEntriesChange
+  onEntriesChange,
+  childBirthDate
 }: ImmunizationMilestoneTrajectorySectionProps) {
-  const [activeEditingIndex, setActiveEditingIndex] = React.useState<number | null>(null);
+  const [modalEntry, setModalEntry] = React.useState<ImmunizationClinicalEntry | null>(null);
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
 
   // Map entries by rowIndex (0-14)
   const entriesMap = React.useMemo(() => {
@@ -41,6 +46,21 @@ export function ImmunizationMilestoneTrajectorySection({
     onEntriesChange(newEntries);
   };
 
+  const handleOpenEdit = (entry: ImmunizationClinicalEntry) => {
+    setModalEntry(entry);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setModalEntry(null);
+  };
+
+  const handleSaveModal = (updated: ImmunizationClinicalEntry) => {
+    handleUpdateEntry(updated);
+    handleCloseModal();
+  };
+
   return (
     <div className='flex-1 min-h-0 flex flex-col space-y-2 pt-1 font-sans h-full'>
       {/* Header Kolom Trajektori */}
@@ -51,6 +71,7 @@ export function ImmunizationMilestoneTrajectorySection({
         <span className='min-w-[180px] shrink-0'>Pemeriksaan Fisik</span>
         <span className='flex-1 min-w-0'>Planning / Catatan</span>
         <span className='shrink-0 ml-auto text-right w-28'>Status</span>
+        {isEditing && <span className='shrink-0 w-10 text-center'>Aksi</span>}
       </div>
 
       {CANONICAL_IMMUNIZATION_ROWS.map((milestone) => {
@@ -62,24 +83,14 @@ export function ImmunizationMilestoneTrajectorySection({
             status: 'NOT_GIVEN' as const
           };
 
-        const isExpanded = activeEditingIndex === milestone.rowIndex;
         const hasPhysical = Boolean(entry.weightKg || entry.heightCm || entry.temperatureCelsius);
 
         return (
           <div
             key={milestone.rowIndex}
-            className='rounded-xl border border-border/60 bg-card overflow-hidden shadow-2xs transition-all'
+            className='rounded-xl border border-border/60 bg-card overflow-hidden shadow-2xs transition-all hover:bg-muted/10'
           >
-            <div
-              onClick={() => {
-                if (isEditing) {
-                  setActiveEditingIndex(isExpanded ? null : milestone.rowIndex);
-                }
-              }}
-              className={`flex flex-wrap sm:flex-nowrap items-center gap-3 p-3.5 select-none ${
-                isEditing ? 'cursor-pointer hover:bg-muted/30' : ''
-              }`}
-            >
+            <div className='flex flex-wrap sm:flex-nowrap items-center gap-3 p-3.5 select-none'>
               {/* Col 1: Nomor */}
               <span className='flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary'>
                 {milestone.rowIndex + 1}
@@ -133,19 +144,34 @@ export function ImmunizationMilestoneTrajectorySection({
               <div className='shrink-0 ml-auto'>
                 <MilestoneStatusBadge status={entry.status} />
               </div>
-            </div>
 
-            {isExpanded && isEditing && (
-              <div className='border-t border-border/50 p-3.5 bg-muted/20 animate-in slide-in-from-top-2 duration-150'>
-                <MilestoneRowEditor
-                  entry={entry}
-                  onChange={(updated) => handleUpdateEntry(updated)}
-                />
-              </div>
-            )}
+              {/* Col 7: Aksi */}
+              {isEditing && (
+                <div className='shrink-0 w-10 flex items-center justify-center'>
+                  <Button
+                    type='button'
+                    variant='ghost'
+                    size='icon'
+                    onClick={() => handleOpenEdit(entry)}
+                    className='size-7 text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer'
+                    title={`Edit ${milestone.vaccineName}`}
+                  >
+                    <Pencil className='size-3.5' />
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         );
       })}
+
+      <MilestoneEntryModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        entry={modalEntry}
+        onSave={handleSaveModal}
+        childBirthDate={childBirthDate}
+      />
     </div>
   );
 }

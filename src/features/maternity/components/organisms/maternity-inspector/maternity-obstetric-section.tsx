@@ -139,17 +139,6 @@ export function MaternityObstetricSection({
           </div>
         </div>
 
-        {/* Riwayat Kehamilan Lalu Table */}
-        <div className='pt-1 flex-1 min-h-0 flex flex-col'>
-          <PregnancyHistoryTable
-            items={previousPregnancies}
-            isEditing={isEditing}
-            onChange={onPreviousPregnanciesChange}
-            validationErrors={validationErrors}
-            onClearError={onClearError}
-          />
-        </div>
-
         {/* Keluhan Saat Ini */}
         <div className='shrink-0'>
           <PatientLineTextarea
@@ -163,6 +152,18 @@ export function MaternityObstetricSection({
             error={validationErrors?.currentComplaints}
             invalid={Boolean(validationErrors?.currentComplaints)}
             placeholder='Keluhan fisik atau masalah yang dirasakan ibu saat ini...'
+          />
+        </div>
+
+        {/* Riwayat Kehamilan Lalu Table */}
+        <div className='pt-1 flex-1 min-h-0 flex flex-col'>
+          <PregnancyHistoryTable
+            items={previousPregnancies}
+            isEditing={isEditing}
+            onChange={onPreviousPregnanciesChange}
+            validationErrors={validationErrors}
+            onClearError={onClearError}
+            motherBirthDate={intake?.motherBirthDate}
           />
         </div>
       </div>
@@ -228,14 +229,6 @@ export function MaternityObstetricSection({
         </div>
       </div>
 
-      {/* Riwayat Kehamilan Lalu Table */}
-      <div className='pt-1 flex-1 min-h-0 flex flex-col'>
-        <PregnancyHistoryTable
-          items={previousPregnancies}
-          isEditing={false}
-        />
-      </div>
-
       {/* Keluhan Saat Ini */}
       <div className='shrink-0'>
         <PatientLineTextarea
@@ -243,6 +236,14 @@ export function MaternityObstetricSection({
           label='Keluhan Utama Saat Ini'
           value={intake?.currentComplaints || ''}
           readOnly
+        />
+      </div>
+
+      {/* Riwayat Kehamilan Lalu Table */}
+      <div className='pt-1 flex-1 min-h-0 flex flex-col'>
+        <PregnancyHistoryTable
+          items={previousPregnancies}
+          isEditing={false}
         />
       </div>
     </div>

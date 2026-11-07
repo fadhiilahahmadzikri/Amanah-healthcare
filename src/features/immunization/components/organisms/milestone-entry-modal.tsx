@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MilestoneRowEditor } from '../molecules/milestone-row-editor';
+import { validateImmunizationDateEntry } from '@/features/klinik/schemas/medical-appointment-validation';
 import type { ImmunizationClinicalEntry } from '../../types/immunization.types';
 
 export interface MilestoneEntryModalProps {
@@ -18,6 +19,7 @@ export interface MilestoneEntryModalProps {
   entry: ImmunizationClinicalEntry | null;
   onSave: (entry: ImmunizationClinicalEntry) => void;
   isSaving?: boolean;
+  childBirthDate?: string | null;
 }
 
 export function MilestoneEntryModal({
@@ -25,15 +27,45 @@ export function MilestoneEntryModal({
   onClose,
   entry,
   onSave,
-  isSaving = false
+  isSaving = false,
+  childBirthDate
 }: MilestoneEntryModalProps) {
   const [draft, setDraft] = React.useState<ImmunizationClinicalEntry | null>(entry);
+  const [dateError, setDateError] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     setDraft(entry);
+    setDateError(null);
   }, [entry]);
 
   if (!draft) return null;
+
+  const handleEntryChange = (updated: ImmunizationClinicalEntry) => {
+    setDraft(updated);
+    if (updated.injectionDate) {
+      const res = validateImmunizationDateEntry(updated.injectionDate, childBirthDate);
+      if (!res.isValid && res.errors.injectionDate) {
+        setDateError(res.errors.injectionDate);
+      } else {
+        setDateError(null);
+      }
+    } else {
+      setDateError(null);
+    }
+  };
+
+  const handleSave = () => {
+    if (!draft) return;
+    if (draft.injectionDate) {
+      const res = validateImmunizationDateEntry(draft.injectionDate, childBirthDate);
+      if (!res.isValid && res.errors.injectionDate) {
+        setDateError(res.errors.injectionDate);
+        return;
+      }
+    }
+    setDateError(null);
+    onSave(draft);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -47,8 +79,9 @@ export function MilestoneEntryModal({
         <div className='py-2'>
           <MilestoneRowEditor
             entry={draft}
-            onChange={(updated) => setDraft(updated)}
+            onChange={handleEntryChange}
             disabled={isSaving}
+            dateError={dateError}
           />
         </div>
 
@@ -65,7 +98,7 @@ export function MilestoneEntryModal({
           <Button
             type='button'
             size='sm'
-            onClick={() => draft && onSave(draft)}
+            onClick={handleSave}
             disabled={isSaving}
             className='font-semibold'
           >

@@ -60,7 +60,7 @@ export function MedicalSchemaField({
     schemaField.colSpan === 'full' ||
     schemaField.colSpan === 2 ||
     schemaField.type === 'PARAGRAPH' ||
-    schemaField.type === 'DATE';
+    (schemaField.type === 'DATE' && schemaField.colSpan !== 1);
   const colSpanClass = isColSpanFull ? 'col-span-1 sm:col-span-2' : 'col-span-1';
   const animationClass = schemaField.visibleIf
     ? 'animate-in fade-in slide-in-from-top-2 duration-300'
@@ -234,12 +234,16 @@ export function MedicalSchemaField({
     );
   }
 
+  const isContraceptionDuration =
+    schemaField.id.endsWith('Duration') && schemaField.id.toLowerCase().includes('contra');
+
   if (
     schemaField.id === 'initialBmi' ||
     schemaField.id === 'motherAge' ||
     schemaField.id === 'partnerAge' ||
     schemaField.id === 'estimatedDueDate' ||
-    schemaField.id === 'gestationalAge'
+    schemaField.id === 'gestationalAge' ||
+    isContraceptionDuration
   ) {
     return (
       <PatientLineInput

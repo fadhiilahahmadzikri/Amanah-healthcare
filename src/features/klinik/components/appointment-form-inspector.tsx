@@ -113,9 +113,18 @@ export function AppointmentFormInspector({
 
   const activeMaternityIntake = React.useMemo<MaternityIntake | null>(() => {
     if (!isPregnancy || !parsedData.maternal) return null;
+    const resolvedMotherBirthDate =
+      (isEditing ? formData.motherBirthDate : null) ||
+      parsedData.maternal.motherBirthDate ||
+      parsedData.patient?.birthDate ||
+      null;
+
     if (!isEditing) {
       return {
         ...parsedData.maternal,
+        motherBirthDate: resolvedMotherBirthDate,
+        motherName: parsedData.maternal.motherName || parsedData.patient?.fullName || '',
+        motherNik: parsedData.maternal.motherNik || parsedData.patient?.nik || '',
         line1: parsedData.maternal.line1 || parsedData.patient?.line1 || null,
         provinceName: parsedData.maternal.provinceName || parsedData.patient?.provinceName || null,
         provinceCode: parsedData.maternal.provinceCode || parsedData.patient?.provinceCode || null,
@@ -133,6 +142,7 @@ export function AppointmentFormInspector({
     return {
       ...parsedData.maternal,
       ...formData,
+      motherBirthDate: resolvedMotherBirthDate,
       husbandProfile: {
         ...parsedData.maternal.husbandProfile,
         fullName: formData.partnerName || '',
@@ -149,14 +159,24 @@ export function AppointmentFormInspector({
 
   const activeChildIntake = React.useMemo(() => {
     if (!isImmunization || !parsedData.child) return null;
+    const resolvedChildBirthDate =
+      (isEditing ? immunizationFormData.childBirthDate : null) ||
+      (parsedData.child as any).childBirthDate ||
+      parsedData.patient?.birthDate ||
+      null;
+
     if (!isEditing) {
-      return parsedData.child as any;
+      return {
+        ...parsedData.child,
+        childBirthDate: resolvedChildBirthDate
+      } as any;
     }
     return {
       ...parsedData.child,
-      ...immunizationFormData
+      ...immunizationFormData,
+      childBirthDate: resolvedChildBirthDate
     } as any;
-  }, [isImmunization, isEditing, parsedData.child, immunizationFormData]);
+  }, [isImmunization, isEditing, parsedData.child, parsedData.patient, immunizationFormData]);
 
   const activeUnifiedData = React.useMemo<typeof parsedData>(() => {
     const activePatient = parsedData.patient

@@ -363,7 +363,8 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
   const parseNumber = (val: unknown): number | null | undefined => {
     if (val === undefined) return undefined;
     if (val === null || val === '') return null;
-    const n = Number(val);
+    const normalized = typeof val === 'string' ? val.trim().replace(',', '.') : val;
+    const n = Number(normalized);
     return Number.isFinite(n) ? n : undefined;
   };
 
@@ -434,6 +435,13 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
         if (!errors.previousPregnancies) {
           errors.previousPregnancies = issue.message;
         }
+      } else if (field === 'contraceptiveHistories' && issue.path.length >= 3) {
+        const index = issue.path[1] as number;
+        const subfield = issue.path[2] as string;
+        errors[`contra_${index}_${subfield}`] = issue.message;
+        if (!errors.contraceptiveHistories) {
+          errors.contraceptiveHistories = issue.message;
+        }
       } else if (field && !errors[field]) {
         errors[field] = issue.message;
       }
@@ -459,6 +467,78 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
         }
       }
     }
+  }
+
+  // Cross-field validation: contraceptiveHistories dates
+  if (data.contraceptiveHistories && Array.isArray(data.contraceptiveHistories)) {
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    data.contraceptiveHistories.forEach((c, index) => {
+      let startObj: Date | null = null;
+      let stopObj: Date | null = null;
+
+      if (c.startDate && c.startDate.trim() !== '') {
+        const d = new Date(c.startDate);
+        if (isNaN(d.getTime())) {
+          errors[`contra_${index}_startDate`] = 'Format tanggal mulai KB tidak valid';
+          if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_startDate`];
+        } else {
+          startObj = d;
+          if (d > today) {
+            errors[`contra_${index}_startDate`] = 'Tanggal mulai KB tidak boleh di masa depan';
+            if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_startDate`];
+          } else if (data.motherBirthDate && data.motherBirthDate.trim() !== '') {
+            const bDate = new Date(data.motherBirthDate);
+            if (!isNaN(bDate.getTime())) {
+              if (d <= bDate) {
+                errors[`contra_${index}_startDate`] =
+                  'Tanggal mulai KB tidak boleh lebih awal dari tanggal lahir pasien';
+                if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_startDate`];
+              } else {
+                const minStart = new Date(bDate);
+                minStart.setFullYear(minStart.getFullYear() + 10);
+                if (d < minStart) {
+                  errors[`contra_${index}_startDate`] =
+                    'Usia saat mulai menggunakan KB minimal 10 tahun';
+                  if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_startDate`];
+                }
+              }
+            }
+          } else if (birthYear && d.getFullYear() < birthYear + 10) {
+            errors[`contra_${index}_startDate`] = 'Usia saat mulai menggunakan KB minimal 10 tahun';
+            if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_startDate`];
+          }
+        }
+      }
+
+      if (c.stopDate && c.stopDate.trim() !== '') {
+        const d = new Date(c.stopDate);
+        if (isNaN(d.getTime())) {
+          errors[`contra_${index}_stopDate`] = 'Format tanggal lepas KB tidak valid';
+          if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_stopDate`];
+        } else {
+          stopObj = d;
+          if (d > today) {
+            errors[`contra_${index}_stopDate`] = 'Tanggal lepas KB tidak boleh di masa depan';
+            if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_stopDate`];
+          } else if (data.motherBirthDate && data.motherBirthDate.trim() !== '') {
+            const bDate = new Date(data.motherBirthDate);
+            if (!isNaN(bDate.getTime()) && d <= bDate) {
+              errors[`contra_${index}_stopDate`] =
+                'Tanggal lepas KB tidak boleh lebih awal dari tanggal lahir pasien';
+              if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_stopDate`];
+            }
+          }
+        }
+      }
+
+      if (startObj && stopObj && stopObj < startObj) {
+        errors[`contra_${index}_stopDate`] =
+          'Tanggal lepas KB tidak boleh lebih awal dari tanggal mulai pemakaian';
+        if (!errors.contraceptiveHistories) errors.contraceptiveHistories = errors[`contra_${index}_stopDate`];
+      }
+    });
   }
 
   if (Object.keys(errors).length > 0) {
