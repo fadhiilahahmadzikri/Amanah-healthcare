@@ -5,6 +5,7 @@ import type {
   MaternityIntake,
   MaternalHusbandProfile
 } from '../../../types/maternity.types';
+import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { MaternityMotherIdentityFields } from './maternity-mother-identity-fields';
 import { MaternityPartnerIdentityFields } from './maternity-partner-identity-fields';
 
@@ -13,6 +14,8 @@ export interface MaternityIdentitySectionProps {
   isEditing?: boolean;
   onIntakeFieldChange?: (field: keyof MaternityIntake, value: any) => void;
   onHusbandFieldChange?: (field: keyof MaternalHusbandProfile, value: any) => void;
+  regionValues?: PatientRegionValues;
+  onRegionChange?: (updates: Partial<PatientRegionValues>) => void;
   validationErrors?: Record<string, string>;
   onClearError?: (field: string) => void;
   religionOptions: string[];
@@ -26,6 +29,8 @@ export function MaternityIdentitySection({
   isEditing = false,
   onIntakeFieldChange,
   onHusbandFieldChange,
+  regionValues,
+  onRegionChange,
   validationErrors,
   onClearError,
   religionOptions,
@@ -44,6 +49,8 @@ export function MaternityIdentitySection({
         intake={intake}
         isEditing={isEditing}
         onIntakeFieldChange={onIntakeFieldChange}
+        regionValues={regionValues}
+        onRegionChange={onRegionChange}
         validationErrors={validationErrors}
         onClearError={onClearError}
         religionOptions={religionOptions}

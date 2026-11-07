@@ -122,6 +122,15 @@ export interface EditableMaternalData {
   phoneNumber: string;
   domicileAddress: string;
   identityCardAddress: string;
+  line1?: string;
+  villageName?: string;
+  villageCode?: string;
+  districtName?: string;
+  districtCode?: string;
+  regencyName?: string;
+  regencyCode?: string;
+  provinceName?: string;
+  provinceCode?: string;
   dasawisma: string;
   posyandu: string;
   puskesmas: string;

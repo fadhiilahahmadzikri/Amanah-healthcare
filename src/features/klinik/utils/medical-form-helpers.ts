@@ -44,6 +44,15 @@ export function buildRegistrationPrefill(
   const domicileAddress =
     patient.domicileAddress || patient.address || patient.line1 || '';
   const identityCardAddress = patient.identityCardAddress || '';
+  const line1 = patient.line1 || patient.domicileAddress || patient.address || '';
+  const provinceName = patient.provinceName || '';
+  const provinceCode = patient.provinceCode || '';
+  const regencyName = patient.regencyName || '';
+  const regencyCode = patient.regencyCode || '';
+  const districtName = patient.districtName || '';
+  const districtCode = patient.districtCode || '';
+  const villageName = patient.villageName || '';
+  const villageCode = patient.villageCode || '';
 
   const result: Record<string, string> = {
     fullName: patient.fullName,
@@ -54,6 +63,15 @@ export function buildRegistrationPrefill(
     phoneNumber: phone,
     domicileAddress,
     identityCardAddress,
+    line1,
+    provinceName,
+    provinceCode,
+    regencyName,
+    regencyCode,
+    districtName,
+    districtCode,
+    villageName,
+    villageCode
   };
 
   if (flow === 'pregnancy') {
@@ -232,12 +250,34 @@ export function pickMedicalValues(
   activeSections: MedicalFormSection[],
   values: MedicalAppointmentValues
 ): MedicalAppointmentValues {
-  return activeSections.reduce<MedicalAppointmentValues>((acc, section) => {
+  const picked = activeSections.reduce<MedicalAppointmentValues>((acc, section) => {
     section.fields.forEach((field) => {
       acc[field.id] = values[field.id] || '';
     });
     return acc;
   }, {});
+
+  const extraKeys = [
+    'line1',
+    'villageName',
+    'villageCode',
+    'districtName',
+    'districtCode',
+    'regencyName',
+    'regencyCode',
+    'provinceName',
+    'provinceCode',
+    'domicileAddress',
+    'identityCardAddress',
+    'partnerPhone'
+  ];
+  extraKeys.forEach((key) => {
+    if (values[key] !== undefined && values[key] !== null && values[key] !== '') {
+      picked[key] = values[key];
+    }
+  });
+
+  return picked;
 }
 
 export function collectAnsweredFieldsFromSections(

@@ -13,6 +13,7 @@ import {
 } from '../constants/pregnancy-sections/clinical-sections';
 import {
   domicileHealthCoverageSection,
+  motherDomicileSection,
   motherIdentitySection,
   partnerIdentitySection
 } from '../constants/pregnancy-sections/identity-sections';
@@ -33,6 +34,12 @@ describe('Medical Appointment Validation - Non-blocking Optional Fields', () => 
   it('should allow domicile and health coverage section to be valid when empty', () => {
     const emptyValues = {};
     const isValid = isMedicalSectionValid(domicileHealthCoverageSection, emptyValues);
+    expect(isValid).toBe(true);
+  });
+
+  it('should allow mother domicile section to be valid when empty initially', () => {
+    const emptyValues = {};
+    const isValid = isMedicalSectionValid(motherDomicileSection, emptyValues);
     expect(isValid).toBe(true);
   });
 
@@ -118,12 +125,29 @@ describe('Medical Appointment Validation - Non-blocking Optional Fields', () => 
     };
     expect(isMedicalSectionValid(currentPregnancySection, futureValues)).toBe(false);
 
-    // 4. HPHT validly after birth date and not in the future
+    // 4. HPHT validly after birth date and not in the future with mandatory complaint
     const validHphtValues = {
       motherBirthDate: '1995-04-12',
-      hpht: '2025-11-01'
+      hpht: '2025-11-01',
+      currentComplaints: 'Mual ringan di pagi hari'
     };
     expect(isMedicalSectionValid(currentPregnancySection, validHphtValues)).toBe(true);
+  });
+
+  it('should enforce currentComplaints in currentPregnancySection', () => {
+    const withoutComplaints = {
+      motherBirthDate: '1995-04-12',
+      hpht: '2025-11-01',
+      currentComplaints: ''
+    };
+    expect(isMedicalSectionValid(currentPregnancySection, withoutComplaints)).toBe(false);
+
+    const withComplaints = {
+      motherBirthDate: '1995-04-12',
+      hpht: '2025-11-01',
+      currentComplaints: 'Mual dan pusing'
+    };
+    expect(isMedicalSectionValid(currentPregnancySection, withComplaints)).toBe(true);
   });
 
   it('should validate questionnaire disease history year with inline error helper', () => {

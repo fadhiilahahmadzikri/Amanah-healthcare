@@ -46,9 +46,20 @@ describe('Inspector Form Zod Validation', () => {
         motherName: 'Siti Aminah',
         motherNik: '3201234567890001',
         partnerNik: '3201234567890002',
-        phoneNumber: '081234567890'
+        phoneNumber: '081234567890',
+        currentComplaints: 'Mual dan muntah ringan di pagi hari'
       });
       expect(res.isValid).toBe(true);
+    });
+
+    it('should reject empty currentComplaints', () => {
+      const res = validateMaternalForm({
+        motherName: 'Siti Aminah',
+        motherNik: '3201234567890001',
+        currentComplaints: ''
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.currentComplaints).toBe('Keluhan saat ini wajib diisi');
     });
 
     it('should reject motherNik with letters or wrong length', () => {
@@ -112,7 +123,8 @@ describe('Inspector Form Zod Validation', () => {
         parityCount: 1,
         abortionCount: 0,
         livingChildrenCount: 0,
-        gestationalAgeWeeks: 323
+        gestationalAgeWeeks: 323,
+        currentComplaints: 'Pusing dan lemas'
       });
       expect(res.isValid).toBe(true);
     });

@@ -43,10 +43,27 @@ export function adaptToPmbFormData(
     : '';
   const partnerJob = isFieldActive('partnerJob') ? (m?.husbandProfile?.job || m?.partnerJob || '') : '';
   const partnerEducation = isFieldActive('partnerEducation') ? (m?.husbandProfile?.education || m?.partnerEducation || '') : '';
+  const partnerPhone = isFieldActive('partnerPhone') ? (m?.husbandProfile?.phoneNumber || '') : '';
+
+  const resolvedDomicileAddress = (() => {
+    const l1 = m?.line1 || p?.line1;
+    const vill = m?.villageName || p?.villageName;
+    const dist = m?.districtName || p?.districtName;
+    const reg = m?.regencyName || p?.regencyName;
+    const prov = m?.provinceName || p?.provinceName;
+    const parts = [
+      l1,
+      vill ? `Kel. ${vill}` : '',
+      dist ? `Kec. ${dist}` : '',
+      reg,
+      prov ? `Prov. ${prov}` : ''
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : (m?.domicileAddress || p?.address || '');
+  })();
 
   const fullRows = [
     isFieldActive('religion') ? (m?.religion || '') : '',
-    isFieldActive('domicileAddress') ? (m?.domicileAddress || p?.address || '') : '',
+    isFieldActive('domicileAddress') ? resolvedDomicileAddress : '',
     isFieldActive('identityCardAddress') ? (m?.identityCardAddress || p?.address || '') : '',
     isFieldActive('phoneNumber') ? (m?.phoneNumber || p?.phone || '') : ''
   ];
@@ -185,7 +202,7 @@ export function adaptToPmbFormData(
         [motherNik, motherBirthDate, motherJob],
         [partnerName, motherAge, motherEducation],
         [partnerNik, partnerBirthDate, partnerJob],
-        ['', partnerAge, partnerEducation]
+        [partnerPhone, partnerAge, partnerEducation]
       ],
       fullRowValues: fullRows,
       locationValues,

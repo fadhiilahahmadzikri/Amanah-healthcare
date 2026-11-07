@@ -133,7 +133,8 @@ export async function exportPmbExcel(
     ['Agama', fullRows[0] || ''],
     ['Alamat Domisili', fullRows[1] || ''],
     ['Alamat KTP', fullRows[2] || ''],
-    ['Nomor Telepon / WA', fullRows[3] || '']
+    ['Nomor Telepon / WA', fullRows[3] || ''],
+    ['Nomor Telepon Suami', topRows[4]?.[0] || '']
   ];
 
   fullFieldRows.forEach((item) => {

@@ -36,8 +36,34 @@ export function getMaternalPatientDiff(
   if (formData.phoneNumber !== initialMaternal.phoneNumber) {
     diffPayload.phone = formData.phoneNumber?.trim() || undefined;
   }
-  if (formData.domicileAddress !== initialMaternal.domicileAddress) {
+  if (formData.line1 !== initialMaternal.line1) {
+    diffPayload.line1 = formData.line1 ? formData.line1.trim() : '';
+  } else if (formData.domicileAddress !== initialMaternal.domicileAddress) {
     diffPayload.line1 = formData.domicileAddress?.trim() || undefined;
+  }
+  if (formData.provinceName !== initialMaternal.provinceName) {
+    diffPayload.province_name = formData.provinceName || undefined;
+  }
+  if (formData.provinceCode !== initialMaternal.provinceCode) {
+    diffPayload.province_code = formData.provinceCode || undefined;
+  }
+  if (formData.regencyName !== initialMaternal.regencyName) {
+    diffPayload.regency_name = formData.regencyName || undefined;
+  }
+  if (formData.regencyCode !== initialMaternal.regencyCode) {
+    diffPayload.regency_code = formData.regencyCode || undefined;
+  }
+  if (formData.districtName !== initialMaternal.districtName) {
+    diffPayload.district_name = formData.districtName || undefined;
+  }
+  if (formData.districtCode !== initialMaternal.districtCode) {
+    diffPayload.district_code = formData.districtCode || undefined;
+  }
+  if (formData.villageName !== initialMaternal.villageName) {
+    diffPayload.village_name = formData.villageName || undefined;
+  }
+  if (formData.villageCode !== initialMaternal.villageCode) {
+    diffPayload.village_code = formData.villageCode || undefined;
   }
 
   return diffPayload;

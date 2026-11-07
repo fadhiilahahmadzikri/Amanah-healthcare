@@ -106,7 +106,7 @@ export interface MedicalFormSection {
   title: string;
   description: string;
   fields: MedicalFormField[];
-  layout?: 'grid' | 'stack' | 'questionnaire' | 'table';
+  layout?: 'grid' | 'stack' | 'questionnaire' | 'table' | 'region';
   repeatableGroup?: string;
   tableConfig?: TableConfig;
 }
@@ -299,7 +299,7 @@ export interface FormJsonStep {
   id: string;
   title: string;
   description?: string;
-  layout?: 'grid' | 'stack' | 'questionnaire' | 'table';
+  layout?: 'grid' | 'stack' | 'questionnaire' | 'table' | 'region';
   repeatableGroup?: string;
   tableConfig?: TableConfig;
   fields: FormJsonField[];

@@ -7,6 +7,7 @@ import {
   TEXT,
   bloodTypeChoices,
   diseaseStatusFields,
+  field,
   optionalField,
   tetanusChoices,
   yesNoChoices,
@@ -75,10 +76,11 @@ export const currentPregnancySection: MedicalFormSection = {
       colSpan: 1,
       disabled: true
     }),
-    optionalField('currentComplaints', PARAGRAPH, 'Keluhan yang dirasakan sekarang', 'Keluhan', {
-      helpText: 'Contoh: mual, pusing, cepat lelah, nyeri perut, atau tulis Tidak ada.',
-      placeholder: 'Tuliskan keluhan yang dirasakan, atau tulis Tidak ada...',
-      colSpan: 'full'
+    field('currentComplaints', PARAGRAPH, 'Keluhan yang dirasakan sekarang', 'Keluhan', {
+      helpText: 'Contoh: mual, pusing, cepat lelah, nyeri perut, atau keluhan lainnya.',
+      placeholder: 'Tuliskan keluhan yang dirasakan...',
+      colSpan: 'full',
+      required: true
     })
   ]
 };

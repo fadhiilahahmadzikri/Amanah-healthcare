@@ -11,6 +11,11 @@ import {
   buildInitialImmunizationData,
   buildInitialRegularData
 } from './inspector-initial-state';
+import {
+  validateMaternalForm,
+  validateRegularForm,
+  validateImmunizationForm
+} from '../../../validations/inspector-form.schema';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
 
 interface UseInspectorEditStateParams {
@@ -75,14 +80,51 @@ export function useInspectorEditState({
 
   const handleFieldChange = React.useCallback(
     (field: keyof EditableMaternalData, value: any) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value
-      }));
-      setValidationErrors((prev) => {
-        if (!prev[field as string]) return prev;
-        const next = { ...prev };
-        delete next[field as string];
+      setFormData((prev) => {
+        const next = {
+          ...prev,
+          [field]: value
+        };
+
+        const validation = validateMaternalForm(next);
+
+        setValidationErrors((prevErrors) => {
+          const updated = { ...prevErrors };
+          const fieldKey = field as string;
+
+          if (validation.errors[fieldKey]) {
+            updated[fieldKey] = validation.errors[fieldKey];
+          } else {
+            delete updated[fieldKey];
+          }
+
+          // Cross-field obstetric rules (G - P - A - H)
+          const obstetricFields = ['gravidaCount', 'parityCount', 'abortionCount', 'livingChildrenCount'];
+          if (obstetricFields.includes(fieldKey)) {
+            obstetricFields.forEach((key) => {
+              if (validation.errors[key]) {
+                updated[key] = validation.errors[key];
+              } else {
+                delete updated[key];
+              }
+            });
+          }
+
+          // Cross-field date rules (marriageDate, hpht, motherBirthDate)
+          const dateFields = ['marriageDate', 'hpht', 'motherBirthDate'];
+          if (dateFields.includes(fieldKey)) {
+            ['marriageDate', 'hpht'].forEach((key) => {
+              if (validation.errors[key]) {
+                updated[key] = validation.errors[key];
+              } else {
+                delete updated[key];
+              }
+            });
+          }
+
+          return updated;
+        });
+
         return next;
       });
     },
@@ -96,10 +138,25 @@ export function useInspectorEditState({
         if (yearOrNotes !== undefined) {
           updatedDiseaseHistory[`${key}Notes`] = yearOrNotes;
         }
-        return {
+        const next = {
           ...prev,
           diseaseHistory: updatedDiseaseHistory
         };
+
+        const validation = validateMaternalForm(next);
+        const conditionYearKey = `condition_${key}_year`;
+
+        setValidationErrors((prevErrors) => {
+          const updated = { ...prevErrors };
+          if (validation.errors[conditionYearKey]) {
+            updated[conditionYearKey] = validation.errors[conditionYearKey];
+          } else {
+            delete updated[conditionYearKey];
+          }
+          return updated;
+        });
+
+        return next;
       });
     },
     []
@@ -161,10 +218,27 @@ export function useInspectorEditState({
 
   const handleImmunizationFieldChange = React.useCallback(
     (field: keyof EditableImmunizationData, value: any) => {
-      setImmunizationFormData((prev) => ({
-        ...prev,
-        [field]: value
-      }));
+      setImmunizationFormData((prev) => {
+        const next = {
+          ...prev,
+          [field]: value
+        };
+
+        const validation = validateImmunizationForm(next);
+        const fieldKey = field as string;
+
+        setValidationErrors((prevErrors) => {
+          const updated = { ...prevErrors };
+          if (validation.errors[fieldKey]) {
+            updated[fieldKey] = validation.errors[fieldKey];
+          } else {
+            delete updated[fieldKey];
+          }
+          return updated;
+        });
+
+        return next;
+      });
     },
     []
   );
@@ -184,10 +258,27 @@ export function useInspectorEditState({
 
   const handleRegularFieldChange = React.useCallback(
     (field: keyof EditableRegularData, value: any) => {
-      setRegularFormData((prev) => ({
-        ...prev,
-        [field]: value
-      }));
+      setRegularFormData((prev) => {
+        const next = {
+          ...prev,
+          [field]: value
+        };
+
+        const validation = validateRegularForm(next);
+        const fieldKey = field as string;
+
+        setValidationErrors((prevErrors) => {
+          const updated = { ...prevErrors };
+          if (validation.errors[fieldKey]) {
+            updated[fieldKey] = validation.errors[fieldKey];
+          } else {
+            delete updated[fieldKey];
+          }
+          return updated;
+        });
+
+        return next;
+      });
     },
     []
   );

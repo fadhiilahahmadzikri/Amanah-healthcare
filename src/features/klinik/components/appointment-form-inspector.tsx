@@ -15,6 +15,7 @@ import {
 import { InspectorHeader } from './inspector/organisms/inspector-header';
 import { InspectorFooter } from './inspector/organisms/inspector-footer';
 import { MaternityAdminInspector, type MaternityIntake, type MaternalHusbandProfile } from '@/features/maternity';
+import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { ImmunizationAdminInspector } from '@/features/immunization';
 import { InspectorGenericView } from './inspector/inspector-generic-view';
 import {
@@ -113,7 +114,18 @@ export function AppointmentFormInspector({
   const activeMaternityIntake = React.useMemo<MaternityIntake | null>(() => {
     if (!isPregnancy || !parsedData.maternal) return null;
     if (!isEditing) {
-      return parsedData.maternal;
+      return {
+        ...parsedData.maternal,
+        line1: parsedData.maternal.line1 || parsedData.patient?.line1 || null,
+        provinceName: parsedData.maternal.provinceName || parsedData.patient?.provinceName || null,
+        provinceCode: parsedData.maternal.provinceCode || parsedData.patient?.provinceCode || null,
+        regencyName: parsedData.maternal.regencyName || parsedData.patient?.regencyName || null,
+        regencyCode: parsedData.maternal.regencyCode || parsedData.patient?.regencyCode || null,
+        districtName: parsedData.maternal.districtName || parsedData.patient?.districtName || null,
+        districtCode: parsedData.maternal.districtCode || parsedData.patient?.districtCode || null,
+        villageName: parsedData.maternal.villageName || parsedData.patient?.villageName || null,
+        villageCode: parsedData.maternal.villageCode || parsedData.patient?.villageCode || null
+      };
     }
 
     const currentPartnerPhone = formData.partnerPhone ?? parsedData.maternal.husbandProfile?.phoneNumber ?? '';
@@ -133,7 +145,7 @@ export function AppointmentFormInspector({
         phoneNumber: currentPartnerPhone || null
       }
     };
-  }, [isPregnancy, isEditing, parsedData.maternal, formData]);
+  }, [isPregnancy, isEditing, parsedData.maternal, parsedData.patient, formData]);
 
   const activeChildIntake = React.useMemo(() => {
     if (!isImmunization || !parsedData.child) return null;
@@ -170,6 +182,31 @@ export function AppointmentFormInspector({
             : isImmunization
               ? (immunizationFormData.childAddress || parsedData.patient.address)
               : (regularFormData.line1 || regularFormData.address || parsedData.patient.address),
+          line1: isPregnancy
+            ? (formData.line1 || parsedData.patient.line1)
+            : isImmunization
+              ? parsedData.patient.line1
+              : (regularFormData.line1 || parsedData.patient.line1),
+          villageName: isPregnancy
+            ? (formData.villageName || parsedData.patient.villageName)
+            : isImmunization
+              ? parsedData.patient.villageName
+              : (regularFormData.villageName || parsedData.patient.villageName),
+          districtName: isPregnancy
+            ? (formData.districtName || parsedData.patient.districtName)
+            : isImmunization
+              ? parsedData.patient.districtName
+              : (regularFormData.districtName || parsedData.patient.districtName),
+          regencyName: isPregnancy
+            ? (formData.regencyName || parsedData.patient.regencyName)
+            : isImmunization
+              ? parsedData.patient.regencyName
+              : (regularFormData.regencyName || parsedData.patient.regencyName),
+          provinceName: isPregnancy
+            ? (formData.provinceName || parsedData.patient.provinceName)
+            : isImmunization
+              ? parsedData.patient.provinceName
+              : (regularFormData.provinceName || parsedData.patient.provinceName),
           ...(isPregnancy || isImmunization
             ? {}
             : {
@@ -181,11 +218,6 @@ export function AppointmentFormInspector({
                 bloodType: regularFormData.bloodType || parsedData.patient.bloodType,
                 occupation: regularFormData.occupation || parsedData.patient.occupation,
                 email: regularFormData.email || parsedData.patient.email,
-                line1: regularFormData.line1 || parsedData.patient.line1,
-                villageName: regularFormData.villageName || parsedData.patient.villageName,
-                districtName: regularFormData.districtName || parsedData.patient.districtName,
-                regencyName: regularFormData.regencyName || parsedData.patient.regencyName,
-                provinceName: regularFormData.provinceName || parsedData.patient.provinceName,
                 emergencyContactName: regularFormData.emergencyContactName || parsedData.patient.emergencyContactName,
                 emergencyContactPhone: regularFormData.emergencyContactPhone || parsedData.patient.emergencyContactPhone,
                 emergencyContactRelationship: regularFormData.emergencyContactRelationship || parsedData.patient.emergencyContactRelationship
@@ -218,6 +250,11 @@ export function AppointmentFormInspector({
     formData.motherNik,
     formData.phoneNumber,
     formData.domicileAddress,
+    formData.line1,
+    formData.villageName,
+    formData.districtName,
+    formData.regencyName,
+    formData.provinceName,
     immunizationFormData.childName,
     immunizationFormData.childNik,
     immunizationFormData.parentPhone,
@@ -254,6 +291,36 @@ export function AppointmentFormInspector({
     },
     [handleFieldChange]
   );
+
+  const maternalRegionValues: PatientRegionValues = React.useMemo(() => ({
+    provinceName: formData.provinceName || parsedData.patient?.provinceName || '',
+    provinceCode: formData.provinceCode || parsedData.patient?.provinceCode || '',
+    regencyName: formData.regencyName || parsedData.patient?.regencyName || '',
+    regencyCode: formData.regencyCode || parsedData.patient?.regencyCode || '',
+    districtName: formData.districtName || parsedData.patient?.districtName || '',
+    districtCode: formData.districtCode || parsedData.patient?.districtCode || '',
+    villageName: formData.villageName || parsedData.patient?.villageName || '',
+    villageCode: formData.villageCode || parsedData.patient?.villageCode || '',
+    line1: formData.line1 || parsedData.patient?.line1 || formData.domicileAddress || ''
+  }), [formData, parsedData.patient]);
+
+  const handleMaternalRegionChange = React.useCallback((updates: Partial<PatientRegionValues>) => {
+    Object.entries(updates).forEach(([key, val]) => {
+      handleFieldChange(key as any, val);
+    });
+    const merged = { ...maternalRegionValues, ...updates };
+    const parts = [
+      merged.line1,
+      merged.villageName ? `Kel. ${merged.villageName}` : '',
+      merged.districtName ? `Kec. ${merged.districtName}` : '',
+      merged.regencyName,
+      merged.provinceName ? `Prov. ${merged.provinceName}` : ''
+    ].filter(Boolean);
+    handleFieldChange('domicileAddress', parts.join(', '));
+    if (validationErrors.domicileAddress) {
+      handleClearError('domicileAddress');
+    }
+  }, [handleFieldChange, maternalRegionValues, validationErrors.domicileAddress, handleClearError]);
 
   const pmbFormData = React.useMemo(() => {
     if (isPregnancy) {
@@ -349,6 +416,8 @@ export function AppointmentFormInspector({
           <MaternityAdminInspector
             intake={activeMaternityIntake}
             isEditing={isEditing}
+            regionValues={maternalRegionValues}
+            onRegionChange={handleMaternalRegionChange}
             onIntakeFieldChange={handleMaternityFieldChange}
             onHusbandFieldChange={handleHusbandFieldChange}
             onPreviousPregnanciesChange={(updated) =>

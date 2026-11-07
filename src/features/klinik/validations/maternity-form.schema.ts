@@ -255,6 +255,7 @@ export const maternalFormZodSchema = z
     motherBirthDate: z.string().nullable().optional(),
     marriageDate: z.string().nullable().optional(),
     hpht: z.string().nullable().optional(),
+    currentComplaints: z.string().trim().min(1, 'Keluhan saat ini wajib diisi'),
     partnerNik: z
       .string()
       .trim()
@@ -395,6 +396,7 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
     motherBirthDate: data.motherBirthDate ? data.motherBirthDate.trim() : null,
     marriageDate: data.marriageDate ? data.marriageDate.trim() : null,
     hpht: data.hpht ? data.hpht.trim() : null,
+    currentComplaints: data.currentComplaints ? data.currentComplaints.trim() : '',
     partnerNik: data.partnerNik ? data.partnerNik.trim() : null,
     phoneNumber: data.phoneNumber ? data.phoneNumber.trim().replace(/[\s-]/g, '') : null,
     partnerPhone: data.partnerPhone ? data.partnerPhone.trim().replace(/[\s-]/g, '') : null,

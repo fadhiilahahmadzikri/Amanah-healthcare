@@ -55,7 +55,7 @@ export const defaultPmbConfig: PmbFormConfig = {
       ['NIK :', '', 'Tgl Lahir :', '', 'Pekerjaan Ibu :', ''],
       ['Nama Suami :', '', 'Umur :', '', 'Pendidikan Ibu :', ''],
       ['NIK :', '', 'Tgl. Lahir :', '', 'Pekerjaan Suami :', ''],
-      ['', '', 'Umur :', '', 'Pendidikan Suami :', '']
+      ['No. HP Suami :', '', 'Umur :', '', 'Pendidikan Suami :', '']
     ],
     fullRows: ['Agama :', 'Domisili :', 'Alamat KTP :', 'No. Telp :'],
     locationLabels: ['Dasawisma :', 'Posyandu :', 'Puskesmas :'],

@@ -24,7 +24,6 @@ import {
   exportRegulerExcel
 } from './services/excelExportService';
 import { printDocument, downloadPdfFromElement } from './services/printService';
-import { formatMaskedNik } from '@/components/ui/masked-nik';
 import type { PmbFormData, ImunisasiFormData, RegulerFormData, ClinicalFormFlow } from './types';
 
 export interface ClinicalDocumentFullscreenReaderProps {
@@ -49,86 +48,7 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
   const [isExporting, setIsExporting] = useState(false);
   const [downloadSuccess, setDownloadSuccess] = useState(false);
   const [isHardwareFullscreen, setIsHardwareFullscreen] = useState(false);
-  const [isMaskedOnScreen, setIsMaskedOnScreen] = useState(true);
-  const [unmaskCountdown, setUnmaskCountdown] = useState<number | null>(null);
   const canvasRef = useRef<HTMLDivElement>(null);
-  const unmaskTimerRef = useRef<NodeJS.Timeout | null>(null);
-  const unmaskIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const clearUnmaskTimers = useCallback(() => {
-    if (unmaskTimerRef.current) {
-      clearTimeout(unmaskTimerRef.current);
-      unmaskTimerRef.current = null;
-    }
-    if (unmaskIntervalRef.current) {
-      clearInterval(unmaskIntervalRef.current);
-      unmaskIntervalRef.current = null;
-    }
-    setUnmaskCountdown(null);
-  }, []);
-
-  const toggleScreenMask = useCallback(() => {
-    if (isMaskedOnScreen) {
-      // Unmask with 15s auto-mask timer
-      setIsMaskedOnScreen(false);
-      clearUnmaskTimers();
-      setUnmaskCountdown(15);
-
-      unmaskIntervalRef.current = setInterval(() => {
-        setUnmaskCountdown((prev) => {
-          if (prev === null || prev <= 1) {
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      unmaskTimerRef.current = setTimeout(() => {
-        setIsMaskedOnScreen(true);
-        clearUnmaskTimers();
-      }, 15000);
-    } else {
-      // Re-mask immediately
-      setIsMaskedOnScreen(true);
-      clearUnmaskTimers();
-    }
-  }, [isMaskedOnScreen, clearUnmaskTimers]);
-
-  useEffect(() => {
-    return () => clearUnmaskTimers();
-  }, [clearUnmaskTimers]);
-
-  const displayPmbData = React.useMemo(() => {
-    if (!pmbData || !isMaskedOnScreen) return pmbData;
-    const cloned = JSON.parse(JSON.stringify(pmbData));
-    if (cloned.identity?.topRowValues) {
-      if (cloned.identity.topRowValues[1]?.[0]) {
-        cloned.identity.topRowValues[1][0] = formatMaskedNik(cloned.identity.topRowValues[1][0]);
-      }
-      if (cloned.identity.topRowValues[3]?.[0]) {
-        cloned.identity.topRowValues[3][0] = formatMaskedNik(cloned.identity.topRowValues[3][0]);
-      }
-    }
-    return cloned;
-  }, [pmbData, isMaskedOnScreen]);
-
-  const displayRegulerData = React.useMemo(() => {
-    if (!regulerData || !isMaskedOnScreen) return regulerData;
-    const cloned = JSON.parse(JSON.stringify(regulerData));
-    if (cloned.identity?.nik) {
-      cloned.identity.nik = formatMaskedNik(cloned.identity.nik);
-    }
-    return cloned;
-  }, [regulerData, isMaskedOnScreen]);
-
-  const displayImunisasiData = React.useMemo(() => {
-    if (!imunisasiData || !isMaskedOnScreen) return imunisasiData;
-    const cloned = JSON.parse(JSON.stringify(imunisasiData));
-    if (cloned.identity?.leftValues?.[1]) {
-      cloned.identity.leftValues[1] = formatMaskedNik(cloned.identity.leftValues[1]);
-    }
-    return cloned;
-  }, [imunisasiData, isMaskedOnScreen]);
 
   useEffect(() => {
     setMounted(true);
@@ -386,42 +306,6 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
             <Icons.printer className='size-4 text-slate-300' />
           </Button>
 
-          {/* NIK Screen Masking Toggle with Countdown */}
-          <div className='flex items-center gap-1.5'>
-            {!isMaskedOnScreen && unmaskCountdown !== null && unmaskCountdown > 0 && (
-              <span
-                className='text-[10px] font-mono px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-semibold select-none'
-                title={`NIK akan otomatis disensor kembali dalam ${unmaskCountdown} detik`}
-              >
-                {unmaskCountdown}s
-              </span>
-            )}
-            <Button
-              type='button'
-              variant='outline'
-              size='icon-sm'
-              shape='rounded'
-              onClick={toggleScreenMask}
-              className='border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white size-8'
-              title={
-                isMaskedOnScreen
-                  ? 'Tampilkan NIK di Layar (Otomatis disensor setelah 15s)'
-                  : 'Sembunyikan NIK di Layar'
-              }
-              aria-label={
-                isMaskedOnScreen
-                  ? 'Tampilkan NIK di Layar (Otomatis disensor setelah 15s)'
-                  : 'Sembunyikan NIK di Layar'
-              }
-            >
-              {isMaskedOnScreen ? (
-                <Icons.eye className='size-4 text-slate-300' />
-              ) : (
-                <Icons.eyeOff className='size-4 text-amber-400' />
-              )}
-            </Button>
-          </div>
-
           {/* Multi-Format Download Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -505,10 +389,10 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
           }}
           className='max-w-full drop-shadow-2xl'
         >
-          {flow === 'pregnancy' && <PmbFormTemplate data={displayPmbData} />}
-          {flow === 'immunization' && <ImunisasiFormTemplate data={displayImunisasiData} />}
+          {flow === 'pregnancy' && <PmbFormTemplate data={pmbData} />}
+          {flow === 'immunization' && <ImunisasiFormTemplate data={imunisasiData} />}
           {flow !== 'pregnancy' && flow !== 'immunization' && (
-            <RegulerFormTemplate data={displayRegulerData} />
+            <RegulerFormTemplate data={regulerData} />
           )}
         </div>
       </main>

@@ -18,6 +18,10 @@ import { cn } from '@/lib/utils';
 import { PregnancyHistoryTable } from '../molecules/pregnancy-history-table';
 import { ContraceptiveHistoryTable } from '../molecules/contraceptive-history-table';
 import { MaternalConditionChecklist } from '../molecules/maternal-condition-checklist';
+import {
+  PatientRegionDropdown,
+  type PatientRegionValues
+} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import {
   TETANUS_STATUS_OPTIONS,
@@ -47,7 +51,7 @@ export function MaternityBookingStepper({
   onCancel,
   isSubmitting = false
 }: MaternityBookingStepperProps) {
-  const [currentStep, setCurrentStep] = React.useState<1 | 2 | 3 | 4 | 5>(1);
+  const [currentStep, setCurrentStep] = React.useState<1 | 2 | 3 | 4 | 5 | 6>(1);
 
   const references = usePatientFormReferences();
   const bloodTypeOptions = React.useMemo(
@@ -82,12 +86,6 @@ export function MaternityBookingStepper({
   const [motherJob, setMotherJob] = React.useState(
     initialValues?.motherJob || 'Ibu Rumah Tangga'
   );
-  const [domicileAddress, setDomicileAddress] = React.useState(
-    initialValues?.domicileAddress || ''
-  );
-  const [identityCardAddress, setIdentityCardAddress] = React.useState(
-    initialValues?.identityCardAddress || ''
-  );
   const [marriageOrder, setMarriageOrder] = React.useState(
     String(initialValues?.marriageOrder || 1)
   );
@@ -98,12 +96,28 @@ export function MaternityBookingStepper({
   const [posyandu, setPosyandu] = React.useState(initialValues?.posyandu || '');
   const [puskesmas, setPuskesmas] = React.useState(initialValues?.puskesmas || '');
 
-  // Step 2: Identitas Suami
+  // Step 2: Domisili Tempat Tinggal
+  const [region, setRegion] = React.useState<PatientRegionValues>({
+    provinceCode: (initialValues as any)?.provinceCode || '',
+    provinceName: (initialValues as any)?.provinceName || '',
+    regencyCode: (initialValues as any)?.regencyCode || '',
+    regencyName: (initialValues as any)?.regencyName || '',
+    districtCode: (initialValues as any)?.districtCode || '',
+    districtName: (initialValues as any)?.districtName || '',
+    villageCode: (initialValues as any)?.villageCode || '',
+    villageName: (initialValues as any)?.villageName || '',
+    line1: (initialValues as any)?.line1 || initialValues?.domicileAddress || ''
+  });
+
+  // Step 3: Identitas Suami
   const [partnerName, setPartnerName] = React.useState(
     initialValues?.husband?.fullName || initialValues?.partnerName || ''
   );
   const [partnerNik, setPartnerNik] = React.useState(
     initialValues?.husband?.nik || initialValues?.partnerNik || ''
+  );
+  const [identityCardAddress, setIdentityCardAddress] = React.useState(
+    initialValues?.identityCardAddress || ''
   );
   const [partnerBirthDate, setPartnerBirthDate] = React.useState(
     initialValues?.husband?.birthDate || initialValues?.partnerBirthDate || ''
@@ -207,7 +221,7 @@ export function MaternityBookingStepper({
     return Object.keys(errs).length === 0;
   };
 
-  const validateStep2 = () => {
+  const validateStep3 = () => {
     const errs: Record<string, string> = {};
     if (!partnerName.trim()) errs.partnerName = 'Nama suami wajib diisi';
     if (partnerNik.trim() && !/^\d{16}$/.test(partnerNik.trim())) {
@@ -217,7 +231,7 @@ export function MaternityBookingStepper({
     return Object.keys(errs).length === 0;
   };
 
-  const validateStep3 = () => {
+  const validateStep4 = () => {
     const errs: Record<string, string> = {};
     if (!hpht) {
       errs.hpht = 'HPHT (Hari Pertama Haid Terakhir) wajib diisi';
@@ -243,12 +257,14 @@ export function MaternityBookingStepper({
     if (currentStep === 1) {
       if (validateStep1()) setCurrentStep(2);
     } else if (currentStep === 2) {
-      if (validateStep2()) setCurrentStep(3);
+      setCurrentStep(3);
     } else if (currentStep === 3) {
       if (validateStep3()) setCurrentStep(4);
     } else if (currentStep === 4) {
-      setCurrentStep(5);
+      if (validateStep4()) setCurrentStep(5);
     } else if (currentStep === 5) {
+      setCurrentStep(6);
+    } else if (currentStep === 6) {
       handleSubmit();
     }
   };
@@ -262,9 +278,20 @@ export function MaternityBookingStepper({
   };
 
   const handleSubmit = () => {
-    if (!validateStep1() || !validateStep2() || !validateStep3()) {
+    if (!validateStep1() || !validateStep3() || !validateStep4()) {
       return;
     }
+
+    const resolvedDomicileAddress = (() => {
+      const parts = [
+        region.line1,
+        region.villageName ? `Kel. ${region.villageName}` : '',
+        region.districtName ? `Kec. ${region.districtName}` : '',
+        region.regencyName,
+        region.provinceName ? `Prov. ${region.provinceName}` : ''
+      ].filter(Boolean);
+      return parts.length > 0 ? parts.join(', ') : '';
+    })();
 
     const husbandProfile: MaternalHusbandProfile = {
       fullName: partnerName.trim(),
@@ -286,7 +313,16 @@ export function MaternityBookingStepper({
       religion,
       motherEducation,
       motherJob,
-      domicileAddress: domicileAddress.trim() || undefined,
+      domicileAddress: resolvedDomicileAddress || undefined,
+      line1: region.line1 || undefined,
+      villageName: region.villageName || undefined,
+      villageCode: region.villageCode || undefined,
+      districtName: region.districtName || undefined,
+      districtCode: region.districtCode || undefined,
+      regencyName: region.regencyName || undefined,
+      regencyCode: region.regencyCode || undefined,
+      provinceName: region.provinceName || undefined,
+      provinceCode: region.provinceCode || undefined,
       identityCardAddress: identityCardAddress.trim() || undefined,
       marriageOrder: Number(marriageOrder) || 1,
       marriageDate: marriageDate || undefined,
@@ -341,10 +377,11 @@ export function MaternityBookingStepper({
 
   const stepsList = [
     { step: 1, label: 'Identitas Ibu' },
-    { step: 2, label: 'Suami & Alamat' },
-    { step: 3, label: 'Pemeriksaan Fisik' },
-    { step: 4, label: 'Obstetri & KB' },
-    { step: 5, label: 'Skrining Penyakit' }
+    { step: 2, label: 'Domisili Tempat Tinggal' },
+    { step: 3, label: 'Identitas Suami' },
+    { step: 4, label: 'Pemeriksaan Fisik' },
+    { step: 5, label: 'Obstetri & KB' },
+    { step: 6, label: 'Skrining Penyakit' }
   ];
 
   return (
@@ -376,14 +413,14 @@ export function MaternityBookingStepper({
                 >
                   {label}
                 </span>
-                {step < 5 && <div className='h-[1px] w-3 sm:w-4 bg-border/80 mx-0.5' />}
+                {step < 6 && <div className='h-[1px] w-3 sm:w-4 bg-border/80 mx-0.5' />}
               </div>
             );
           })}
         </div>
 
         <span className='text-xs text-muted-foreground font-medium shrink-0 pl-2'>
-          Langkah {currentStep} dari 5
+          Langkah {currentStep} dari 6
         </span>
       </div>
 
@@ -560,16 +597,6 @@ export function MaternityBookingStepper({
                 </div>
               </div>
 
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-medium'>Alamat Domisili Saat Ini</Label>
-                <Textarea
-                  value={domicileAddress}
-                  onChange={(e) => setDomicileAddress(e.target.value)}
-                  placeholder='Alamat tempat tinggal saat ini...'
-                  className='min-h-[60px] text-xs resize-none'
-                />
-              </div>
-
               <div className='grid grid-cols-1 sm:grid-cols-3 gap-3.5'>
                 <div className='space-y-1.5'>
                   <Label className='text-xs font-medium'>Dasawisma</Label>
@@ -603,8 +630,29 @@ export function MaternityBookingStepper({
           </div>
         )}
 
-        {/* STEP 2: IDENTITAS SUAMI */}
+        {/* STEP 2: DOMISILI TEMPAT TINGGAL */}
         {currentStep === 2 && (
+          <div className='space-y-4 animate-in fade-in-50 duration-200'>
+            <div>
+              <h3 className='text-sm font-semibold text-foreground'>
+                Domisili Tempat Tinggal
+              </h3>
+              <p className='text-xs text-muted-foreground'>
+                Pilih wilayah administratif dan alamat detail tempat tinggal calon ibu saat ini.
+              </p>
+            </div>
+
+            <div className='space-y-3.5'>
+              <PatientRegionDropdown
+                values={region}
+                onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* STEP 3: IDENTITAS SUAMI */}
+        {currentStep === 3 && (
           <div className='space-y-4 animate-in fade-in-50 duration-200'>
             <div>
               <h3 className='text-sm font-semibold text-foreground'>
@@ -743,8 +791,8 @@ export function MaternityBookingStepper({
           </div>
         )}
 
-        {/* STEP 3: BASELINE FISIK & KEHAMILAN INI */}
-        {currentStep === 3 && (
+        {/* STEP 4: BASELINE FISIK & KEHAMILAN INI */}
+        {currentStep === 4 && (
           <div className='space-y-4 animate-in fade-in-50 duration-200'>
             <div>
               <h3 className='text-sm font-semibold text-foreground'>
@@ -890,8 +938,8 @@ export function MaternityBookingStepper({
           </div>
         )}
 
-        {/* STEP 4: RIWAYAT OBSTETRI & KB */}
-        {currentStep === 4 && (
+        {/* STEP 5: RIWAYAT OBSTETRI & KB */}
+        {currentStep === 5 && (
           <div className='flex-1 min-h-0 flex flex-col space-y-5 animate-in fade-in-50 duration-200'>
             <div className='shrink-0'>
               <h3 className='text-sm font-semibold text-foreground'>
@@ -979,8 +1027,8 @@ export function MaternityBookingStepper({
           </div>
         )}
 
-        {/* STEP 5: SKRINING PENYAKIT & POLA HIDUP */}
-        {currentStep === 5 && (
+        {/* STEP 6: SKRINING PENYAKIT & POLA HIDUP */}
+        {currentStep === 6 && (
           <div className='space-y-5 animate-in fade-in-50 duration-200'>
             <div>
               <h3 className='text-sm font-semibold text-foreground'>
@@ -1154,7 +1202,7 @@ export function MaternityBookingStepper({
               <Icons.spinner className='size-3.5 animate-spin' />
               <span>Menyimpan...</span>
             </div>
-          ) : currentStep === 5 ? (
+          ) : currentStep === 6 ? (
             'Selesai & Lanjutkan ke Reservasi'
           ) : (
             'Lanjut'

@@ -49,13 +49,31 @@ export const motherIdentitySection: MedicalFormSection = {
       choices: religionChoices,
       colSpan: 1
     }),
-    field('phoneNumber', TEXT, 'Nomor WhatsApp / telepon', 'No. telp', { colSpan: 1 }),
+    field('phoneNumber', TEXT, 'Nomor WhatsApp / telepon', 'No. telp', { colSpan: 1 })
+  ]
+};
+
+export const motherDomicileSection: MedicalFormSection = {
+  id: 'motherDomicile',
+  title: 'Alamat tempat tinggal sekarang',
+  description: 'Pilih wilayah administratif dan alamat domisili calon ibu saat ini.',
+  layout: 'region',
+  fields: [
     optionalField('domicileAddress', PARAGRAPH, 'Alamat tempat tinggal sekarang', 'Domisili', {
       colSpan: 'full'
     }),
     optionalField('identityCardAddress', PARAGRAPH, 'Alamat sesuai KTP', 'Alamat KTP', {
       colSpan: 'full'
-    })
+    }),
+    optionalField('line1', TEXT, 'Alamat detail', 'Detail'),
+    optionalField('villageName', TEXT, 'Kelurahan / Desa', 'Kelurahan'),
+    optionalField('villageCode', TEXT, 'Kode Kelurahan', 'Kode Kel'),
+    optionalField('districtName', TEXT, 'Kecamatan', 'Kecamatan'),
+    optionalField('districtCode', TEXT, 'Kode Kecamatan', 'Kode Kec'),
+    optionalField('regencyName', TEXT, 'Kota / Kabupaten', 'Kota/Kab'),
+    optionalField('regencyCode', TEXT, 'Kode Kota', 'Kode Kota'),
+    optionalField('provinceName', TEXT, 'Provinsi', 'Provinsi'),
+    optionalField('provinceCode', TEXT, 'Kode Provinsi', 'Kode Prov')
   ]
 };
 
@@ -106,6 +124,11 @@ export const partnerIdentitySection: MedicalFormSection = {
     optionalField('partnerEducation', LIST, 'Pendidikan terakhir suami', 'Pendidikan suami', {
       choices: educationChoices,
       colSpan: 1
+    }),
+    optionalField('partnerPhone', TEXT, 'Nomor HP suami', 'No. HP suami', {
+      helpText: 'Isi nomor WhatsApp / HP suami jika ada.',
+      colSpan: 1,
+      format: 'phone'
     }),
     optionalField('partnerBloodType', LIST, 'Golongan darah suami', 'Gol. darah suami', {
       choices: bloodTypeChoices,

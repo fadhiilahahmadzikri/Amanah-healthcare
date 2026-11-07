@@ -12,6 +12,11 @@ import type {
 } from '../../constants/medical-appointment-schemas';
 import type { MedicalAppointmentValues } from '../../utils/medical-appointment';
 import { MedicalQuestionnaire } from '../questionnaire';
+import {
+  PatientRegionDropdown,
+  type PatientRegionValues
+} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 
 export function StepTitle({ title, description }: { title: string; description: string }) {
   return (
@@ -58,6 +63,40 @@ export function MedicalSectionStep({
   const containerRef = React.useRef<HTMLDivElement>(null);
   const isGrid = section?.layout === 'grid';
   const isQuestionnaire = section?.layout === 'questionnaire';
+  const isRegion = section?.layout === 'region' || section?.id === 'motherDomicile';
+
+  const regionValues: PatientRegionValues = React.useMemo(
+    () => ({
+      provinceName: values?.['provinceName'] || '',
+      provinceCode: values?.['provinceCode'] || '',
+      regencyName: values?.['regencyName'] || '',
+      regencyCode: values?.['regencyCode'] || '',
+      districtName: values?.['districtName'] || '',
+      districtCode: values?.['districtCode'] || '',
+      villageName: values?.['villageName'] || '',
+      villageCode: values?.['villageCode'] || '',
+      line1: values?.['line1'] || ''
+    }),
+    [values]
+  );
+
+  const handleRegionChange = React.useCallback(
+    (updates: Partial<PatientRegionValues>) => {
+      Object.entries(updates).forEach(([key, val]) => {
+        onFieldChange?.(key, val ?? '');
+      });
+      const merged = { ...regionValues, ...updates };
+      const parts = [
+        merged.line1,
+        merged.villageName ? `Kel. ${merged.villageName}` : '',
+        merged.districtName ? `Kec. ${merged.districtName}` : '',
+        merged.regencyName,
+        merged.provinceName ? `Prov. ${merged.provinceName}` : ''
+      ].filter(Boolean);
+      onFieldChange?.('domicileAddress', parts.join(', '));
+    },
+    [onFieldChange, regionValues]
+  );
 
   React.useEffect(() => {
     if (!containerRef.current) return;
@@ -175,6 +214,17 @@ export function MedicalSectionStep({
                 ? new Date(values['motherBirthDate'] || values['birthDate']).getFullYear()
                 : null
             }
+          />
+        </div>
+      ) : isRegion && values && onFieldChange ? (
+        <div className='space-y-4 px-0.5 pt-1.5 pb-2'>
+          <PatientRegionDropdown values={regionValues} onChange={handleRegionChange} />
+          <PatientLineTextarea
+            id='identityCardAddress'
+            label='Alamat sesuai KTP (jika berbeda)'
+            value={values['identityCardAddress'] || ''}
+            placeholder='Tuliskan alamat sesuai KTP...'
+            onChange={(val) => onFieldChange('identityCardAddress', val)}
           />
         </div>
       ) : (

@@ -5,6 +5,10 @@ import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
+import {
+  PatientRegionDropdown,
+  type PatientRegionValues
+} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { formatClinicDate } from '@/lib/date-format';
 import type { MaternityIntake } from '../../../types/maternity.types';
 
@@ -12,6 +16,8 @@ export interface MaternityMotherIdentityFieldsProps {
   intake?: MaternityIntake | null;
   isEditing?: boolean;
   onIntakeFieldChange?: (field: keyof MaternityIntake, value: any) => void;
+  regionValues?: PatientRegionValues;
+  onRegionChange?: (updates: Partial<PatientRegionValues>) => void;
   validationErrors?: Record<string, string>;
   onClearError?: (field: string) => void;
   religionOptions: string[];
@@ -23,12 +29,28 @@ export function MaternityMotherIdentityFields({
   intake,
   isEditing = false,
   onIntakeFieldChange,
+  regionValues,
+  onRegionChange,
   validationErrors,
   onClearError,
   religionOptions,
   educationOptions,
   occupationOptions
 }: MaternityMotherIdentityFieldsProps) {
+  const resolvedRegionValues: PatientRegionValues = React.useMemo(
+    () => ({
+      provinceName: regionValues?.provinceName || intake?.provinceName || '',
+      provinceCode: regionValues?.provinceCode || intake?.provinceCode || '',
+      regencyName: regionValues?.regencyName || intake?.regencyName || '',
+      regencyCode: regionValues?.regencyCode || intake?.regencyCode || '',
+      districtName: regionValues?.districtName || intake?.districtName || '',
+      districtCode: regionValues?.districtCode || intake?.districtCode || '',
+      villageName: regionValues?.villageName || intake?.villageName || '',
+      villageCode: regionValues?.villageCode || intake?.villageCode || '',
+      line1: regionValues?.line1 || intake?.line1 || intake?.domicileAddress || ''
+    }),
+    [regionValues, intake]
+  );
   if (isEditing && onIntakeFieldChange) {
     return (
       <div className='space-y-4'>
@@ -164,20 +186,35 @@ export function MaternityMotherIdentityFields({
           />
         </div>
 
-        <PatientLineTextarea
-          id='maternity-domicile-address'
-          label='Alamat Domisili Tempat Tinggal'
-          value={intake?.domicileAddress}
-          onChange={(val) => {
-            onIntakeFieldChange('domicileAddress', val);
-            if (validationErrors?.domicileAddress) {
-              onClearError?.('domicileAddress');
-            }
-          }}
-          error={validationErrors?.domicileAddress}
-          invalid={Boolean(validationErrors?.domicileAddress)}
-          placeholder='Alamat tempat tinggal saat ini...'
-        />
+        <div className='col-span-1 sm:col-span-2 space-y-2 pt-2 pb-1 border-t border-border/30'>
+          <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
+            Alamat Domisili Tempat Tinggal
+          </span>
+          <PatientRegionDropdown
+            values={resolvedRegionValues}
+            onChange={(updates) => {
+              if (onRegionChange) {
+                onRegionChange(updates);
+              } else {
+                Object.entries(updates).forEach(([k, v]) => {
+                  onIntakeFieldChange(k as keyof MaternityIntake, v);
+                });
+                const merged = { ...resolvedRegionValues, ...updates };
+                const parts = [
+                  merged.line1,
+                  merged.villageName ? `Kel. ${merged.villageName}` : '',
+                  merged.districtName ? `Kec. ${merged.districtName}` : '',
+                  merged.regencyName,
+                  merged.provinceName ? `Prov. ${merged.provinceName}` : ''
+                ].filter(Boolean);
+                onIntakeFieldChange('domicileAddress', parts.join(', '));
+              }
+              if (validationErrors?.domicileAddress) {
+                onClearError?.('domicileAddress');
+              }
+            }}
+          />
+        </div>
 
         <PatientLineTextarea
           id='maternity-ktp-address'
@@ -273,12 +310,57 @@ export function MaternityMotherIdentityFields({
         />
       </div>
 
-      <PatientLineTextarea
-        id='view-domicile-address'
-        label='Alamat Domisili Tempat Tinggal'
-        value={intake?.domicileAddress || ''}
-        readOnly
-      />
+      <div className='col-span-1 sm:col-span-2 space-y-3 pt-2 border-t border-border/40'>
+        <div className='flex items-center justify-between'>
+          <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
+            Alamat Domisili Tempat Tinggal
+          </span>
+          {resolvedRegionValues.villageCode && (
+            <span className='rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'>
+              Terverifikasi
+            </span>
+          )}
+        </div>
+
+        <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
+          <div className='col-span-1 sm:col-span-2'>
+            <PatientLineInput
+              id='read-mother-province'
+              label='Provinsi'
+              value={resolvedRegionValues.provinceName || ''}
+              readOnly
+            />
+          </div>
+          <div className='col-span-1 sm:col-span-2'>
+            <PatientLineInput
+              id='read-mother-regency'
+              label='Kota / Kabupaten'
+              value={resolvedRegionValues.regencyName || ''}
+              readOnly
+            />
+          </div>
+          <PatientLineInput
+            id='read-mother-district'
+            label='Kecamatan'
+            value={resolvedRegionValues.districtName || ''}
+            readOnly
+          />
+          <PatientLineInput
+            id='read-mother-village'
+            label='Kelurahan / Desa'
+            value={resolvedRegionValues.villageName || ''}
+            readOnly
+          />
+          <div className='col-span-1 sm:col-span-2'>
+            <PatientLineTextarea
+              id='read-mother-line1'
+              label='Alamat Detail (Jalan, RT/RW, No. Rumah)'
+              value={resolvedRegionValues.line1 || intake?.domicileAddress || ''}
+              readOnly
+            />
+          </div>
+        </div>
+      </div>
 
       <PatientLineTextarea
         id='view-ktp-address'

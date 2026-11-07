@@ -83,7 +83,7 @@ export function buildMaternityIntakePayload(
     job: submittedValues.partnerJob || null,
     education: submittedValues.partnerEducation || null,
     bloodType: submittedValues.partnerBloodType || null,
-    phoneNumber: null
+    phoneNumber: submittedValues.partnerPhone || null
   };
 
   const toOptionCode = (val: string | undefined): string => {
@@ -261,6 +261,15 @@ export function buildMaternityIntakePayload(
     religion: submittedValues.religion || null,
     phoneNumber: submittedValues.phoneNumber || null,
     domicileAddress: submittedValues.domicileAddress || null,
+    line1: submittedValues.line1 || null,
+    villageName: submittedValues.villageName || null,
+    villageCode: submittedValues.villageCode || null,
+    districtName: submittedValues.districtName || null,
+    districtCode: submittedValues.districtCode || null,
+    regencyName: submittedValues.regencyName || null,
+    regencyCode: submittedValues.regencyCode || null,
+    provinceName: submittedValues.provinceName || null,
+    provinceCode: submittedValues.provinceCode || null,
     identityCardAddress: submittedValues.identityCardAddress || null,
     dasawisma: submittedValues.dasawisma || null,
     posyandu: submittedValues.posyandu || null,

@@ -132,6 +132,15 @@ export interface CreateMaternityIntakePayload {
   religion?: string | null;
   phoneNumber?: string | null;
   domicileAddress?: string | null;
+  line1?: string | null;
+  villageName?: string | null;
+  villageCode?: string | null;
+  districtName?: string | null;
+  districtCode?: string | null;
+  regencyName?: string | null;
+  regencyCode?: string | null;
+  provinceName?: string | null;
+  provinceCode?: string | null;
   identityCardAddress?: string | null;
   dasawisma?: string | null;
   posyandu?: string | null;
