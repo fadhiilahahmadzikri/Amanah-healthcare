@@ -117,6 +117,34 @@ export const roleManagementApi = {
       }
     ),
 
+  bulkPageAction: (data: {
+    action: 'move' | 'detach' | 'toggle_status' | 'restore' | 'reorder';
+    pageIds: string[];
+    targetParentId?: string | null;
+    isEnabled?: boolean;
+    restoreStates?: Array<{
+      id: string;
+      parentPageId?: string | null;
+      displayOrder?: number;
+      isEnabled?: boolean;
+    }>;
+  }): Promise<{
+    success: boolean;
+    updatedCount: number;
+    affectedPageIds: string[];
+    previousStates: Array<{
+      id: string;
+      name: string;
+      parentPageId: string | null;
+      displayOrder: number;
+      isEnabled: boolean;
+    }>;
+  }> =>
+    clientFetch('/api/v1/admin/pages/bulk', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
   getRouteAliases: (): Promise<Record<string, string>> =>
     clientFetch<Record<string, string>>('/api/v1/admin/pages/routes/aliases')
 };
