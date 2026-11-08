@@ -106,7 +106,9 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
   };
 }
 
-export function buildInitialImmunizationData(parsedData: UnifiedInspectorData): EditableImmunizationData {
+export function buildInitialImmunizationData(
+  parsedData: UnifiedInspectorData
+): EditableImmunizationData {
   const c = parsedData.child;
   const a = parsedData.answers || {};
   const entries: any[] = c?.entries || [];
@@ -142,12 +144,13 @@ export function buildInitialImmunizationData(parsedData: UnifiedInspectorData): 
   }
 
   const hasVaccineHistory =
-    c?.previousVaccineHistory &&
-    c.previousVaccineHistory !== 'Belum pernah imunisasi sama sekali'
+    c?.previousVaccineHistory && c.previousVaccineHistory !== 'Belum pernah imunisasi sama sekali'
       ? 'Ya, pernah'
-      : (a.hasVaccineHistory as string) || (entries.length > 0 ? 'Ya, pernah' : 'Belum pernah sama sekali');
+      : (a.hasVaccineHistory as string) ||
+        (entries.length > 0 ? 'Ya, pernah' : 'Belum pernah sama sekali');
 
-  const previousVaccineHistory = c?.previousVaccineHistory || (a.previousVaccineHistory as string) || '';
+  const previousVaccineHistory =
+    c?.previousVaccineHistory || (a.previousVaccineHistory as string) || '';
 
   const hasAllergyHistory =
     c?.childAllergyHistory && c.childAllergyHistory !== 'Tidak ada riwayat alergi.'
@@ -168,6 +171,15 @@ export function buildInitialImmunizationData(parsedData: UnifiedInspectorData): 
     fatherName: c?.fatherName || '',
     motherName: c?.motherName || parsedData.patient?.motherName || '',
     childAddress: c?.childAddress || parsedData.patient?.address || '',
+    line1: c?.line1 || parsedData.patient?.line1 || '',
+    provinceName: c?.provinceName || parsedData.patient?.provinceName || '',
+    provinceCode: c?.provinceCode || parsedData.patient?.provinceCode || '',
+    regencyName: c?.regencyName || parsedData.patient?.regencyName || '',
+    regencyCode: c?.regencyCode || parsedData.patient?.regencyCode || '',
+    districtName: c?.districtName || parsedData.patient?.districtName || '',
+    districtCode: c?.districtCode || parsedData.patient?.districtCode || '',
+    villageName: c?.villageName || parsedData.patient?.villageName || '',
+    villageCode: c?.villageCode || parsedData.patient?.villageCode || '',
     hasVaccineHistory,
     previousVaccineHistory,
     hasAllergyHistory,

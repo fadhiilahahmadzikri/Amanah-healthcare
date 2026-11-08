@@ -28,6 +28,7 @@ import {
   lineCell,
   row,
   table,
+  verticalGap,
   lineSpacing,
   halfPoints
 } from './docx-primitives';
@@ -116,41 +117,93 @@ export async function exportImunisasiDocx(
 
   // 2. Build Identity
   const [leftLabelW, leftFieldW, rightLabelW, rightFieldW] = cfg.identity.columns;
-  const identityRows = cfg.identity.rows.map((identityRow, index) => {
+  const identityRows: TableRow[] = [];
+
+  cfg.identity.rows.forEach((identityRow, index) => {
     const leftVal = data?.identity?.leftValues?.[index] ?? identityRow.leftValue;
     const rightVal = data?.identity?.rightValues?.[index] ?? identityRow.rightValue;
+    const isAddressRow = index === 2;
 
-    return row(
-      [
-        textCell(identityRow.leftLabel, leftLabelW, {
-          size: cfg.typography.body,
-          borders: noneCellBorders()
-        }),
-        lineCell('', leftFieldW, {
-          children: [
-            textRun(leftVal || ' ', { size: cfg.typography.body, bold: Boolean(leftVal) })
+    if (isAddressRow) {
+      identityRows.push(
+        row(
+          [
+            textCell(identityRow.leftLabel, leftLabelW, {
+              size: cfg.typography.body,
+              verticalAlign: VerticalAlign.TOP
+            }),
+            lineCell('', leftFieldW, {
+              children: [
+                textRun(leftVal || ' ', { size: cfg.typography.body, bold: Boolean(leftVal) })
+              ],
+              verticalAlign: VerticalAlign.TOP
+            }),
+            textCell(identityRow.rightLabel, rightLabelW, {
+              size: cfg.typography.body,
+              rowSpan: 2,
+              verticalAlign: VerticalAlign.TOP
+            }),
+            lineCell('', rightFieldW, {
+              children: [
+                textRun(rightVal || ' ', { size: cfg.typography.body, bold: Boolean(rightVal) })
+              ],
+              rowSpan: 2,
+              verticalAlign: VerticalAlign.TOP
+            })
           ],
-          alignment: leftVal ? AlignmentType.RIGHT : undefined,
-          borders: { ...noneCellBorders(), right: border() }
-        }),
-        textCell(identityRow.rightLabel, rightLabelW, {
-          size: cfg.typography.body,
-          borders: noneCellBorders()
-        }),
-        lineCell('', rightFieldW, {
-          children: [
-            textRun(rightVal || ' ', { size: cfg.typography.body, bold: Boolean(rightVal) })
+          cfg.identity.rowHeight
+        )
+      );
+    } else if (index === 3) {
+      identityRows.push(
+        row(
+          [
+            textCell(identityRow.leftLabel, leftLabelW, {
+              size: cfg.typography.body,
+              verticalAlign: VerticalAlign.TOP
+            }),
+            lineCell('', leftFieldW, {
+              children: [
+                textRun(leftVal || ' ', { size: cfg.typography.body, bold: Boolean(leftVal) })
+              ],
+              verticalAlign: VerticalAlign.TOP
+            })
           ],
-          borders: noneCellBorders()
-        })
-      ],
-      cfg.identity.rowHeight
-    );
+          cfg.identity.rowHeight
+        )
+      );
+    } else {
+      identityRows.push(
+        row(
+          [
+            textCell(identityRow.leftLabel, leftLabelW, {
+              size: cfg.typography.body,
+              verticalAlign: VerticalAlign.TOP
+            }),
+            lineCell('', leftFieldW, {
+              children: [
+                textRun(leftVal || ' ', { size: cfg.typography.body, bold: Boolean(leftVal) })
+              ],
+              verticalAlign: VerticalAlign.TOP
+            }),
+            textCell(identityRow.rightLabel, rightLabelW, {
+              size: cfg.typography.body,
+              verticalAlign: VerticalAlign.TOP
+            }),
+            lineCell('', rightFieldW, {
+              children: [
+                textRun(rightVal || ' ', { size: cfg.typography.body, bold: Boolean(rightVal) })
+              ],
+              verticalAlign: VerticalAlign.TOP
+            })
+          ],
+          cfg.identity.rowHeight
+        )
+      );
+    }
   });
 
-  const identityTable = table(cfg.identity.columns, identityRows, {
-    borders: tableBorders({ insideHorizontal: false, insideVertical: false })
-  });
+  const identityTable = table(cfg.identity.columns, identityRows);
 
   // 3. Build Pre-Table
   const [preLeftW, preRightW] = cfg.preTable.columns;
@@ -250,7 +303,7 @@ export async function exportImunisasiDocx(
     const subjectiveCell = cell(
       subjectiveLabels.map((lbl) => paragraph(lbl, { size: cfg.typography.small })),
       vaccineTableColumns[3],
-      { borders: b, verticalAlign: VerticalAlign.CENTER }
+      { borders: b, verticalAlign: VerticalAlign.TOP }
     );
 
     const objectiveLabels = rowData?.objective || cfg.vaccineTable.objective;
@@ -262,26 +315,35 @@ export async function exportImunisasiDocx(
         })
       ),
       vaccineTableColumns[4],
-      { borders: b, verticalAlign: VerticalAlign.CENTER }
+      { borders: b, verticalAlign: VerticalAlign.TOP }
     );
 
     vaccineTableRows.push(
       row(
         [
-          cell(nameContent, vaccineTableColumns[0], { borders: b }),
+          cell(nameContent, vaccineTableColumns[0], {
+            borders: b,
+            verticalAlign: VerticalAlign.TOP
+          }),
           textCell(rowData?.injectionDate || '', vaccineTableColumns[1], {
             borders: b,
-            size: 6.4,
-            alignment: AlignmentType.CENTER
+            size: cfg.typography.small,
+            alignment: AlignmentType.CENTER,
+            verticalAlign: VerticalAlign.TOP
           }),
           textCell(rowData?.age || '', vaccineTableColumns[2], {
             borders: b,
-            size: 6.4,
-            alignment: AlignmentType.CENTER
+            size: cfg.typography.small,
+            alignment: AlignmentType.CENTER,
+            verticalAlign: VerticalAlign.TOP
           }),
           subjectiveCell,
           objectiveCell,
-          textCell(rowData?.planning || '', vaccineTableColumns[5], { borders: b, size: 6.3 })
+          textCell(rowData?.planning || '', vaccineTableColumns[5], {
+            borders: b,
+            size: cfg.typography.small,
+            verticalAlign: VerticalAlign.TOP
+          })
         ],
         cfg.vaccineTable.rowHeight
       )
@@ -316,7 +378,15 @@ export async function exportImunisasiDocx(
             margin: cfg.page.margin
           }
         },
-        children: [headerTable, identityTable, preTable, fullVaccineTable]
+        children: [
+          headerTable,
+          verticalGap(120),
+          identityTable,
+          verticalGap(140),
+          preTable,
+          verticalGap(120),
+          fullVaccineTable
+        ]
       }
     ]
   });

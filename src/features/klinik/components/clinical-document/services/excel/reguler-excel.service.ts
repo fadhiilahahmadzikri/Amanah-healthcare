@@ -1,11 +1,7 @@
 import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import type { RegulerFormData } from '../../types';
-import {
-  applyRowBorders,
-  addSquareLogo,
-  addSectionHeader
-} from './excel-primitives';
+import { applyRowBorders, addSquareLogo, addSectionHeader } from './excel-primitives';
 
 export async function exportRegulerExcel(
   data?: RegulerFormData | null,
@@ -108,37 +104,9 @@ export async function exportRegulerExcel(
   c1.getCell(1).value = 'Keluhan:';
   c1.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
   ws.mergeCells(`B${currentLine}:D${currentLine}`);
-  c1.getCell(2).value =
-    data?.chiefComplaint ||
-    data?.clinical?.chiefComplaint ||
-    '';
+  c1.getCell(2).value = data?.chiefComplaint || data?.clinical?.chiefComplaint || '';
   c1.getCell(2).font = { size: 9, name: 'Calibri' };
   applyRowBorders(c1, 1, 4);
-
-  currentLine += 2;
-  addSectionHeader(ws, currentLine, 'IV. PENGESAHAN & TANDA TANGAN', 4);
-
-  currentLine += 1;
-  ws.mergeCells(`A${currentLine}:B${currentLine}`);
-  ws.mergeCells(`C${currentLine}:D${currentLine}`);
-  const sHeader = ws.getRow(currentLine);
-  sHeader.getCell(1).value = `Tanggal: ${data?.registrationDate || ''}\nPasien / Keluarga`;
-  sHeader.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
-  sHeader.getCell(1).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-  sHeader.getCell(3).value = `Tanggal: ${data?.registrationDate || ''}\nDokter Pemeriksa`;
-  sHeader.getCell(3).font = { bold: true, size: 9, name: 'Calibri' };
-  sHeader.getCell(3).alignment = { horizontal: 'center', vertical: 'middle', wrapText: true };
-
-  currentLine += 3;
-  ws.mergeCells(`A${currentLine}:B${currentLine}`);
-  ws.mergeCells(`C${currentLine}:D${currentLine}`);
-  const sSign = ws.getRow(currentLine);
-  sSign.getCell(1).value = `( ${data?.identity?.fullName || '................................'} )`;
-  sSign.getCell(1).font = { size: 9, name: 'Calibri' };
-  sSign.getCell(1).alignment = { horizontal: 'center', vertical: 'middle' };
-  sSign.getCell(3).value = `( ${data?.doctorName || '................................'} )`;
-  sSign.getCell(3).font = { size: 9, name: 'Calibri' };
-  sSign.getCell(3).alignment = { horizontal: 'center', vertical: 'middle' };
 
   const buffer = await wb.xlsx.writeBuffer();
   saveAs(new Blob([buffer]), filename);

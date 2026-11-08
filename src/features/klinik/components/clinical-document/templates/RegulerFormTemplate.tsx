@@ -4,7 +4,6 @@ import { RegulerHeader } from '../organisms/RegulerHeader';
 import { RegulerEncounterSection } from '../organisms/RegulerEncounterSection';
 import { RegulerIdentitySection } from '../organisms/RegulerIdentitySection';
 import { RegulerClinicalNotesSection } from '../organisms/RegulerClinicalNotesSection';
-import { RegulerSignSection } from '../organisms/RegulerSignSection';
 import type { RegulerFormConfig, RegulerFormData } from '../types';
 import { defaultRegulerConfig } from '../config/reguler-config';
 
@@ -30,11 +29,6 @@ export const RegulerFormTemplate: React.FC<RegulerFormTemplateProps> = ({
       <RegulerClinicalNotesSection
         chiefComplaint={data?.chiefComplaint || data?.clinical?.chiefComplaint}
         clinical={data?.clinical}
-      />
-      <RegulerSignSection
-        doctorName={data?.doctorName}
-        patientName={data?.identity?.fullName}
-        registrationDate={data?.registrationDate}
       />
     </DocumentPage>
   );

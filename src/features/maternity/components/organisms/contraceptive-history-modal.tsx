@@ -114,19 +114,21 @@ export function ContraceptiveHistoryModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className='max-w-xl max-h-[90vh] overflow-y-auto font-sans'>
         <DialogHeader>
-          <DialogTitle className='text-base font-semibold text-foreground'>
-            {title}
-          </DialogTitle>
+          <DialogTitle className='text-base font-semibold text-foreground'>{title}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className='space-y-4 py-2'>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
             {/* Tgl Mulai */}
             <div className='space-y-1.5'>
-              <label className='text-xs font-semibold text-muted-foreground'>
+              <label
+                htmlFor='contra-start-date'
+                className='text-xs font-semibold text-muted-foreground'
+              >
                 Kapan Mulai Dipakai?
               </label>
               <CustomDatePicker
+                id='contra-start-date'
                 value={draft.startDate || ''}
                 onChange={(val) => handleFieldChange('startDate', val)}
                 placeholder='Pilih tanggal mulai'
@@ -138,10 +140,14 @@ export function ContraceptiveHistoryModal({
 
             {/* Tgl Lepas */}
             <div className='space-y-1.5'>
-              <label className='text-xs font-semibold text-muted-foreground'>
+              <label
+                htmlFor='contra-stop-date'
+                className='text-xs font-semibold text-muted-foreground'
+              >
                 Kapan Berhenti atau Dilepas?
               </label>
               <CustomDatePicker
+                id='contra-stop-date'
                 value={draft.stopDate || ''}
                 onChange={(val) => handleFieldChange('stopDate', val)}
                 placeholder='Pilih tanggal lepas'
@@ -217,11 +223,7 @@ export function ContraceptiveHistoryModal({
             >
               Batal
             </Button>
-            <Button
-              type='submit'
-              size='sm'
-              className='font-semibold cursor-pointer'
-            >
+            <Button type='submit' size='sm' className='font-semibold cursor-pointer'>
               {isEditing ? 'Simpan Perubahan' : 'Tambahkan Riwayat KB'}
             </Button>
           </DialogFooter>

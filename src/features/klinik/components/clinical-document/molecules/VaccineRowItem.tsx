@@ -17,36 +17,31 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
   data,
   defaultSubjective = ['Demam :', 'Batuk :', 'Pilek :'],
   defaultObjective = ['BB / PB :', 'LK / S :'],
-  bodyPt = 7.2,
-  smallPt = 6.4,
+  bodyPt = 8.2,
+  smallPt = 7.2
 }) => {
   const bottomBorder = definition.separatorAfter ? 'thick' : true;
   const subjectiveLines = data?.subjective || defaultSubjective;
   const objectiveLines = data?.objective || defaultObjective;
 
   return (
-    <tr className="h-[46px]">
+    <tr className='h-[46px]'>
       {/* Col 0: Jenis Vaksin */}
       <FormCell
         widthPercent={25.77}
         borderBottom={bottomBorder}
-        padding="px-[4px] py-[2px]"
-        align="left"
+        padding='px-[4px] py-[2px]'
+        align='left'
+        verticalAlign='top'
       >
         {definition.vaccine.length === 1 && !definition.vaccine[0].right ? (
-          <FormText customPt={bodyPt}>
-            {definition.vaccine[0].left}
-          </FormText>
+          <FormText customPt={bodyPt}>{definition.vaccine[0].left}</FormText>
         ) : (
-          <div className="w-full flex flex-col justify-center">
+          <div className='w-full flex flex-col justify-center'>
             {definition.vaccine.map((line, idx) => (
-              <div key={idx} className="flex justify-between items-center pr-2">
-                <FormText customPt={bodyPt}>
-                  {line.left}
-                </FormText>
-                <FormText customPt={bodyPt}>
-                  {line.right || ''}
-                </FormText>
+              <div key={idx} className='flex justify-between items-center pr-2'>
+                <FormText customPt={bodyPt}>{line.left}</FormText>
+                <FormText customPt={bodyPt}>{line.right || ''}</FormText>
               </div>
             ))}
           </div>
@@ -57,8 +52,9 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
       <FormCell
         widthPercent={10.12}
         borderBottom={bottomBorder}
-        align="center"
-        padding="px-[2px] py-[2px]"
+        align='center'
+        verticalAlign='top'
+        padding='px-[2px] py-[2px]'
       >
         <FormText customPt={smallPt}>{data?.injectionDate || ''}</FormText>
       </FormCell>
@@ -67,8 +63,9 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
       <FormCell
         widthPercent={7.82}
         borderBottom={bottomBorder}
-        align="center"
-        padding="px-[2px] py-[2px]"
+        align='center'
+        verticalAlign='top'
+        padding='px-[2px] py-[2px]'
       >
         <FormText customPt={smallPt}>{data?.age || ''}</FormText>
       </FormCell>
@@ -77,12 +74,13 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
       <FormCell
         widthPercent={17.03}
         borderBottom={bottomBorder}
-        padding="px-[3px] py-[1px]"
-        align="left"
+        padding='px-[3px] py-[1px]'
+        align='left'
+        verticalAlign='top'
       >
-        <div className="flex flex-col">
+        <div className='flex flex-col'>
           {subjectiveLines.map((line, idx) => (
-            <FormText key={idx} customPt={6.3}>
+            <FormText key={idx} customPt={smallPt}>
               {line}
             </FormText>
           ))}
@@ -93,12 +91,17 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
       <FormCell
         widthPercent={19.33}
         borderBottom={bottomBorder}
-        padding="px-[3px] py-[1px]"
-        align="left"
+        padding='px-[3px] py-[1px]'
+        align='left'
+        verticalAlign='top'
       >
-        <div className="flex flex-col">
+        <div className='flex flex-col'>
           {objectiveLines.map((line, idx) => (
-            <FormText key={idx} customPt={data?.objective ? 6.3 : 7.2} bold={!data?.objective}>
+            <FormText
+              key={idx}
+              customPt={data?.objective ? smallPt : bodyPt}
+              bold={!data?.objective}
+            >
               {line}
             </FormText>
           ))}
@@ -109,10 +112,11 @@ export const VaccineRowItem: React.FC<VaccineRowItemProps> = ({
       <FormCell
         widthPercent={19.93}
         borderBottom={bottomBorder}
-        padding="px-[3px] py-[2px]"
-        align="left"
+        padding='px-[3px] py-[2px]'
+        align='left'
+        verticalAlign='top'
       >
-        <FormText customPt={6.3}>{data?.planning || ''}</FormText>
+        <FormText customPt={smallPt}>{data?.planning || ''}</FormText>
       </FormCell>
     </tr>
   );

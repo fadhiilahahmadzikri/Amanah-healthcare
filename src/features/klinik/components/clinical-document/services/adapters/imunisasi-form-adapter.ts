@@ -3,11 +3,7 @@ import type { Appointment } from '../../../../api/types';
 import type { FormJsonSchema } from '../../../../constants/medical-appointment-types';
 import type { ImunisasiFormData, VaccineRowData } from '../../types';
 import { formatClinicDate } from '@/lib/date-format';
-import { formatMaskedNik } from '@/components/ui/masked-nik';
-import {
-  getInactiveFieldIds,
-  VACCINE_SCHEDULE_DEFINITIONS
-} from './clinical-adapter-helpers';
+import { getInactiveFieldIds, VACCINE_SCHEDULE_DEFINITIONS } from './clinical-adapter-helpers';
 
 /**
  * Adapter from upstream UnifiedInspectorData to 1:1 ImunisasiFormData
@@ -24,21 +20,39 @@ export function adaptToImunisasiFormData(
   const inactive = getInactiveFieldIds(schema);
   const isFieldActive = (id: string) => !inactive.has(id);
 
-  const mrn = p?.medicalRecordNumber || '0000000000';
-  const cleanDigits = mrn.replace(/\D/g, '').padStart(10, '0').slice(-10);
-  const recordDigits = cleanDigits.split('');
+  const rawMrn = p?.medicalRecordNumber ? p.medicalRecordNumber.replace(/\D/g, '') : '';
+  const recordDigits = rawMrn ? rawMrn.padStart(10, '0').slice(-10).split('') : Array(10).fill('');
 
-  const childName = isFieldActive('childName') ? (c?.childName || p?.fullName || '') : '';
-  const childNik = isFieldActive('childNik') ? (c?.childNik || p?.nik || '') : '';
-  const rawBirthDate = isFieldActive('childBirthDate') ? (c?.childBirthDate || p?.birthDate) : undefined;
+  const childName = isFieldActive('childName') ? c?.childName || p?.fullName || '' : '';
+  const childNik = isFieldActive('childNik') ? c?.childNik || p?.nik || '' : '';
+  const rawBirthDate = isFieldActive('childBirthDate')
+    ? c?.childBirthDate || p?.birthDate
+    : undefined;
   const childBirthDate = rawBirthDate
     ? formatClinicDate(rawBirthDate, { style: 'human_full' })
     : '';
-  const phone = isFieldActive('parentPhone') ? (c?.parentPhone || p?.phone || '') : '';
+  const phone = isFieldActive('parentPhone') ? c?.parentPhone || p?.phone || '' : '';
 
-  const fatherName = isFieldActive('fatherName') ? (c?.fatherName || '') : '';
-  const motherName = isFieldActive('motherName') ? (c?.motherName || p?.motherName || '') : '';
-  const address = isFieldActive('childAddress') ? (c?.childAddress || p?.address || '') : '';
+  const fatherName = isFieldActive('fatherName') ? c?.fatherName || '' : '';
+  const motherName = isFieldActive('motherName') ? c?.motherName || p?.motherName || '' : '';
+
+  const resolvedChildAddress = (() => {
+    const l1 = c?.line1 || p?.line1;
+    const vill = c?.villageName || p?.villageName;
+    const dist = c?.districtName || p?.districtName;
+    const reg = c?.regencyName || p?.regencyName;
+    const prov = c?.provinceName || p?.provinceName;
+    const parts = [
+      l1,
+      vill ? `Kel. ${vill}` : '',
+      dist ? `Kec. ${dist}` : '',
+      reg,
+      prov ? `Prov. ${prov}` : ''
+    ].filter(Boolean);
+    return parts.length > 0 ? parts.join(', ') : c?.childAddress || p?.address || '';
+  })();
+
+  const address = isFieldActive('childAddress') ? resolvedChildAddress : '';
 
   // Construct 15 entries strictly mapped to defaultImunisasiConfig.vaccineTable.rows
   const vaccineRows: (VaccineRowData | undefined)[] = Array.from({ length: 15 }, () => undefined);
@@ -68,9 +82,7 @@ export function adaptToImunisasiFormData(
 
         // Include row if it has any recorded clinical activity
         if (isGiven || hasDate || hasVitals || hasSymptoms || hasPlanning) {
-          const matchedDate = rawDate
-            ? formatClinicDate(rawDate, { style: 'human_short' })
-            : '';
+          const matchedDate = rawDate ? formatClinicDate(rawDate, { style: 'human_short' }) : '';
 
           const matchedAge =
             match.ageDisplay ||
@@ -108,7 +120,7 @@ export function adaptToImunisasiFormData(
       recordDigits
     },
     identity: {
-      leftValues: [childName, childNik ? formatMaskedNik(childNik) : '', childBirthDate, phone],
+      leftValues: [childName, childNik || '', childBirthDate, phone],
       rightValues: [fatherName, motherName, address, '']
     },
     preTable: {

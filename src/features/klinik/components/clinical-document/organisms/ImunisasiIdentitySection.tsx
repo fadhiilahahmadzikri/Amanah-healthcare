@@ -13,58 +13,69 @@ export interface ImunisasiIdentitySectionProps {
 
 export const ImunisasiIdentitySection: React.FC<ImunisasiIdentitySectionProps> = ({
   config,
-  data,
+  data
 }) => {
   return (
-    <div className="w-full mb-2">
-      <table className="w-full border-collapse border border-black table-fixed">
+    <div className='w-full mb-2'>
+      <table className='w-full border-collapse border border-black table-fixed text-[8.2pt]'>
         <colgroup>
-          <col style={{ width: '12.42%' }} />
-          <col style={{ width: '37.58%' }} />
-          <col style={{ width: '11.96%' }} />
-          <col style={{ width: '38.04%' }} />
+          <col style={{ width: '14%' }} />
+          <col style={{ width: '36%' }} />
+          <col style={{ width: '14%' }} />
+          <col style={{ width: '36%' }} />
         </colgroup>
         <tbody>
           {config.rows.map((rowItem, idx) => {
             const leftVal = data?.leftValues?.[idx] ?? rowItem.leftValue;
             const rightVal = data?.rightValues?.[idx] ?? rowItem.rightValue;
+            const isAddressRow = idx === 2;
 
             return (
-              <tr key={idx} className="h-[21px]">
+              <tr key={idx} className='border-b border-black'>
                 {/* Left Label */}
-                <td className="px-1.5 py-0.5 align-middle border-t-0 border-b-0 border-l-0 border-r-0">
-                  <FormText customPt={7.2}>{rowItem.leftLabel}</FormText>
+                <td className='border border-black px-1.5 py-1 align-top bg-white'>
+                  <FormText customPt={8.2}>{rowItem.leftLabel}</FormText>
                 </td>
 
-                {/* Left Field (with right vertical border dividing left & right sections) */}
-                <td className="px-1.5 py-0.5 align-middle border-t-0 border-b-0 border-l-0 border-r border-r-black">
+                {/* Left Field */}
+                <td className='border border-black px-1.5 py-1 align-top bg-white'>
                   <DottedLine
                     value={leftVal}
-                    customPt={7.2}
+                    customPt={8.2}
                     boldValue={Boolean(leftVal && leftVal !== '( L / P )')}
-                    className={leftVal ? 'justify-end' : ''}
-                    minHeight="15px"
+                    minHeight='16px'
                   />
                 </td>
 
-                {/* Right Label */}
-                <td className="px-1.5 py-0.5 align-middle border-t-0 border-b-0 border-l-0 border-r-0">
-                  <FormText customPt={7.2}>{rowItem.rightLabel}</FormText>
-                </td>
-
-                {/* Right Field */}
-                <td className="px-1.5 py-0.5 align-middle border-t-0 border-b-0 border-l-0 border-r-0">
-                  {rowItem.rightLabel ? (
-                    <DottedLine
-                      value={rightVal}
-                      customPt={7.2}
-                      boldValue={Boolean(rightVal)}
-                      minHeight="15px"
-                    />
-                  ) : (
-                    <div className="h-[15px]" />
-                  )}
-                </td>
+                {/* Right Label & Field */}
+                {isAddressRow ? (
+                  <>
+                    <td rowSpan={2} className='border border-black px-1.5 py-1 align-top bg-white'>
+                      <FormText customPt={8.2}>{rowItem.rightLabel}</FormText>
+                    </td>
+                    <td rowSpan={2} className='border border-black px-1.5 py-1 align-top bg-white'>
+                      <div className='min-h-[36px] flex flex-col justify-start'>
+                        <FormText customPt={8.2} bold={Boolean(rightVal)}>
+                          {rightVal || ''}
+                        </FormText>
+                      </div>
+                    </td>
+                  </>
+                ) : idx === 3 ? null : (
+                  <>
+                    <td className='border border-black px-1.5 py-1 align-top bg-white'>
+                      <FormText customPt={8.2}>{rowItem.rightLabel}</FormText>
+                    </td>
+                    <td className='border border-black px-1.5 py-1 align-top bg-white'>
+                      <DottedLine
+                        value={rightVal}
+                        customPt={8.2}
+                        boldValue={Boolean(rightVal)}
+                        minHeight='16px'
+                      />
+                    </td>
+                  </>
+                )}
               </tr>
             );
           })}

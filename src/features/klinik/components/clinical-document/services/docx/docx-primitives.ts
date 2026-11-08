@@ -20,18 +20,18 @@ export const LIGHT = '777777';
 
 export const TABLE_MARGIN = {
   marginUnitType: WidthType.DXA,
-  top: 18,
-  bottom: 18,
-  left: 28,
-  right: 28
+  top: 70,
+  bottom: 70,
+  left: 100,
+  right: 100
 };
 
 export const DEFAULT_MARGIN = {
   marginUnitType: WidthType.DXA,
-  top: 18,
-  bottom: 18,
-  left: 42,
-  right: 42
+  top: 70,
+  bottom: 70,
+  left: 100,
+  right: 100
 };
 
 export const TIGHT_MARGIN = {
@@ -199,7 +199,10 @@ export function blankParagraph(size = 7.3): Paragraph {
   return paragraph(' ', { size });
 }
 
-export function sectionLabel(text: string, options: { before?: number; after?: number } = {}): Paragraph {
+export function sectionLabel(
+  text: string,
+  options: { before?: number; after?: number } = {}
+): Paragraph {
   return paragraph(text, {
     bold: true,
     size: 8.2,
@@ -245,6 +248,7 @@ export function cell(
   width: number,
   options: {
     columnSpan?: number;
+    rowSpan?: number;
     verticalAlign?: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable];
     margins?: any;
     borders?: any;
@@ -255,6 +259,7 @@ export function cell(
     children: normalizedChildren.length > 0 ? (normalizedChildren as any) : [blankParagraph()],
     width: { size: width, type: WidthType.DXA },
     columnSpan: options.columnSpan,
+    rowSpan: options.rowSpan,
     verticalAlign: options.verticalAlign || VerticalAlignTable.CENTER,
     margins: options.margins || TABLE_MARGIN,
     borders: options.borders
@@ -272,6 +277,7 @@ export function textCell(
     alignment?: (typeof AlignmentType)[keyof typeof AlignmentType];
     verticalAlign?: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable];
     columnSpan?: number;
+    rowSpan?: number;
     borders?: any;
     margins?: any;
   } = {}
@@ -298,6 +304,7 @@ export function checkboxCell(
     alignment?: (typeof AlignmentType)[keyof typeof AlignmentType];
     verticalAlign?: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable];
     columnSpan?: number;
+    rowSpan?: number;
     borders?: any;
     margins?: any;
   } = {}
@@ -326,6 +333,7 @@ export function lineCell(
     alignment?: (typeof AlignmentType)[keyof typeof AlignmentType];
     verticalAlign?: (typeof VerticalAlignTable)[keyof typeof VerticalAlignTable];
     columnSpan?: number;
+    rowSpan?: number;
     borders?: any;
     margins?: any;
     children?: TextRun[];

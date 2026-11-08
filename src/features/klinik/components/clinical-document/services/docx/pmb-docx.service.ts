@@ -88,10 +88,10 @@ export async function exportPmbDocx(
   const rmCode = data?.header?.rmAncCode;
   const rmTable = table(
     [rmInnerWidth],
-    cfg.header.rmRows.map((text, idx) =>
+    cfg.header.rmRows.map((text) =>
       row(
         [
-          textCell(idx === 0 && rmCode ? `RM ANC : ${rmCode}` : text, rmInnerWidth, {
+          textCell(text, rmInnerWidth, {
             alignment: AlignmentType.CENTER,
             size: text.startsWith('RM') ? 7.6 : 7.2
           })
@@ -245,7 +245,11 @@ export async function exportPmbDocx(
     }
 
     if (data.identity.locationRows && data.identity.locationRows.length > 0) {
-      const locWidths = [3622, 3622, 3622];
+      const locWidths = [
+        identityColumns[0],
+        identityColumns[1],
+        identityColumns[2] + identityColumns[3]
+      ];
       identityRows.push(
         row(
           data.identity.locationRows.map((loc, lIdx) =>
@@ -366,14 +370,17 @@ export async function exportPmbDocx(
   }
 
   const identityChildren = [
-    sectionLabel('IDENTITAS', { before: 70 }),
+    sectionLabel('IDENTITAS', { before: 140, after: 60 }),
     table(identityColumns, identityRows)
   ];
 
   // 3. Build Anamnesa (Left Prompts/Risk + Right 14 Diseases)
   const anamnesaColumns = [...cfg.anamnesa.riskColumns, ...cfg.anamnesa.diseaseColumns];
   const anamnesaRows = buildPmbAnamnesaRows(cfg, data);
-  const anamnesaChildren = [sectionLabel('ANAMNESA'), table(anamnesaColumns, anamnesaRows)];
+  const anamnesaChildren = [
+    sectionLabel('ANAMNESA', { before: 180, after: 60 }),
+    table(anamnesaColumns, anamnesaRows)
+  ];
 
   // 4. Build Obstetri
   const titleWidth = 2800;
@@ -453,7 +460,7 @@ export async function exportPmbDocx(
   }
 
   const obstetriChildren = [
-    verticalGap(cfg.layout.obstetriTitleBefore),
+    verticalGap(160),
     obstetriTitleTable,
     table(cfg.obstetri.columns, obstetriTableRows)
   ];
@@ -488,7 +495,10 @@ export async function exportPmbDocx(
     );
   }
 
-  const kbChildren = [sectionLabel(cfg.kb.title), table(cfg.kb.columns, kbTableRows)];
+  const kbChildren = [
+    sectionLabel(cfg.kb.title, { before: 180, after: 60 }),
+    table(cfg.kb.columns, kbTableRows)
+  ];
 
   // Assemble full document
   const doc = new Document({

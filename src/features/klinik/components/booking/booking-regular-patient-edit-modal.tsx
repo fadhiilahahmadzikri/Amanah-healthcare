@@ -48,6 +48,7 @@ export function BookingRegularPatientEditModal({
   const [relationship, setRelationship] = React.useState<PatientRelationshipType>('spouse');
   const [fullName, setFullName] = React.useState('');
   const [nik, setNik] = React.useState('');
+  const [showNik, setShowNik] = React.useState(false);
   const [phone, setPhone] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [emergencyContactName, setEmergencyContactName] = React.useState('');
@@ -361,7 +362,7 @@ export function BookingRegularPatientEditModal({
                 <PatientLineInput
                   id='edit_nationalId'
                   label='NIK KTP (16 Digit)'
-                  placeholder='3201xxxxxxxxxxxx'
+                  placeholder='16 digit NIK...'
                   value={nik}
                   onChange={(val) => {
                     const numericOnly = val.replace(/\D/g, '').slice(0, 16);
@@ -371,6 +372,22 @@ export function BookingRegularPatientEditModal({
                   inputMode='numeric'
                   isMonospace
                   autoComplete='off'
+                  isMasked={!showNik}
+                  trailingIcon={
+                    <button
+                      type='button'
+                      onClick={() => setShowNik((prev) => !prev)}
+                      className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                      title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+                      tabIndex={-1}
+                    >
+                      {showNik ? (
+                        <Icons.eyeOff className='size-4 text-primary' />
+                      ) : (
+                        <Icons.eye className='size-4 text-muted-foreground' />
+                      )}
+                    </button>
+                  }
                 />
 
                 <PatientLineInput

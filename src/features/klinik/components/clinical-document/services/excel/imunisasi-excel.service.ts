@@ -2,12 +2,7 @@ import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
 import { defaultImunisasiConfig } from '../../config/imunisasi-config';
 import type { ImunisasiFormData } from '../../types';
-import {
-  HEADER_FILL,
-  applyRowBorders,
-  addSquareLogo,
-  addSectionHeader
-} from './excel-primitives';
+import { HEADER_FILL, applyRowBorders, addSquareLogo, addSectionHeader } from './excel-primitives';
 
 export async function exportImunisasiExcel(
   data?: ImunisasiFormData | null,
@@ -65,19 +60,19 @@ export async function exportImunisasiExcel(
     const r = ws.getRow(currentLine);
     r.getCell(1).value = rDef.leftLabel;
     r.getCell(1).font = { bold: true, size: 9, name: 'Calibri' };
-    r.getCell(1).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+    r.getCell(1).alignment = { vertical: 'top', horizontal: 'left', indent: 1 };
 
     r.getCell(3).value = leftVals[idx] || rDef.leftValue || '';
     r.getCell(3).font = { size: 9, name: 'Calibri' };
-    r.getCell(3).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+    r.getCell(3).alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
 
     r.getCell(4).value = rDef.rightLabel;
     r.getCell(4).font = { bold: true, size: 9, name: 'Calibri' };
-    r.getCell(4).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+    r.getCell(4).alignment = { vertical: 'top', horizontal: 'left', indent: 1 };
 
     r.getCell(6).value = rightVals[idx] || rDef.rightValue || '';
     r.getCell(6).font = { size: 9, name: 'Calibri' };
-    r.getCell(6).alignment = { vertical: 'middle', horizontal: 'left', indent: 1 };
+    r.getCell(6).alignment = { vertical: 'top', horizontal: 'left', wrapText: true, indent: 1 };
 
     applyRowBorders(r, 1, 6);
   });

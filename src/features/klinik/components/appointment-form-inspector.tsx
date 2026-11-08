@@ -201,27 +201,27 @@ export function AppointmentFormInspector({
           line1: isPregnancy
             ? formData.line1 || parsedData.patient.line1
             : isImmunization
-              ? parsedData.patient.line1
+              ? immunizationFormData.line1 || parsedData.patient.line1
               : regularFormData.line1 || parsedData.patient.line1,
           villageName: isPregnancy
             ? formData.villageName || parsedData.patient.villageName
             : isImmunization
-              ? parsedData.patient.villageName
+              ? immunizationFormData.villageName || parsedData.patient.villageName
               : regularFormData.villageName || parsedData.patient.villageName,
           districtName: isPregnancy
             ? formData.districtName || parsedData.patient.districtName
             : isImmunization
-              ? parsedData.patient.districtName
+              ? immunizationFormData.districtName || parsedData.patient.districtName
               : regularFormData.districtName || parsedData.patient.districtName,
           regencyName: isPregnancy
             ? formData.regencyName || parsedData.patient.regencyName
             : isImmunization
-              ? parsedData.patient.regencyName
+              ? immunizationFormData.regencyName || parsedData.patient.regencyName
               : regularFormData.regencyName || parsedData.patient.regencyName,
           provinceName: isPregnancy
             ? formData.provinceName || parsedData.patient.provinceName
             : isImmunization
-              ? parsedData.patient.provinceName
+              ? immunizationFormData.provinceName || parsedData.patient.provinceName
               : regularFormData.provinceName || parsedData.patient.provinceName,
           ...(isPregnancy || isImmunization
             ? {}
@@ -279,7 +279,12 @@ export function AppointmentFormInspector({
     immunizationFormData.childName,
     immunizationFormData.childNik,
     immunizationFormData.parentPhone,
-    immunizationFormData.childAddress
+    immunizationFormData.childAddress,
+    immunizationFormData.line1,
+    immunizationFormData.villageName,
+    immunizationFormData.districtName,
+    immunizationFormData.regencyName,
+    immunizationFormData.provinceName
   ]);
 
   const handleMaternityFieldChange = React.useCallback(

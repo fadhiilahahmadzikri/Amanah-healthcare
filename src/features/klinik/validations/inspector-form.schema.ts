@@ -23,6 +23,11 @@ export {
   immunizationFormZodSchema,
   validateImmunizationForm,
   getImmunizationTabWithErrors,
+  getImmunizationTabErrorCounts,
+  getTabForImmunizationErrorKey,
+  getImmunizationDomIdForErrorKey,
+  IMMUNIZATION_FIELD_TAB_MAP,
+  IMMUNIZATION_FIELD_DOM_ID_MAP,
   type ImmunizationValidationResult,
   type ImmunizationInspectorTab
 } from './immunization-form.schema';

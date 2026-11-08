@@ -196,6 +196,15 @@ export interface EditableImmunizationData {
   fatherName: string;
   motherName: string;
   childAddress: string;
+  line1?: string;
+  provinceCode?: string;
+  provinceName?: string;
+  regencyCode?: string;
+  regencyName?: string;
+  districtCode?: string;
+  districtName?: string;
+  villageCode?: string;
+  villageName?: string;
   hasVaccineHistory: string;
   previousVaccineHistory: string;
   hasAllergyHistory: string;

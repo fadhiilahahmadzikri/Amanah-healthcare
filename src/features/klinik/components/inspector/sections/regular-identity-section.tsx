@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { Icons } from '@/components/icons';
+import { MaskedNik } from '@/components/ui/masked-nik';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { getGenderLabel, type Gender } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
@@ -35,6 +37,7 @@ export function RegularIdentitySection({
   onClearError,
   references
 }: RegularIdentitySectionProps) {
+  const [showNik, setShowNik] = React.useState(false);
   const { answers, patient } = data;
   const relationship = getRelationshipLabel(patient?.relationshipType);
 
@@ -153,6 +156,22 @@ export function RegularIdentitySection({
             placeholder='16 digit NIK...'
             maxLength={16}
             isMonospace
+            isMasked={!showNik}
+            trailingIcon={
+              <button
+                type='button'
+                onClick={() => setShowNik((prev) => !prev)}
+                className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+                tabIndex={-1}
+              >
+                {showNik ? (
+                  <Icons.eyeOff className='size-4 text-primary' />
+                ) : (
+                  <Icons.eye className='size-4 text-muted-foreground' />
+                )}
+              </button>
+            }
           />
 
           <PatientLineInput
@@ -259,9 +278,7 @@ export function RegularIdentitySection({
             <PatientLineInput
               id='reg-emg-name-input'
               label='Nama Kontak Darurat'
-              value={
-                regularFormData.emergencyContactName ?? (patient?.emergencyContactName || '')
-              }
+              value={regularFormData.emergencyContactName ?? (patient?.emergencyContactName || '')}
               onChange={(val) => onRegularFieldChange('emergencyContactName', val)}
               placeholder='Nama kontak darurat...'
             />
@@ -303,13 +320,12 @@ export function RegularIdentitySection({
             readOnly
           />
 
-          <PatientLineInput
-            id='read-nik'
-            label='NIK Pasien (16 Digit)'
-            value={nik}
-            isMonospace
-            readOnly
-          />
+          <div className='space-y-1'>
+            <span className='text-[11px] font-medium text-muted-foreground block'>
+              NIK Pasien (16 Digit)
+            </span>
+            <MaskedNik nik={nik} patientId={patient?.id} allowUnmask={true} />
+          </div>
 
           <PatientLineInput
             id='read-birthplace'
@@ -321,34 +337,23 @@ export function RegularIdentitySection({
           <PatientLineInput
             id='read-birthdate'
             label='Tanggal Lahir'
-            value={patient?.birthDate ? formatClinicDate(patient.birthDate, { style: 'human_medium' }) : ''}
+            value={
+              patient?.birthDate
+                ? formatClinicDate(patient.birthDate, { style: 'human_medium' })
+                : ''
+            }
             isMonospace
             readOnly
           />
 
           <PatientLineInput id='read-gender' label='Jenis Kelamin' value={gender} readOnly />
 
-          <PatientLineInput
-            id='read-bloodtype'
-            label='Golongan Darah'
-            value={bloodType}
-            readOnly
-          />
+          <PatientLineInput id='read-bloodtype' label='Golongan Darah' value={bloodType} readOnly />
 
-          <PatientLineInput
-            id='read-mother'
-            label='Nama Ibu Kandung'
-            value={motherName}
-            readOnly
-          />
+          <PatientLineInput id='read-mother' label='Nama Ibu Kandung' value={motherName} readOnly />
 
           <div className='col-span-1 sm:col-span-2'>
-            <PatientLineInput
-              id='read-occupation'
-              label='Pekerjaan'
-              value={occupation}
-              readOnly
-            />
+            <PatientLineInput id='read-occupation' label='Pekerjaan' value={occupation} readOnly />
           </div>
 
           <PatientLineInput
@@ -429,20 +434,14 @@ export function RegularIdentitySection({
               <PatientLineInput
                 id='read-emg-name'
                 label='Nama Kontak Darurat'
-                value={
-                  regularFormData?.emergencyContactName ||
-                  patient?.emergencyContactName ||
-                  ''
-                }
+                value={regularFormData?.emergencyContactName || patient?.emergencyContactName || ''}
                 readOnly
               />
               <PatientLineInput
                 id='read-emg-phone'
                 label='No. Telp Kontak Darurat'
                 value={
-                  regularFormData?.emergencyContactPhone ||
-                  patient?.emergencyContactPhone ||
-                  ''
+                  regularFormData?.emergencyContactPhone || patient?.emergencyContactPhone || ''
                 }
                 isMonospace
                 readOnly

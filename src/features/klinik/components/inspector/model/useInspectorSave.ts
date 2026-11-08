@@ -30,12 +30,16 @@ import {
 } from './patient-diff-helper';
 import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
+import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 
-function parseSafeClampedNumber(
-  val: unknown,
-  min: number,
-  max: number
-): number | null {
+function parseSafeNumber(val: unknown): number | null {
+  if (val === undefined || val === null || val === '') return null;
+  const normalized = typeof val === 'string' ? val.trim().replace(',', '.') : val;
+  const n = Number(normalized);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseSafeClampedNumber(val: unknown, min: number, max: number): number | null {
   if (val === undefined || val === null || val === '') return null;
   const normalized = typeof val === 'string' ? val.trim().replace(',', '.') : val;
   const n = Number(normalized);
@@ -107,6 +111,17 @@ export function useInspectorSave({
       return;
     }
 
+    const newMotherNik = formData.motherNik?.trim();
+    const originalMotherNik = (parsedData.maternal?.motherNik || parsedData.patient?.nik)?.trim();
+    if (newMotherNik && newMotherNik !== originalMotherNik && newMotherNik.length === 16) {
+      const check = await patientAffiliationService.verifyNikAvailability(newMotherNik);
+      if (!check.available) {
+        setValidationErrors({ motherNik: 'NIK ini sudah terdaftar pada pasien lain' });
+        toast.error('NIK Ibu sudah terdaftar pada pasien lain');
+        return;
+      }
+    }
+
     // Resolve health conditions using canonical uppercase condition codes
     const existingConditionsMap = new Map<string, any>();
     if (formData.conditionResponses && Array.isArray(formData.conditionResponses)) {
@@ -123,7 +138,7 @@ export function useInspectorSave({
         conditionCode: condDef.code,
         hasCondition: Boolean(resp?.hasCondition),
         diagnosisYear: resp?.diagnosisYear ? Number(resp.diagnosisYear) : null,
-        notes: condDef.code === 'OTHER' ? (resp?.notes || null) : null
+        notes: condDef.code === 'OTHER' ? resp?.notes || null : null
       };
     });
 
@@ -131,8 +146,16 @@ export function useInspectorSave({
       motherName: formData.motherName || undefined,
       motherNik: formData.motherNik || undefined,
       motherBirthDate: formData.motherBirthDate || undefined,
-      motherAge: formData.motherAge !== '' && formData.motherAge !== undefined && formData.motherAge !== null ? Number(formData.motherAge) : undefined,
-      marriageOrder: formData.marriageOrder !== '' && formData.marriageOrder !== undefined && formData.marriageOrder !== null ? Number(formData.marriageOrder) : undefined,
+      motherAge:
+        formData.motherAge !== '' && formData.motherAge !== undefined && formData.motherAge !== null
+          ? Number(formData.motherAge)
+          : undefined,
+      marriageOrder:
+        formData.marriageOrder !== '' &&
+        formData.marriageOrder !== undefined &&
+        formData.marriageOrder !== null
+          ? Number(formData.marriageOrder)
+          : undefined,
       marriageDate: formData.marriageDate || undefined,
       motherJob: formData.motherJob || undefined,
       motherEducation: formData.motherEducation || undefined,
@@ -144,27 +167,37 @@ export function useInspectorSave({
       posyandu: formData.posyandu || undefined,
       puskesmas: formData.puskesmas || undefined,
 
-      partnerName: formData.partnerName !== undefined ? (formData.partnerName || null) : undefined,
-      partnerNik: formData.partnerNik !== undefined ? (formData.partnerNik.trim() || null) : undefined,
-      partnerBirthDate: formData.partnerBirthDate !== undefined ? (formData.partnerBirthDate || null) : undefined,
+      partnerName: formData.partnerName !== undefined ? formData.partnerName || null : undefined,
+      partnerNik:
+        formData.partnerNik !== undefined ? formData.partnerNik.trim() || null : undefined,
+      partnerBirthDate:
+        formData.partnerBirthDate !== undefined ? formData.partnerBirthDate || null : undefined,
       partnerAge: formData.partnerAge ? Number(formData.partnerAge) : null,
-      partnerJob: formData.partnerJob !== undefined ? (formData.partnerJob || null) : undefined,
-      partnerEducation: formData.partnerEducation !== undefined ? (formData.partnerEducation || null) : undefined,
-      partnerBloodType: formData.partnerBloodType !== undefined ? (formData.partnerBloodType || null) : undefined,
+      partnerJob: formData.partnerJob !== undefined ? formData.partnerJob || null : undefined,
+      partnerEducation:
+        formData.partnerEducation !== undefined ? formData.partnerEducation || null : undefined,
+      partnerBloodType:
+        formData.partnerBloodType !== undefined ? formData.partnerBloodType || null : undefined,
       husband: {
         fullName: formData.partnerName || '',
-        nik: formData.partnerNik !== undefined ? (formData.partnerNik.trim() || null) : undefined,
-        birthDate: formData.partnerBirthDate !== undefined ? (formData.partnerBirthDate || null) : undefined,
+        nik: formData.partnerNik !== undefined ? formData.partnerNik.trim() || null : undefined,
+        birthDate:
+          formData.partnerBirthDate !== undefined ? formData.partnerBirthDate || null : undefined,
         age: formData.partnerAge ? Number(formData.partnerAge) : null,
-        job: formData.partnerJob !== undefined ? (formData.partnerJob || null) : undefined,
-        education: formData.partnerEducation !== undefined ? (formData.partnerEducation || null) : undefined,
-        bloodType: formData.partnerBloodType !== undefined ? (formData.partnerBloodType || null) : undefined,
-        phoneNumber: formData.partnerPhone !== undefined ? (formData.partnerPhone.trim() || null) : undefined
+        job: formData.partnerJob !== undefined ? formData.partnerJob || null : undefined,
+        education:
+          formData.partnerEducation !== undefined ? formData.partnerEducation || null : undefined,
+        bloodType:
+          formData.partnerBloodType !== undefined ? formData.partnerBloodType || null : undefined,
+        phoneNumber:
+          formData.partnerPhone !== undefined ? formData.partnerPhone.trim() || null : undefined
       },
 
       heightCm: parseSafeClampedNumber(formData.heightCm, 0, 300) ?? undefined,
-      prePregnancyWeightKg: parseSafeClampedNumber(formData.prePregnancyWeightKg, 0, 500) ?? undefined,
-      upperArmCircumferenceCm: parseSafeClampedNumber(formData.upperArmCircumferenceCm, 0, 150) ?? undefined,
+      prePregnancyWeightKg:
+        parseSafeClampedNumber(formData.prePregnancyWeightKg, 0, 500) ?? undefined,
+      upperArmCircumferenceCm:
+        parseSafeClampedNumber(formData.upperArmCircumferenceCm, 0, 150) ?? undefined,
       initialBmi: parseSafeClampedNumber(formData.initialBmi, 0, 150) ?? undefined,
       tetanusStatus: formData.tetanusStatus || undefined,
       motherBloodType: formData.motherBloodType || undefined,
@@ -177,10 +210,30 @@ export function useInspectorSave({
       gestationalAgeFormatted: formData.gestationalAgeFormatted || undefined,
       currentComplaints: formData.currentComplaints || undefined,
 
-      gravidaCount: formData.gravidaCount !== '' && formData.gravidaCount !== undefined && formData.gravidaCount !== null ? Number(formData.gravidaCount) : undefined,
-      parityCount: formData.parityCount !== '' && formData.parityCount !== undefined && formData.parityCount !== null ? Number(formData.parityCount) : undefined,
-      abortionCount: formData.abortionCount !== '' && formData.abortionCount !== undefined && formData.abortionCount !== null ? Number(formData.abortionCount) : undefined,
-      livingChildrenCount: formData.livingChildrenCount !== '' && formData.livingChildrenCount !== undefined && formData.livingChildrenCount !== null ? Number(formData.livingChildrenCount) : undefined,
+      gravidaCount:
+        formData.gravidaCount !== '' &&
+        formData.gravidaCount !== undefined &&
+        formData.gravidaCount !== null
+          ? Number(formData.gravidaCount)
+          : undefined,
+      parityCount:
+        formData.parityCount !== '' &&
+        formData.parityCount !== undefined &&
+        formData.parityCount !== null
+          ? Number(formData.parityCount)
+          : undefined,
+      abortionCount:
+        formData.abortionCount !== '' &&
+        formData.abortionCount !== undefined &&
+        formData.abortionCount !== null
+          ? Number(formData.abortionCount)
+          : undefined,
+      livingChildrenCount:
+        formData.livingChildrenCount !== '' &&
+        formData.livingChildrenCount !== undefined &&
+        formData.livingChildrenCount !== null
+          ? Number(formData.livingChildrenCount)
+          : undefined,
       hasPreviousPregnancyHistory: Boolean(formData.hasPreviousPregnancyHistory),
       hasContraceptionHistory: Boolean(formData.hasContraceptionHistory),
 
@@ -253,7 +306,14 @@ export function useInspectorSave({
     }
     toast.success('Perubahan formulir KIA & Kehamilan berhasil disimpan!');
     setIsEditing(false);
-  }, [formData, parsedData, appointment, invalidateCommonQueries, setIsEditing, setValidationErrors]);
+  }, [
+    formData,
+    parsedData,
+    appointment,
+    invalidateCommonQueries,
+    setIsEditing,
+    setValidationErrors
+  ]);
 
   const saveImmunization = React.useCallback(async () => {
     const validation = validateImmunizationForm(immunizationFormData);
@@ -268,6 +328,17 @@ export function useInspectorSave({
     if (!targetId) {
       toast.error('Gagal menyimpan: ID formulir imunisasi tidak ditemukan.');
       return;
+    }
+
+    const newChildNik = immunizationFormData.childNik?.trim();
+    const originalChildNik = (parsedData.child?.childNik || parsedData.patient?.nik)?.trim();
+    if (newChildNik && newChildNik !== originalChildNik && newChildNik.length === 16) {
+      const check = await patientAffiliationService.verifyNikAvailability(newChildNik);
+      if (!check.available) {
+        setValidationErrors({ childNik: 'NIK ini sudah terdaftar pada pasien lain' });
+        toast.error('NIK Anak sudah terdaftar pada pasien lain');
+        return;
+      }
     }
 
     // SSOT: Use relational clinical entries directly
@@ -285,10 +356,10 @@ export function useInspectorSave({
       fever: e.fever || null,
       cough: e.cough || null,
       runnyNose: e.runnyNose || null,
-      weightKg: parseSafeClampedNumber(e.weightKg, 0.5, 150),
-      heightCm: parseSafeClampedNumber(e.heightCm, 20, 250),
-      headCircumferenceCm: parseSafeClampedNumber(e.headCircumferenceCm, 10, 100),
-      temperatureCelsius: parseSafeClampedNumber(e.temperatureCelsius, 30, 45),
+      weightKg: parseSafeNumber(e.weightKg),
+      heightCm: parseSafeNumber(e.heightCm),
+      headCircumferenceCm: parseSafeNumber(e.headCircumferenceCm),
+      temperatureCelsius: parseSafeNumber(e.temperatureCelsius),
       planning: e.planning || null,
       notes: e.notes || null
     }));
@@ -303,6 +374,15 @@ export function useInspectorSave({
       fatherName: immunizationFormData.fatherName || undefined,
       motherName: immunizationFormData.motherName || undefined,
       childAddress: immunizationFormData.childAddress || undefined,
+      line1: immunizationFormData.line1 || undefined,
+      provinceCode: immunizationFormData.provinceCode || undefined,
+      provinceName: immunizationFormData.provinceName || undefined,
+      regencyCode: immunizationFormData.regencyCode || undefined,
+      regencyName: immunizationFormData.regencyName || undefined,
+      districtCode: immunizationFormData.districtCode || undefined,
+      districtName: immunizationFormData.districtName || undefined,
+      villageCode: immunizationFormData.villageCode || undefined,
+      villageName: immunizationFormData.villageName || undefined,
       previousVaccineHistory: immunizationFormData.previousVaccineHistory || undefined,
       childAllergyHistory: immunizationFormData.childAllergyHistory || undefined,
       entries: finalEntries
@@ -324,7 +404,14 @@ export function useInspectorSave({
     }
     toast.success('Perubahan formulir imunisasi anak berhasil disimpan!');
     setIsEditing(false);
-  }, [immunizationFormData, parsedData, appointment, invalidateCommonQueries, setIsEditing, setValidationErrors]);
+  }, [
+    immunizationFormData,
+    parsedData,
+    appointment,
+    invalidateCommonQueries,
+    setIsEditing,
+    setValidationErrors
+  ]);
 
   const saveRegular = React.useCallback(async () => {
     const validation = validateRegularForm(regularFormData);
@@ -335,12 +422,22 @@ export function useInspectorSave({
     }
     setValidationErrors({});
 
-    const targetId =
-      (serverIntake as any)?.data?.id ?? (serverIntake as any)?.id;
+    const targetId = (serverIntake as any)?.data?.id ?? (serverIntake as any)?.id;
 
     if (!targetId) {
       toast.error('Gagal menyimpan: ID formulir intake tidak ditemukan.');
       return;
+    }
+
+    const newNik = regularFormData.nik?.trim();
+    const originalNik = parsedData.patient?.nik?.trim();
+    if (newNik && newNik !== originalNik && newNik.length === 16) {
+      const check = await patientAffiliationService.verifyNikAvailability(newNik);
+      if (!check.available) {
+        setValidationErrors({ nik: 'NIK ini sudah terdaftar pada pasien lain' });
+        toast.error('NIK ini sudah terdaftar pada pasien lain');
+        return;
+      }
     }
 
     const answersPayload = {
@@ -368,7 +465,15 @@ export function useInspectorSave({
     }
     toast.success('Perubahan formulir intake pasien berhasil disimpan!');
     setIsEditing(false);
-  }, [regularFormData, serverIntake, appointment, parsedData, invalidateCommonQueries, setIsEditing, setValidationErrors]);
+  }, [
+    regularFormData,
+    serverIntake,
+    appointment,
+    parsedData,
+    invalidateCommonQueries,
+    setIsEditing,
+    setValidationErrors
+  ]);
 
   const handleSaveEdit = React.useCallback(async () => {
     try {

@@ -18,9 +18,9 @@ export const defaultImunisasiConfig: ImunisasiFormConfig = {
     font: 'Times New Roman',
     title: 11,
     subtitle: 10,
-    body: 7.2,
-    small: 6.3,
-    tableHeader: 7.5
+    body: 8.2,
+    small: 7.2,
+    tableHeader: 8.5
   },
   header: {
     height: 1500,

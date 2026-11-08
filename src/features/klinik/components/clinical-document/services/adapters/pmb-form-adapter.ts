@@ -3,7 +3,6 @@ import type { Appointment } from '../../../../api/types';
 import type { FormJsonSchema } from '../../../../constants/medical-appointment-types';
 import type { PmbFormData, DiseaseRecord } from '../../types';
 import { formatClinicDate } from '@/lib/date-format';
-import { formatMaskedNik } from '@/components/ui/masked-nik';
 import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 import { getInactiveFieldIds, formatGender } from './clinical-adapter-helpers';
 
@@ -20,33 +19,51 @@ export function adaptToPmbFormData(
   const inactive = getInactiveFieldIds(schema);
   const isFieldActive = (id: string) => !inactive.has(id);
 
-  const motherName = isFieldActive('motherName') ? (m?.motherName || p?.fullName || '') : '';
-  const marriageOrder = isFieldActive('marriageOrder') ? (m?.marriageOrder ? String(m.marriageOrder) : '') : '';
+  const motherName = isFieldActive('motherName') ? m?.motherName || p?.fullName || '' : '';
+  const marriageOrder = isFieldActive('marriageOrder')
+    ? m?.marriageOrder
+      ? String(m.marriageOrder)
+      : ''
+    : '';
   const rawMarriageDate = isFieldActive('marriageDate') ? m?.marriageDate : undefined;
   const marriageDate = rawMarriageDate
     ? formatClinicDate(rawMarriageDate, { style: 'human_full' })
     : '';
-  const motherNik = isFieldActive('motherNik') ? (m?.motherNik || p?.nik || '') : '';
-  const maskedMotherNik = motherNik ? formatMaskedNik(motherNik) : '';
-  const rawMotherBirthDate = isFieldActive('motherBirthDate') ? (m?.motherBirthDate || p?.birthDate) : undefined;
+  const motherNik = isFieldActive('motherNik') ? m?.motherNik || p?.nik || '' : '';
+  const rawMotherBirthDate = isFieldActive('motherBirthDate')
+    ? m?.motherBirthDate || p?.birthDate
+    : undefined;
   const motherBirthDate = rawMotherBirthDate
     ? formatClinicDate(rawMotherBirthDate, { style: 'human_full' })
     : '';
   const motherAge = isFieldActive('motherAge') ? (m?.motherAge ? `${m.motherAge} tahun` : '') : '';
-  const motherJob = isFieldActive('motherJob') ? (m?.motherJob || p?.occupation || '') : '';
-  const motherEducation = isFieldActive('motherEducation') ? (m?.motherEducation || '') : '';
+  const motherJob = isFieldActive('motherJob') ? m?.motherJob || p?.occupation || '' : '';
+  const motherEducation = isFieldActive('motherEducation') ? m?.motherEducation || '' : '';
 
-  const partnerName = isFieldActive('partnerName') ? (m?.husbandProfile?.fullName || m?.partnerName || '') : '';
-  const partnerAge = isFieldActive('partnerAge') ? (m?.husbandProfile?.age || m?.partnerAge ? `${m?.husbandProfile?.age || m?.partnerAge} tahun` : '') : '';
-  const partnerNik = isFieldActive('partnerNik') ? (m?.husbandProfile?.nik || m?.partnerNik || '') : '';
-  const maskedPartnerNik = partnerNik ? formatMaskedNik(partnerNik) : '';
-  const rawPartnerBirthDate = isFieldActive('partnerBirthDate') ? (m?.husbandProfile?.birthDate || m?.partnerBirthDate) : undefined;
+  const partnerName = isFieldActive('partnerName')
+    ? m?.husbandProfile?.fullName || m?.partnerName || ''
+    : '';
+  const partnerAge = isFieldActive('partnerAge')
+    ? m?.husbandProfile?.age || m?.partnerAge
+      ? `${m?.husbandProfile?.age || m?.partnerAge} tahun`
+      : ''
+    : '';
+  const partnerNik = isFieldActive('partnerNik')
+    ? m?.husbandProfile?.nik || m?.partnerNik || ''
+    : '';
+  const rawPartnerBirthDate = isFieldActive('partnerBirthDate')
+    ? m?.husbandProfile?.birthDate || m?.partnerBirthDate
+    : undefined;
   const partnerBirthDate = rawPartnerBirthDate
     ? formatClinicDate(rawPartnerBirthDate, { style: 'human_full' })
     : '';
-  const partnerJob = isFieldActive('partnerJob') ? (m?.husbandProfile?.job || m?.partnerJob || '') : '';
-  const partnerEducation = isFieldActive('partnerEducation') ? (m?.husbandProfile?.education || m?.partnerEducation || '') : '';
-  const partnerPhone = isFieldActive('partnerPhone') ? (m?.husbandProfile?.phoneNumber || '') : '';
+  const partnerJob = isFieldActive('partnerJob')
+    ? m?.husbandProfile?.job || m?.partnerJob || ''
+    : '';
+  const partnerEducation = isFieldActive('partnerEducation')
+    ? m?.husbandProfile?.education || m?.partnerEducation || ''
+    : '';
+  const partnerPhone = isFieldActive('partnerPhone') ? m?.husbandProfile?.phoneNumber || '' : '';
 
   const resolvedDomicileAddress = (() => {
     const l1 = m?.line1 || p?.line1;
@@ -61,20 +78,20 @@ export function adaptToPmbFormData(
       reg,
       prov ? `Prov. ${prov}` : ''
     ].filter(Boolean);
-    return parts.length > 0 ? parts.join(', ') : (m?.domicileAddress || p?.address || '');
+    return parts.length > 0 ? parts.join(', ') : m?.domicileAddress || p?.address || '';
   })();
 
   const fullRows = [
-    isFieldActive('religion') ? (m?.religion || '') : '',
+    isFieldActive('religion') ? m?.religion || '' : '',
     isFieldActive('domicileAddress') ? resolvedDomicileAddress : '',
-    isFieldActive('identityCardAddress') ? (m?.identityCardAddress || p?.address || '') : '',
-    isFieldActive('phoneNumber') ? (m?.phoneNumber || p?.phone || '') : ''
+    isFieldActive('identityCardAddress') ? m?.identityCardAddress || p?.address || '' : '',
+    isFieldActive('phoneNumber') ? m?.phoneNumber || p?.phone || '' : ''
   ];
 
   const locationValues = [
-    isFieldActive('dasawisma') ? (m?.dasawisma || '') : '',
-    isFieldActive('posyandu') ? (m?.posyandu || '') : '',
-    isFieldActive('puskesmas') ? (m?.puskesmas || '') : ''
+    isFieldActive('dasawisma') ? m?.dasawisma || '' : '',
+    isFieldActive('posyandu') ? m?.posyandu || '' : '',
+    isFieldActive('puskesmas') ? m?.puskesmas || '' : ''
   ];
 
   const motherBlood = (m?.motherBloodType || p?.bloodType || '').toUpperCase();
@@ -114,14 +131,9 @@ export function adaptToPmbFormData(
   const hpl = rawHpl ? formatClinicDate(rawHpl, { style: 'human_full' }) : '';
 
   const uk =
-    m?.gestationalAgeFormatted ||
-    (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '');
+    m?.gestationalAgeFormatted || (m?.gestationalAgeWeeks ? `${m.gestationalAgeWeeks} minggu` : '');
 
-  const keluhan =
-    m?.currentComplaints ||
-    appointment?.complaint ||
-    data.complaint ||
-    '';
+  const keluhan = m?.currentComplaints || appointment?.complaint || data.complaint || '';
 
   const isSmokingActive = m?.smokedBeforePregnancy === 'Aktif';
   const isSmokingPassive =
@@ -153,7 +165,7 @@ export function adaptToPmbFormData(
     diseaseHistory[condDef.docLabel] = {
       status: has ? 'ya' : 'tidak',
       year: has && resp?.diagnosisYear ? String(resp.diagnosisYear) : undefined,
-      notes: condDef.code === 'OTHER' ? (resp?.notes || undefined) : undefined
+      notes: condDef.code === 'OTHER' ? resp?.notes || undefined : undefined
     };
   }
 
@@ -206,19 +218,42 @@ export function adaptToPmbFormData(
   const partnerBirthAndAge = [partnerBirthDate, partnerAge].filter(Boolean).join(' / ');
   const motherJobAndEdu = [motherJob, motherEducation].filter(Boolean).join(' / ');
   const partnerJobAndEdu = [partnerJob, partnerEducation].filter(Boolean).join(' / ');
-  const motherReligionAndBlood = [m?.religion, motherBlood ? `Gol. ${motherBlood}` : ''].filter(Boolean).join(' / ');
+  const motherReligionAndBlood = [m?.religion, motherBlood ? `Gol. ${motherBlood}` : '']
+    .filter(Boolean)
+    .join(' / ');
 
   const motherRows: [string, string | undefined][][] = [
-    [['Nama Ibu :', motherName], ['Tgl Lahir / Umur :', motherBirthAndAge]],
-    [['NIK Ibu :', maskedMotherNik], ['Pekerjaan / Pendidikan :', motherJobAndEdu]],
-    [['Agama / Gol. Darah :', motherReligionAndBlood], ['No. Telp / WA :', m?.phoneNumber || p?.phone || '']]
+    [
+      ['Nama Ibu :', motherName],
+      ['Tgl Lahir / Umur :', motherBirthAndAge]
+    ],
+    [
+      ['NIK Ibu :', motherNik],
+      ['Pekerjaan / Pendidikan :', motherJobAndEdu]
+    ],
+    [
+      ['Agama / Gol. Darah :', motherReligionAndBlood],
+      ['No. Telp / WA :', m?.phoneNumber || p?.phone || '']
+    ]
   ];
 
   const husbandRows: [string, string | undefined][][] = [
-    [['Nama Suami :', partnerName], ['Pernikahan Ke :', marriageOrder]],
-    [['NIK Suami :', maskedPartnerNik], ['Tgl Menikah :', marriageDate]],
-    [['Tgl Lahir / Umur :', partnerBirthAndAge], ['Pekerjaan / Pendidikan :', partnerJobAndEdu]],
-    [['Gol. Darah Suami :', partnerBlood ? `Gol. ${partnerBlood}` : ''], ['No. HP Suami :', partnerPhone]]
+    [
+      ['Nama Suami :', partnerName],
+      ['Pernikahan Ke :', marriageOrder]
+    ],
+    [
+      ['NIK Suami :', partnerNik],
+      ['Tgl Menikah :', marriageDate]
+    ],
+    [
+      ['Tgl Lahir / Umur :', partnerBirthAndAge],
+      ['Pekerjaan / Pendidikan :', partnerJobAndEdu]
+    ],
+    [
+      ['Gol. Darah Suami :', partnerBlood ? `Gol. ${partnerBlood}` : ''],
+      ['No. HP Suami :', partnerPhone]
+    ]
   ];
 
   const addressRows: [string, string | undefined][] = [
@@ -248,9 +283,9 @@ export function adaptToPmbFormData(
     identity: {
       topRowValues: [
         [motherName, marriageOrder, marriageDate],
-        [maskedMotherNik, motherBirthDate, motherJob],
+        [motherNik, motherBirthDate, motherJob],
         [partnerName, motherAge, motherEducation],
-        [maskedPartnerNik, partnerBirthDate, partnerJob],
+        [partnerNik, partnerBirthDate, partnerJob],
         [partnerPhone, partnerAge, partnerEducation]
       ],
       fullRowValues: fullRows,

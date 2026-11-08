@@ -27,13 +27,6 @@ export interface MaskedNikProps {
 
 export function formatMaskedNik(raw?: string | null): string {
   if (!raw || !raw.trim()) return '-';
-  const clean = raw.trim();
-  if (clean.includes('*') || clean.includes('•')) {
-    return clean;
-  }
-  if (clean.length >= 8) {
-    return `${clean.slice(0, 4)}••••••••${clean.slice(-4)}`;
-  }
   return '••••••••••••••••';
 }
 
@@ -45,7 +38,7 @@ export const MaskedNik: React.FC<MaskedNikProps> = ({
   autoMaskSeconds = 15,
   className,
   size = 'default',
-  showCopy = true,
+  showCopy = true
 }) => {
   const [isRevealed, setIsRevealed] = React.useState(false);
   const [unmaskedValue, setUnmaskedValue] = React.useState<string | null>(nik || null);
@@ -135,7 +128,8 @@ export const MaskedNik: React.FC<MaskedNikProps> = ({
 
   const handleCopy = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const valueToCopy = isRevealed && unmaskedValue ? unmaskedValue : (unmaskedValue || maskedNik || '');
+    const valueToCopy =
+      isRevealed && unmaskedValue ? unmaskedValue : unmaskedValue || maskedNik || '';
     if (!valueToCopy) return;
 
     navigator.clipboard.writeText(valueToCopy);
@@ -144,16 +138,10 @@ export const MaskedNik: React.FC<MaskedNikProps> = ({
   };
 
   const displayText = React.useMemo(() => {
-    if (isRevealed && unmaskedValue) {
-      return unmaskedValue;
+    if (isRevealed) {
+      return unmaskedValue || nik || maskedNik || '-';
     }
-    if (maskedNik) {
-      return formatMaskedNik(maskedNik);
-    }
-    if (nik) {
-      return formatMaskedNik(nik);
-    }
-    return '-';
+    return formatMaskedNik(nik || maskedNik);
   }, [isRevealed, unmaskedValue, maskedNik, nik]);
 
   const isSmall = size === 'sm';

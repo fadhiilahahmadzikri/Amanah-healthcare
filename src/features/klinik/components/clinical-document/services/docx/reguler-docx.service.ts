@@ -5,7 +5,8 @@ import {
   ImageRun,
   Packer,
   PageOrientation,
-  Paragraph
+  Paragraph,
+  VerticalAlign
 } from 'docx';
 import { saveAs } from 'file-saver';
 import { defaultRegulerConfig } from '../../config/reguler-config';
@@ -18,6 +19,8 @@ import {
   paragraph,
   cell,
   textCell,
+  sectionLabel,
+  verticalGap,
   row,
   table,
   lineSpacing,
@@ -43,12 +46,12 @@ export async function exportRegulerDocx(
         })
       ]
     }),
-    2000,
+    1800,
     { borders: noneCellBorders() }
   );
 
   const headerTable = table(
-    [2000, 5500, 3100],
+    [1800, 5666, 3000],
     [
       row([
         logoBox,
@@ -67,7 +70,7 @@ export async function exportRegulerDocx(
             paragraph(cfg.header.clinicAddress, { size: 7, alignment: AlignmentType.CENTER }),
             paragraph(cfg.header.clinicContact, { size: 6.5, alignment: AlignmentType.CENTER })
           ],
-          5500,
+          5666,
           { borders: noneCellBorders() }
         ),
         cell(
@@ -77,13 +80,12 @@ export async function exportRegulerDocx(
               size: 7.5,
               alignment: AlignmentType.CENTER
             }),
-            paragraph(data?.medicalRecordNumber || '', {
-              bold: true,
+            paragraph('\u00A0', {
               size: 9,
               alignment: AlignmentType.CENTER
             })
           ],
-          3100
+          3000
         )
       ])
     ],
@@ -106,69 +108,156 @@ export async function exportRegulerDocx(
         },
         children: [
           headerTable,
+          verticalGap(80),
           doubleRule,
           paragraph('FORMULIR PENDAFTARAN & REKAM MEDIS RAWAT JALAN', {
             bold: true,
             size: 10,
-            alignment: AlignmentType.CENTER
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 140, after: 120 }
           }),
-          paragraph('I. INFORMASI KUNJUNGAN', { bold: true, size: 8 }),
+          sectionLabel('I. INFORMASI KUNJUNGAN', { before: 100, after: 60 }),
           table(
-            [2500, 3500, 2500, 3400],
+            [2200, 3033, 2200, 3033],
             [
               row([
-                textCell('Kode Booking', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.bookingCode || '', 3500, { size: 7.5 }),
-                textCell('Nomor Antrean', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.queueNumber || '', 3400, { bold: true, size: 7.5 })
+                textCell('Kode Booking', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.bookingCode || '', 3033, {
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell('Nomor Antrean', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.queueNumber || '', 3033, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                })
               ]),
               row([
-                textCell('Poliklinik Tujuan', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.poliklinikName || '', 3500, { bold: true, size: 7.5 }),
-                textCell('Layanan Medis', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.serviceName || '', 3400, { size: 7.5 })
+                textCell('Poliklinik Tujuan', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.poliklinikName || '', 3033, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell('Layanan Medis', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.serviceName || '', 3033, {
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                })
               ]),
               row([
-                textCell('Dokter Pemeriksa', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.doctorName || '', 3500, { bold: true, size: 7.5 }),
-                textCell('Waktu & Sesi', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.scheduledTime || '', 3400, { size: 7.5 })
+                textCell('Dokter Pemeriksa', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.doctorName || '', 3033, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell('Waktu & Sesi', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.scheduledTime || '', 3033, {
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                })
               ])
             ]
           ),
-          paragraph(' ', { size: 4 }),
-          paragraph('II. IDENTITAS PASIEN', { bold: true, size: 8 }),
+          sectionLabel('II. IDENTITAS PASIEN', { before: 180, after: 60 }),
           table(
-            [2500, 3500, 2500, 3400],
+            [2200, 3033, 2200, 3033],
             [
               row([
-                textCell('NIK', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.nik || '', 3500, { size: 7.5 }),
-                textCell('Nama Lengkap', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.fullName || '', 3400, { bold: true, size: 7.5 })
+                textCell('NIK', 2200, { bold: true, size: 7.5, verticalAlign: VerticalAlign.TOP }),
+                textCell(data?.identity?.nik || '', 3033, {
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell('Nama Lengkap', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.identity?.fullName || '', 3033, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                })
               ]),
               row([
-                textCell('Tempat/Tgl Lahir', 2500, { bold: true, size: 7.5 }),
+                textCell('Tempat/Tgl Lahir', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
                 textCell(
-                  [data?.identity?.birthPlace, data?.identity?.birthDate].filter(Boolean).join(', '),
-                  3500,
-                  { size: 7.5 }
+                  [data?.identity?.birthPlace, data?.identity?.birthDate]
+                    .filter(Boolean)
+                    .join(', '),
+                  3033,
+                  { size: 7.5, verticalAlign: VerticalAlign.TOP }
                 ),
-                textCell('Jenis Kelamin / Usia', 2500, { bold: true, size: 7.5 }),
+                textCell('Jenis Kelamin / Usia', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
                 textCell(
-                  [data?.identity?.gender, data?.identity?.age ? `(${data.identity.age})` : ''].filter(Boolean).join(' '),
-                  3400,
-                  { size: 7.5 }
+                  [data?.identity?.gender, data?.identity?.age ? `(${data.identity.age})` : '']
+                    .filter(Boolean)
+                    .join(' '),
+                  3033,
+                  { size: 7.5, verticalAlign: VerticalAlign.TOP }
                 )
               ]),
               row([
-                textCell('No Handphone', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.phoneNumber || '', 3500, { size: 7.5 }),
-                textCell('Email', 2500, { bold: true, size: 7.5 }),
-                textCell(data?.identity?.email || '', 3400, { size: 7.5 })
+                textCell('No Handphone', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.identity?.phoneNumber || '', 3033, {
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell('Email', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.identity?.email || '', 3033, {
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                })
               ]),
               row([
-                textCell('Kontak Darurat', 2500, { bold: true, size: 7.5 }),
+                textCell('Kontak Darurat', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
                 cell(
                   [
                     paragraph(
@@ -178,81 +267,39 @@ export async function exportRegulerDocx(
                       { size: 7.5 }
                     )
                   ],
-                  9400,
-                  { columnSpan: 3 }
+                  8266,
+                  { columnSpan: 3, verticalAlign: VerticalAlign.TOP }
                 )
               ]),
               row([
-                textCell('Alamat Lengkap', 2500, { bold: true, size: 7.5 }),
-                cell([paragraph(data?.identity?.address || '')], 9400, { columnSpan: 3 })
+                textCell('Alamat Lengkap', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                cell([paragraph(data?.identity?.address || '')], 8266, {
+                  columnSpan: 3,
+                  verticalAlign: VerticalAlign.TOP
+                })
               ])
             ]
           ),
-          paragraph(' ', { size: 4 }),
-          paragraph('III. KELUHAN', { bold: true, size: 8 }),
+          sectionLabel('III. KELUHAN', { before: 180, after: 60 }),
           table(
-            [2500, 9400],
+            [2200, 8266],
             [
               row([
-                textCell('Keluhan', 2500, { bold: true, size: 7.5 }),
-                textCell(
-                  data?.chiefComplaint ||
-                    data?.clinical?.chiefComplaint ||
-                    '',
-                  9400,
-                  { size: 7.5 }
-                )
+                textCell('Keluhan', 2200, {
+                  bold: true,
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                }),
+                textCell(data?.chiefComplaint || data?.clinical?.chiefComplaint || '', 8266, {
+                  size: 7.5,
+                  verticalAlign: VerticalAlign.TOP
+                })
               ])
             ]
-          ),
-          paragraph(' ', { size: 6 }),
-          table(
-            [5950, 5950],
-            [
-              row([
-                cell(
-                  [
-                    paragraph(`Tanggal: ${data?.registrationDate || ''}`, {
-                      size: 7.5,
-                      alignment: AlignmentType.CENTER
-                    }),
-                    paragraph('Pasien / Keluarga', {
-                      bold: true,
-                      size: 7.5,
-                      alignment: AlignmentType.CENTER
-                    }),
-                    paragraph(' ', { size: 30 }),
-                    paragraph(
-                      `( ${data?.identity?.fullName || '................................'} )`,
-                      { size: 7.5, alignment: AlignmentType.CENTER }
-                    )
-                  ],
-                  5950,
-                  { borders: noneCellBorders() }
-                ),
-                cell(
-                  [
-                    paragraph(`Tanggal: ${data?.registrationDate || ''}`, {
-                      size: 7.5,
-                      alignment: AlignmentType.CENTER
-                    }),
-                    paragraph('Dokter Pemeriksa', {
-                      bold: true,
-                      size: 7.5,
-                      alignment: AlignmentType.CENTER
-                    }),
-                    paragraph(' ', { size: 30 }),
-                    paragraph(`( ${data?.doctorName || '................................'} )`, {
-                      size: 7.5,
-                      alignment: AlignmentType.CENTER
-                    })
-                  ],
-                  5950,
-                  { borders: noneCellBorders() }
-                )
-              ])
-            ],
-            { borders: noneTableBorders() }
           )
         ]
       }

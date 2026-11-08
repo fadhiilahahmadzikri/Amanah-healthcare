@@ -1,10 +1,6 @@
 import type { PatientMutationPayload } from '@/features/data-pasien/api/types';
 import type { Gender } from '@/constants/gender.constants';
-import type {
-  EditableMaternalData,
-  EditableImmunizationData,
-  EditableRegularData
-} from '../types';
+import type { EditableMaternalData, EditableImmunizationData, EditableRegularData } from '../types';
 
 export function getMaternalPatientDiff(
   formData: EditableMaternalData,
@@ -99,8 +95,34 @@ export function getImmunizationPatientDiff(
   if (formData.parentPhone !== initialChild.parentPhone) {
     diffPayload.phone = formData.parentPhone?.trim() || undefined;
   }
-  if (formData.childAddress !== initialChild.childAddress) {
+  if (formData.line1 !== initialChild.line1) {
+    diffPayload.line1 = formData.line1 ? formData.line1.trim() : '';
+  } else if (formData.childAddress !== initialChild.childAddress) {
     diffPayload.line1 = formData.childAddress?.trim() || undefined;
+  }
+  if (formData.provinceName !== initialChild.provinceName) {
+    diffPayload.province_name = formData.provinceName || undefined;
+  }
+  if (formData.provinceCode !== initialChild.provinceCode) {
+    diffPayload.province_code = formData.provinceCode || undefined;
+  }
+  if (formData.regencyName !== initialChild.regencyName) {
+    diffPayload.regency_name = formData.regencyName || undefined;
+  }
+  if (formData.regencyCode !== initialChild.regencyCode) {
+    diffPayload.regency_code = formData.regencyCode || undefined;
+  }
+  if (formData.districtName !== initialChild.districtName) {
+    diffPayload.district_name = formData.districtName || undefined;
+  }
+  if (formData.districtCode !== initialChild.districtCode) {
+    diffPayload.district_code = formData.districtCode || undefined;
+  }
+  if (formData.villageName !== initialChild.villageName) {
+    diffPayload.village_name = formData.villageName || undefined;
+  }
+  if (formData.villageCode !== initialChild.villageCode) {
+    diffPayload.village_code = formData.villageCode || undefined;
   }
 
   return diffPayload;
@@ -180,7 +202,8 @@ export function getRegularPatientDiff(
     diffPayload.emergencyContactName = formData.emergencyContactName?.trim() || undefined;
   }
   if (formData.emergencyContactRelationship !== initialRegular.emergencyContactRelationship) {
-    diffPayload.emergencyContactRelationship = formData.emergencyContactRelationship?.trim() || undefined;
+    diffPayload.emergencyContactRelationship =
+      formData.emergencyContactRelationship?.trim() || undefined;
   }
 
   return diffPayload;

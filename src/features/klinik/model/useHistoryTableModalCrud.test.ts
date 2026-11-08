@@ -11,7 +11,7 @@ function createHookHarness<T>(initialItems: T[], createDefaultItem?: (order: num
     currentItems = updated;
   };
 
-  const update = () => {
+  const useUpdate = () => {
     // Re-simulate hook run
     hookState = useHistoryTableModalCrud<T>({
       items: currentItems,

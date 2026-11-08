@@ -5,7 +5,10 @@ import {
   validateImmunizationForm,
   getMaternityTabWithErrors,
   getMaternityTabErrorCounts,
-  MATERNITY_FIELD_DOM_ID_MAP
+  MATERNITY_FIELD_DOM_ID_MAP,
+  getImmunizationTabWithErrors,
+  getImmunizationTabErrorCounts,
+  getImmunizationDomIdForErrorKey
 } from './inspector-form.schema';
 
 describe('Inspector Form Zod Validation', () => {
@@ -155,7 +158,9 @@ describe('Inspector Form Zod Validation', () => {
         ]
       });
       expect(futureRes.isValid).toBe(false);
-      expect(futureRes.errors.contra_0_startDate).toBe('Tanggal mulai KB tidak boleh di masa depan');
+      expect(futureRes.errors.contra_0_startDate).toBe(
+        'Tanggal mulai KB tidak boleh di masa depan'
+      );
 
       // 2. Stop date earlier than start date rejected
       const invertedRes = validateMaternalForm({
@@ -204,6 +209,16 @@ describe('Inspector Form Zod Validation', () => {
       expect(res.isValid).toBe(true);
     });
 
+    it('should reject invalid childNik format', () => {
+      const res = validateImmunizationForm({
+        childName: 'Rayyan Al-Fatih',
+        childNik: '12345',
+        parentPhone: '081234567890'
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.childNik).toBe('NIK anak harus berupa 16 digit angka');
+    });
+
     it('should reject empty childName or empty parentPhone', () => {
       const res = validateImmunizationForm({
         childName: '',
@@ -212,6 +227,101 @@ describe('Inspector Form Zod Validation', () => {
       expect(res.isValid).toBe(false);
       expect(res.errors.childName).toBe('Nama lengkap anak wajib diisi');
       expect(res.errors.parentPhone).toBe('Nomor HP orang tua wajib diisi');
+    });
+
+    it('should correctly count errors per tab without double counting', () => {
+      const errors = {
+        childName: 'Nama wajib diisi',
+        parentPhone: 'Nomor HP wajib diisi',
+        entry_0_weightKg: 'BB minimal 0.5 kg',
+        entry_1_temperatureCelsius: 'Suhu minimal 30 C',
+        entries: 'Ada data yang salah'
+      };
+      const counts = getImmunizationTabErrorCounts(errors);
+      expect(counts.identitas).toBe(1);
+      expect(counts['orang-tua']).toBe(1);
+      expect(counts.riwayat).toBe(0);
+      expect(counts.trajektori).toBe(2);
+    });
+
+    it('should resolve correct tab with errors in priority order', () => {
+      expect(getImmunizationTabWithErrors({ childName: 'Error' })).toBe('identitas');
+      expect(getImmunizationTabWithErrors({ parentPhone: 'Error' })).toBe('orang-tua');
+      expect(getImmunizationTabWithErrors({ entry_0_weightKg: 'Error' })).toBe('trajektori');
+      expect(getImmunizationTabWithErrors({})).toBeNull();
+    });
+
+    it('should reject non-numeric string in weightKg with valid error message', () => {
+      const res = validateImmunizationForm({
+        childName: 'Rayyan',
+        parentPhone: '081234567890',
+        entries: [
+          {
+            rowIndex: 0,
+            weightKg: 'abc' as any
+          }
+        ]
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.entry_0_weightKg).toBe('Berat badan harus berupa angka valid');
+    });
+
+    it('should allow numeric values without arbitrary min max blocking', () => {
+      const res = validateImmunizationForm({
+        childName: 'Rayyan',
+        parentPhone: '081234567890',
+        entries: [
+          {
+            rowIndex: 0,
+            weightKg: 0.3 as any, // previously blocked by min 0.5
+            temperatureCelsius: 29.5 as any // previously blocked by min 30
+          }
+        ]
+      });
+      expect(res.isValid).toBe(true);
+    });
+
+    it('should reject ageDisplay when it exceeds age from birth date to today', () => {
+      const res = validateImmunizationForm({
+        childName: 'Rayyan',
+        parentPhone: '081234567890',
+        childBirthDate: '2026-01-01', // approximately a few months old
+        entries: [
+          {
+            rowIndex: 0,
+            ageDisplay: '23 thn' // 23 years exceeds infant age
+          }
+        ]
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.entry_0_ageDisplay).toBe(
+        'Umur saat suntik melebihi usia anak dari tanggal lahir hingga saat ini'
+      );
+    });
+
+    it('should allow ageDisplay within reasonable age from birth date', () => {
+      const res = validateImmunizationForm({
+        childName: 'Rayyan',
+        parentPhone: '081234567890',
+        childBirthDate: '2024-01-01', // ~2 years old
+        entries: [
+          {
+            rowIndex: 0,
+            ageDisplay: '1 thn' // within age
+          }
+        ]
+      });
+      expect(res.isValid).toBe(true);
+    });
+
+    it('should resolve correct DOM IDs for error keys', () => {
+      expect(getImmunizationDomIdForErrorKey('childName')).toBe('admin-child-name-input');
+      expect(getImmunizationDomIdForErrorKey('parentPhone')).toBe('admin-parent-phone');
+      expect(getImmunizationDomIdForErrorKey('entry_0_weightKg')).toBe('edit-weight-0');
+      expect(getImmunizationDomIdForErrorKey('entry_2_temperatureCelsius')).toBe('edit-temp-2');
+      expect(getImmunizationDomIdForErrorKey('entry_1_injectionDate')).toBe(
+        'edit-injection-date-1'
+      );
     });
   });
 });

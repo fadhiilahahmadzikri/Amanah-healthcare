@@ -6,6 +6,7 @@ import { parseAsArrayOf, parseAsString, useQueryStates } from 'nuqs';
 import { useDataTable } from '@/hooks/use-data-table';
 import { getSortingStateParser } from '@/lib/parsers';
 import { Icons } from '@/components/icons';
+import { formatMaskedNik } from '@/components/ui/masked-nik';
 import { toggleItem } from '@/shared/lib/array/toggle-item';
 import type { FacetGroupDefinition, FacetOption } from '@/shared/ui/responsive-facet-toolbox';
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
@@ -151,7 +152,7 @@ export function useMedicalHistoryTable() {
         items.push({
           id: `pat-${p.id}`,
           title: p.name,
-          subtitle: `No. RM: ${p.patient_id || '-'} • NIK: ${p.masked_nik || '-'}`,
+          subtitle: `No. RM: ${p.patient_id || '-'} • NIK: ${formatMaskedNik(p.nik || p.masked_nik)}`,
           category: 'Pasien',
           icon: Icons.user,
           queryValue: p.name,
@@ -173,7 +174,7 @@ export function useMedicalHistoryTable() {
         seenNik.add(p.nik);
         items.push({
           id: `nik-${p.id}`,
-          title: `NIK: ${p.masked_nik}`,
+          title: `NIK: ${formatMaskedNik(p.nik || p.masked_nik)}`,
           subtitle: p.name,
           category: 'Nomor Identitas (NIK)',
           icon: Icons.text,

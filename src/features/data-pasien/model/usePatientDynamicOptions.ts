@@ -8,6 +8,7 @@ import type { FacetGroupDefinition, FacetOption } from '@/shared/ui/responsive-f
 import { useStateSearchEngine, type SearchEngineResultItem } from '@/components/search-engine';
 import { GENDER_OPTIONS } from '@/constants/gender.constants';
 import { DEFAULT_STATUS_OPTIONS } from '../components/patient-tables/columns';
+import { formatMaskedNik } from '@/components/ui/masked-nik';
 import type { Patient } from '../api/types';
 import type { ReferenceOptionItem } from '../api/patient-reference-service';
 import type { Option } from '@/types/data-table';
@@ -53,7 +54,7 @@ export function usePatientDynamicOptions({
       const p = row.original;
       if (p.name && !seenPatients.has(p.name)) {
         seenPatients.add(p.name);
-        const sub = `No. RM: ${p.patient_id || '-'} • NIK: ${p.masked_nik || '-'}`;
+        const sub = `No. RM: ${p.patient_id || '-'} • NIK: ${formatMaskedNik(p.nik || p.masked_nik)}`;
         items.push({
           id: `pat-${p.id}`,
           title: p.name,
@@ -79,7 +80,7 @@ export function usePatientDynamicOptions({
         seenNik.add(p.nik);
         items.push({
           id: `nik-${p.id}`,
-          title: `NIK: ${p.masked_nik}`,
+          title: `NIK: ${formatMaskedNik(p.nik || p.masked_nik)}`,
           subtitle: p.name,
           category: 'Nomor Identitas (NIK)',
           icon: Icons.text,

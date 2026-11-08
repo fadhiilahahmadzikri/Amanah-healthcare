@@ -1,12 +1,13 @@
 'use client';
 
 import * as React from 'react';
-import { Pencil } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ChevronDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { MilestoneStatusBadge } from '../../atoms/milestone-status-badge';
-import { MilestoneEntryModal } from '../milestone-entry-modal';
+import { MilestoneRowEditor } from '../../molecules/milestone-row-editor';
 import { CANONICAL_IMMUNIZATION_ROWS } from '../../../constants/immunization.constants';
 import { formatClinicDate } from '@/lib/date-format';
+import { validateImmunizationDateEntry } from '@/features/klinik/schemas/medical-appointment-validation';
 import type { ImmunizationClinicalEntry } from '../../../types/immunization.types';
 
 export interface ImmunizationMilestoneTrajectorySectionProps {
@@ -14,16 +15,36 @@ export interface ImmunizationMilestoneTrajectorySectionProps {
   isEditing?: boolean;
   onEntriesChange?: (updated: ImmunizationClinicalEntry[]) => void;
   childBirthDate?: string | null;
+  validationErrors?: Record<string, string>;
+  onClearError?: (field: string) => void;
 }
 
 export function ImmunizationMilestoneTrajectorySection({
   entries,
   isEditing = false,
   onEntriesChange,
-  childBirthDate
+  childBirthDate,
+  validationErrors = {},
+  onClearError
 }: ImmunizationMilestoneTrajectorySectionProps) {
-  const [modalEntry, setModalEntry] = React.useState<ImmunizationClinicalEntry | null>(null);
-  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [activeEditingIndex, setActiveEditingIndex] = React.useState<number | null>(null);
+  const [dateErrors, setDateErrors] = React.useState<Record<number, string>>({});
+
+  // Auto-expand the milestone row that has validation errors
+  React.useEffect(() => {
+    if (validationErrors && Object.keys(validationErrors).length > 0) {
+      const firstEntryKey = Object.keys(validationErrors).find((k) => k.startsWith('entry_'));
+      if (firstEntryKey) {
+        const match = firstEntryKey.match(/^entry_(\d+)_/);
+        if (match) {
+          const errRowIndex = Number(match[1]);
+          if (!Number.isNaN(errRowIndex)) {
+            setActiveEditingIndex(errRowIndex);
+          }
+        }
+      }
+    }
+  }, [validationErrors]);
 
   // Map entries by rowIndex (0-14)
   const entriesMap = React.useMemo(() => {
@@ -36,6 +57,27 @@ export function ImmunizationMilestoneTrajectorySection({
 
   const handleUpdateEntry = (updated: ImmunizationClinicalEntry) => {
     if (!onEntriesChange) return;
+
+    // Validate injection date against birth date if provided
+    if (updated.injectionDate) {
+      const res = validateImmunizationDateEntry(updated.injectionDate, childBirthDate);
+      if (!res.isValid && res.errors.injectionDate) {
+        setDateErrors((prev) => ({ ...prev, [updated.rowIndex]: res.errors.injectionDate! }));
+      } else {
+        setDateErrors((prev) => {
+          const next = { ...prev };
+          delete next[updated.rowIndex];
+          return next;
+        });
+      }
+    } else {
+      setDateErrors((prev) => {
+        const next = { ...prev };
+        delete next[updated.rowIndex];
+        return next;
+      });
+    }
+
     const newEntries = [...entries];
     const existingIndex = newEntries.findIndex((e) => e.rowIndex === updated.rowIndex);
     if (existingIndex >= 0) {
@@ -46,132 +88,109 @@ export function ImmunizationMilestoneTrajectorySection({
     onEntriesChange(newEntries);
   };
 
-  const handleOpenEdit = (entry: ImmunizationClinicalEntry) => {
-    setModalEntry(entry);
-    setIsModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setModalEntry(null);
-  };
-
-  const handleSaveModal = (updated: ImmunizationClinicalEntry) => {
-    handleUpdateEntry(updated);
-    handleCloseModal();
-  };
-
   return (
-    <div className='flex-1 min-h-0 flex flex-col space-y-2 pt-1 font-sans h-full'>
-      {/* Header Kolom Trajektori */}
-      <div className='hidden sm:flex items-center gap-3 px-3.5 py-2 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider border-b border-border/40'>
-        <span className='w-6 text-center shrink-0'>No</span>
-        <span className='min-w-[150px] max-w-[200px] shrink-0'>Vaksin</span>
-        <span className='min-w-[150px] shrink-0'>Tanggal & Usia</span>
-        <span className='min-w-[180px] shrink-0'>Pemeriksaan Fisik</span>
-        <span className='flex-1 min-w-0'>Planning / Catatan</span>
-        <span className='shrink-0 ml-auto text-right w-28'>Status</span>
-        {isEditing && <span className='shrink-0 w-10 text-center'>Aksi</span>}
-      </div>
-
+    <div className='w-full min-h-0 flex flex-col space-y-2.5 pb-4 pt-1 font-sans'>
       {CANONICAL_IMMUNIZATION_ROWS.map((milestone) => {
-        const entry: ImmunizationClinicalEntry =
-          entriesMap.get(milestone.rowIndex) || {
-            rowIndex: milestone.rowIndex,
-            vaccineName: milestone.vaccineName,
-            vaccineCode: milestone.vaccineCode,
-            status: 'NOT_GIVEN' as const
-          };
+        const entry: ImmunizationClinicalEntry = entriesMap.get(milestone.rowIndex) || {
+          rowIndex: milestone.rowIndex,
+          vaccineName: milestone.vaccineName,
+          vaccineCode: milestone.vaccineCode,
+          status: 'NOT_GIVEN' as const
+        };
 
-        const hasPhysical = Boolean(entry.weightKg || entry.heightCm || entry.temperatureCelsius);
+        const isExpanded = activeEditingIndex === milestone.rowIndex;
+
+        // Check if there are any Zod or date errors for this entry
+        const entryErrorKeys = Object.keys(validationErrors).filter((k) =>
+          k.startsWith(`entry_${milestone.rowIndex}_`)
+        );
+        const hasEntryError = entryErrorKeys.length > 0 || Boolean(dateErrors[milestone.rowIndex]);
+        const entryDateError =
+          dateErrors[milestone.rowIndex] ||
+          validationErrors[`entry_${milestone.rowIndex}_injectionDate`];
+
+        const rowErrors: Record<string, string> = {};
+        if (dateErrors[milestone.rowIndex]) {
+          rowErrors.injectionDate = dateErrors[milestone.rowIndex];
+        }
+        const prefix = `entry_${milestone.rowIndex}_`;
+        for (const [k, v] of Object.entries(validationErrors)) {
+          if (k.startsWith(prefix)) {
+            rowErrors[k.slice(prefix.length)] = v;
+          }
+        }
 
         return (
           <div
             key={milestone.rowIndex}
-            className='rounded-xl border border-border/60 bg-card overflow-hidden shadow-2xs transition-all hover:bg-muted/10'
+            id={`trajectory-row-${milestone.rowIndex}`}
+            className={cn(
+              'w-full shrink-0 rounded-xl border bg-card overflow-hidden transition-all',
+              isExpanded
+                ? 'border-primary/50'
+                : hasEntryError
+                  ? 'border-destructive/60'
+                  : 'border-border/60 hover:border-border'
+            )}
           >
-            <div className='flex flex-wrap sm:flex-nowrap items-center gap-3 p-3.5 select-none'>
-              {/* Col 1: Nomor */}
-              <span className='flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary'>
-                {milestone.rowIndex + 1}
-              </span>
-
-              {/* Col 2: Vaksin */}
-              <div className='min-w-[150px] max-w-[200px] shrink-0'>
-                <span className='font-semibold text-xs text-foreground'>
-                  {milestone.vaccineName}
-                </span>
-              </div>
-
-              {/* Col 3: Tanggal & Usia */}
-              <div className='min-w-[150px] shrink-0 text-xs'>
-                {entry.injectionDate ? (
-                  <span className='text-foreground font-medium'>
-                    {formatClinicDate(entry.injectionDate, { style: 'human_medium' })}{' '}
-                    <span className='text-muted-foreground font-normal'>
-                      ({entry.ageDisplay || '-'})
-                    </span>
-                  </span>
-                ) : (
-                  <span className='text-muted-foreground/60 italic'>-</span>
-                )}
-              </div>
-
-              {/* Col 4: Pengukuran Fisik */}
-              <div className='min-w-[180px] shrink-0 text-xs text-muted-foreground'>
-                {hasPhysical ? (
-                  <span>
-                    {entry.weightKg ? `${entry.weightKg} kg` : '-'} / {entry.heightCm ? `${entry.heightCm} cm` : '-'} / {entry.temperatureCelsius ? `${entry.temperatureCelsius}°C` : '-'}
-                  </span>
-                ) : (
-                  <span className='text-muted-foreground/60 italic'>-</span>
-                )}
-              </div>
-
-              {/* Col 5: Planning / Catatan */}
-              <div
-                className='flex-1 min-w-0 text-xs text-muted-foreground truncate'
-                title={entry.planning || undefined}
-              >
-                {entry.planning ? (
-                  <span>{entry.planning}</span>
-                ) : (
-                  <span className='text-muted-foreground/60 italic'>-</span>
-                )}
-              </div>
-
-              {/* Col 6: Status Badge */}
-              <div className='shrink-0 ml-auto'>
-                <MilestoneStatusBadge status={entry.status} />
-              </div>
-
-              {/* Col 7: Aksi */}
-              {isEditing && (
-                <div className='shrink-0 w-10 flex items-center justify-center'>
-                  <Button
-                    type='button'
-                    variant='ghost'
-                    size='icon'
-                    onClick={() => handleOpenEdit(entry)}
-                    className='size-7 text-muted-foreground hover:text-foreground hover:bg-muted/60 cursor-pointer'
-                    title={`Edit ${milestone.vaccineName}`}
-                  >
-                    <Pencil className='size-3.5' />
-                  </Button>
-                </div>
+            {/* Accordion Row Header / Trigger */}
+            <div
+              role='button'
+              tabIndex={0}
+              onClick={() => setActiveEditingIndex(isExpanded ? null : milestone.rowIndex)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveEditingIndex(isExpanded ? null : milestone.rowIndex);
+                }
+              }}
+              className={cn(
+                'flex items-center justify-between gap-3 p-3 select-none transition-colors cursor-pointer',
+                isExpanded ? 'bg-muted/30 border-b border-border/40' : 'hover:bg-muted/15'
               )}
+            >
+              {/* Left Section: Vaccine Name + Error Badge */}
+              <div className='flex items-center min-w-0 flex-1'>
+                <div className='flex items-center gap-2 flex-wrap'>
+                  <span className='font-semibold text-xs text-foreground'>
+                    {milestone.vaccineName}
+                  </span>
+                  {hasEntryError && (
+                    <span className='text-[10px] font-semibold text-destructive px-1.5 py-0.5 rounded-sm bg-destructive/10'>
+                      Perlu diperiksa
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Right Section: Status Badge + Chevron Icon */}
+              <div className='flex items-center gap-2.5 shrink-0 ml-auto'>
+                <MilestoneStatusBadge status={entry.status} variant='text' />
+                <ChevronDown
+                  className={cn(
+                    'size-4 text-muted-foreground transition-transform duration-200',
+                    isExpanded && 'rotate-180 text-foreground'
+                  )}
+                />
+              </div>
             </div>
+
+            {/* Accordion Expandable Editor Panel */}
+            {isExpanded && (
+              <div className='p-4 bg-muted/5 animate-in slide-in-from-top-1 duration-150'>
+                <MilestoneRowEditor
+                  entry={entry}
+                  onChange={(updated) => handleUpdateEntry(updated)}
+                  disabled={!isEditing}
+                  dateError={entryDateError}
+                  rowErrors={rowErrors}
+                  onClearError={onClearError}
+                />
+              </div>
+            )}
           </div>
         );
       })}
-
-      <MilestoneEntryModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        entry={modalEntry}
-        onSave={handleSaveModal}
-        childBirthDate={childBirthDate}
-      />
     </div>
   );
 }

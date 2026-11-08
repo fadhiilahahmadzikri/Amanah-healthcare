@@ -209,6 +209,15 @@ export interface CreateChildImmunizationPayload {
   fatherName?: string | null;
   motherName?: string | null;
   childAddress?: string | null;
+  line1?: string | null;
+  provinceCode?: string | null;
+  provinceName?: string | null;
+  regencyCode?: string | null;
+  regencyName?: string | null;
+  districtCode?: string | null;
+  districtName?: string | null;
+  villageCode?: string | null;
+  villageName?: string | null;
   hasVaccineHistory?: string | null;
   previousVaccineHistory?: string | null;
   hasAllergyHistory?: string | null;

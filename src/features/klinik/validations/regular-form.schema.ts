@@ -5,15 +5,28 @@ export const regularFormZodSchema = z.object({
   fullName: z.string().min(1, 'Nama lengkap wajib diisi'),
   nik: z
     .string()
-    .regex(/^\d{16}$/, { message: 'NIK harus berupa 16 digit angka' })
+    .trim()
+    .nullable()
     .optional()
-    .or(z.literal('')),
+    .refine((val) => !val || val === '' || /^\d{16}$/.test(val), {
+      message: 'NIK harus berupa 16 digit angka'
+    }),
   phone: z
     .string()
-    .regex(/^(\+62|62|0)[0-9]{8,15}$/, { message: 'Nomor telepon tidak valid' })
+    .trim()
+    .nullable()
     .optional()
-    .or(z.literal('')),
-  email: z.string().email({ message: 'Format email tidak valid' }).optional().or(z.literal(''))
+    .refine((val) => !val || val === '' || /^(\+62|62|0)[0-9]{8,15}$/.test(val), {
+      message: 'Nomor telepon tidak valid'
+    }),
+  email: z
+    .string()
+    .trim()
+    .nullable()
+    .optional()
+    .refine((val) => !val || val === '' || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val), {
+      message: 'Format email tidak valid'
+    })
 });
 
 export interface RegularValidationResult {
@@ -24,9 +37,9 @@ export interface RegularValidationResult {
 export function validateRegularForm(data: Partial<EditableRegularData>): RegularValidationResult {
   const result = regularFormZodSchema.safeParse({
     fullName: data.fullName ?? '',
-    nik: data.nik ? data.nik.trim() : '',
-    phone: data.phone ? data.phone.trim() : '',
-    email: data.email ? data.email.trim() : ''
+    nik: data.nik ? data.nik.trim() : null,
+    phone: data.phone ? data.phone.trim() : null,
+    email: data.email ? data.email.trim() : null
   });
 
   if (result.success) {

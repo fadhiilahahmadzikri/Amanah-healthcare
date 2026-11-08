@@ -16,6 +16,10 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { GENDER_OPTIONS } from '@/constants/gender.constants';
+import {
+  PatientRegionDropdown,
+  type PatientRegionValues
+} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import type { ChildSex, ImmunizationRegistrationPayload } from '../../types/immunization.types';
 
 export interface ImmunizationBookingStepperProps {
@@ -40,20 +44,23 @@ export function ImmunizationBookingStepper({
   // Form State
   const [childName, setChildName] = React.useState(initialValues?.childName || '');
   const [childNik, setChildNik] = React.useState(initialValues?.childNik || '');
-  const [childBirthDate, setChildBirthDate] = React.useState(
-    initialValues?.childBirthDate || ''
-  );
-  const [childSex, setChildSex] = React.useState<ChildSex | ''>(
-    initialValues?.childSex || ''
-  );
-  const [parentPhone, setParentPhone] = React.useState(
-    initialValues?.parentPhone || ''
-  );
+  const [childBirthDate, setChildBirthDate] = React.useState(initialValues?.childBirthDate || '');
+  const [childSex, setChildSex] = React.useState<ChildSex | ''>(initialValues?.childSex || '');
+  const [parentPhone, setParentPhone] = React.useState(initialValues?.parentPhone || '');
   const [fatherName, setFatherName] = React.useState(initialValues?.fatherName || '');
   const [motherName, setMotherName] = React.useState(initialValues?.motherName || '');
-  const [childAddress, setChildAddress] = React.useState(
-    initialValues?.childAddress || ''
-  );
+  const [childAddress, setChildAddress] = React.useState(initialValues?.childAddress || '');
+  const [region, setRegion] = React.useState<PatientRegionValues>({
+    provinceCode: (initialValues as any)?.provinceCode || '',
+    provinceName: (initialValues as any)?.provinceName || '',
+    regencyCode: (initialValues as any)?.regencyCode || '',
+    regencyName: (initialValues as any)?.regencyName || '',
+    districtCode: (initialValues as any)?.districtCode || '',
+    districtName: (initialValues as any)?.districtName || '',
+    villageCode: (initialValues as any)?.villageCode || '',
+    villageName: (initialValues as any)?.villageName || '',
+    line1: (initialValues as any)?.line1 || initialValues?.childAddress || ''
+  });
   const [previousVaccineHistory, setPreviousVaccineHistory] = React.useState(
     initialValues?.previousVaccineHistory || ''
   );
@@ -120,6 +127,16 @@ export function ImmunizationBookingStepper({
       return;
     }
 
+    const resolvedChildAddress = [
+      region.line1,
+      region.villageName ? `Kel. ${region.villageName}` : '',
+      region.districtName ? `Kec. ${region.districtName}` : '',
+      region.regencyName,
+      region.provinceName ? `Prov. ${region.provinceName}` : ''
+    ]
+      .filter(Boolean)
+      .join(', ');
+
     const payload: ImmunizationRegistrationPayload = {
       patientId,
       appointmentId,
@@ -130,7 +147,16 @@ export function ImmunizationBookingStepper({
       parentPhone: parentPhone.trim(),
       fatherName: fatherName.trim() || undefined,
       motherName: motherName.trim() || undefined,
-      childAddress: childAddress.trim() || undefined,
+      childAddress: resolvedChildAddress || undefined,
+      line1: region.line1 || undefined,
+      provinceCode: region.provinceCode || undefined,
+      provinceName: region.provinceName || undefined,
+      regencyCode: region.regencyCode || undefined,
+      regencyName: region.regencyName || undefined,
+      districtCode: region.districtCode || undefined,
+      districtName: region.districtName || undefined,
+      villageCode: region.villageCode || undefined,
+      villageName: region.villageName || undefined,
       previousVaccineHistory: previousVaccineHistory.trim() || undefined,
       childAllergyHistory: childAllergyHistory.trim() || undefined
     };
@@ -224,10 +250,7 @@ export function ImmunizationBookingStepper({
                       if (errors.childNik) setErrors((prev) => ({ ...prev, childNik: '' }));
                     }}
                     placeholder='16 digit NIK anak'
-                    className={cn(
-                      'h-9 text-xs font-mono',
-                      errors.childNik && 'border-rose-500'
-                    )}
+                    className={cn('h-9 text-xs font-mono', errors.childNik && 'border-rose-500')}
                   />
                   {errors.childNik && (
                     <p className='text-[11px] text-rose-500'>{errors.childNik}</p>
@@ -236,10 +259,7 @@ export function ImmunizationBookingStepper({
 
                 <div className='space-y-1.5'>
                   <Label className='text-xs font-medium'>Jenis Kelamin</Label>
-                  <Select
-                    value={childSex}
-                    onValueChange={(val) => setChildSex(val as ChildSex)}
-                  >
+                  <Select value={childSex} onValueChange={(val) => setChildSex(val as ChildSex)}>
                     <SelectTrigger className='h-9 text-xs'>
                       <SelectValue />
                     </SelectTrigger>
@@ -311,8 +331,7 @@ export function ImmunizationBookingStepper({
 
               <div className='space-y-1.5'>
                 <Label className='text-xs font-medium'>
-                  Nomor HP Orang Tua/Wali (WhatsApp Aktif){' '}
-                  <span className='text-rose-500'>*</span>
+                  Nomor HP Orang Tua/Wali (WhatsApp Aktif) <span className='text-rose-500'>*</span>
                 </Label>
                 <Input
                   type='tel'
@@ -324,23 +343,20 @@ export function ImmunizationBookingStepper({
                     }
                   }}
                   placeholder='08xxxxxxxxxx'
-                  className={cn(
-                    'h-9 text-xs font-mono',
-                    errors.parentPhone && 'border-rose-500'
-                  )}
+                  className={cn('h-9 text-xs font-mono', errors.parentPhone && 'border-rose-500')}
                 />
                 {errors.parentPhone && (
                   <p className='text-[11px] text-rose-500'>{errors.parentPhone}</p>
                 )}
               </div>
 
-              <div className='space-y-1.5'>
-                <Label className='text-xs font-medium'>Alamat Lengkap</Label>
-                <Textarea
-                  value={childAddress}
-                  onChange={(e) => setChildAddress(e.target.value)}
-                  placeholder='Alamat domisili anak...'
-                  className='min-h-[70px] text-xs resize-none'
+              <div className='space-y-2 pt-2 border-t border-border/30'>
+                <Label className='text-xs font-semibold text-muted-foreground uppercase tracking-wider block'>
+                  Alamat Domisili Anak
+                </Label>
+                <PatientRegionDropdown
+                  values={region}
+                  onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}
                 />
               </div>
             </div>
@@ -350,9 +366,7 @@ export function ImmunizationBookingStepper({
         {currentStep === 3 && (
           <div className='space-y-4 animate-in fade-in-50 duration-200'>
             <div>
-              <h3 className='text-sm font-semibold text-foreground'>
-                Riwayat Vaksin & Alergi
-              </h3>
+              <h3 className='text-sm font-semibold text-foreground'>Riwayat Vaksin & Alergi</h3>
               <p className='text-xs text-muted-foreground'>
                 Tuliskan riwayat vaksinasi sebelumnya dan alergi obat/makanan (opsional).
               </p>

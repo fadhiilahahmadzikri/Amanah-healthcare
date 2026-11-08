@@ -13,31 +13,29 @@ export interface ImunisasiPreTableSectionProps {
 
 export const ImunisasiPreTableSection: React.FC<ImunisasiPreTableSectionProps> = ({
   config,
-  data,
+  data
 }) => {
   const previousVaccines = data?.previousVaccines;
   const allergy = data?.allergy;
 
   return (
-    <div className="w-full grid grid-cols-2 gap-4 items-baseline mb-1">
+    <div className='w-full grid grid-cols-2 gap-4 items-baseline mb-1'>
       {/* Left: Riwayat Vaksin Sebelumnya */}
-      <div className="flex items-baseline">
-        <FormText customPt={7.2} italic>
-          {previousVaccines
-            ? `${config.leftLabel}: ${previousVaccines}`
-            : config.leftLabel}
+      <div className='flex items-baseline'>
+        <FormText customPt={8.2} italic>
+          {previousVaccines ? `${config.leftLabel}: ${previousVaccines}` : config.leftLabel}
         </FormText>
       </div>
 
       {/* Right: Riwayat Alergi */}
-      <div className="flex items-baseline">
+      <div className='flex items-baseline'>
         <DottedLine
           label={config.rightLabel}
           value={allergy}
-          customPt={7.2}
+          customPt={8.2}
           boldLabel
           boldValue
-          minHeight="14px"
+          minHeight='14px'
         />
       </div>
     </div>

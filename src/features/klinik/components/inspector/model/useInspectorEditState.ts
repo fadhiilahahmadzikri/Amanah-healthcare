@@ -17,16 +17,14 @@ import {
   validateImmunizationForm
 } from '../../../validations/inspector-form.schema';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
+import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 
 interface UseInspectorEditStateParams {
   parsedData: UnifiedInspectorData;
   appointment: Appointment;
 }
 
-export function useInspectorEditState({
-  parsedData,
-  appointment
-}: UseInspectorEditStateParams) {
+export function useInspectorEditState({ parsedData, appointment }: UseInspectorEditStateParams) {
   const draft = React.useMemo(() => {
     return appointment?.id ? appointmentDraftService.getInspectorDraft(appointment.id) : null;
   }, [appointment?.id]);
@@ -78,89 +76,153 @@ export function useInspectorEditState({
     }
   }, [isEditing, appointment?.id, formData, immunizationFormData, regularFormData]);
 
-  const handleFieldChange = React.useCallback(
-    (field: keyof EditableMaternalData, value: any) => {
-      setFormData((prev) => {
-        const next = {
-          ...prev,
-          [field]: value
-        };
+  const checkNikTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-        const validation = validateMaternalForm(next);
+  React.useEffect(() => {
+    return () => {
+      if (checkNikTimerRef.current) {
+        clearTimeout(checkNikTimerRef.current);
+      }
+    };
+  }, []);
 
-        setValidationErrors((prevErrors) => {
-          const updated = { ...prevErrors };
-          const fieldKey = field as string;
+  const checkNikAvailabilityDebounced = React.useCallback(
+    (fieldKey: string, nik: string, originalNik?: string | null) => {
+      if (checkNikTimerRef.current) {
+        clearTimeout(checkNikTimerRef.current);
+      }
 
-          if (validation.errors[fieldKey]) {
-            updated[fieldKey] = validation.errors[fieldKey];
-          } else {
-            delete updated[fieldKey];
+      const clean = nik.trim();
+      if (clean.length !== 16 || clean === (originalNik || '').trim()) {
+        setValidationErrors((prev) => {
+          if (prev[fieldKey] === 'NIK ini sudah terdaftar pada pasien lain') {
+            const next = { ...prev };
+            delete next[fieldKey];
+            return next;
           }
-
-          // Cross-field obstetric rules (G - P - A - H)
-          const obstetricFields = ['gravidaCount', 'parityCount', 'abortionCount', 'livingChildrenCount'];
-          if (obstetricFields.includes(fieldKey)) {
-            obstetricFields.forEach((key) => {
-              if (validation.errors[key]) {
-                updated[key] = validation.errors[key];
-              } else {
-                delete updated[key];
-              }
-            });
-          }
-
-          // Cross-field date rules (marriageDate, hpht, motherBirthDate)
-          const dateFields = ['marriageDate', 'hpht', 'motherBirthDate'];
-          if (dateFields.includes(fieldKey)) {
-            ['marriageDate', 'hpht'].forEach((key) => {
-              if (validation.errors[key]) {
-                updated[key] = validation.errors[key];
-              } else {
-                delete updated[key];
-              }
-            });
-          }
-
-          return updated;
+          return prev;
         });
+        return;
+      }
 
-        return next;
-      });
-    },
-    []
-  );
-
-  const handleDiseaseChange = React.useCallback(
-    (key: string, value: any, yearOrNotes?: string) => {
-      setFormData((prev) => {
-        const updatedDiseaseHistory = { ...prev.diseaseHistory, [key]: value };
-        if (yearOrNotes !== undefined) {
-          updatedDiseaseHistory[`${key}Notes`] = yearOrNotes;
+      checkNikTimerRef.current = setTimeout(async () => {
+        try {
+          const res = await patientAffiliationService.verifyNikAvailability(clean);
+          if (!res.available) {
+            setValidationErrors((prev) => ({
+              ...prev,
+              [fieldKey]: 'NIK ini sudah terdaftar pada pasien lain'
+            }));
+          } else {
+            setValidationErrors((prev) => {
+              if (prev[fieldKey] === 'NIK ini sudah terdaftar pada pasien lain') {
+                const next = { ...prev };
+                delete next[fieldKey];
+                return next;
+              }
+              return prev;
+            });
+          }
+        } catch {
+          // Ignore transient network errors during live validation
         }
-        const next = {
-          ...prev,
-          diseaseHistory: updatedDiseaseHistory
-        };
-
-        const validation = validateMaternalForm(next);
-        const conditionYearKey = `condition_${key}_year`;
-
-        setValidationErrors((prevErrors) => {
-          const updated = { ...prevErrors };
-          if (validation.errors[conditionYearKey]) {
-            updated[conditionYearKey] = validation.errors[conditionYearKey];
-          } else {
-            delete updated[conditionYearKey];
-          }
-          return updated;
-        });
-
-        return next;
-      });
+      }, 400);
     },
     []
   );
+
+  const handleFieldChange = React.useCallback((field: keyof EditableMaternalData, value: any) => {
+    if (field === 'motherNik') {
+      checkNikAvailabilityDebounced('motherNik', String(value || ''), parsedData.patient?.nik);
+    } else if (field === 'partnerNik') {
+      checkNikAvailabilityDebounced(
+        'partnerNik',
+        String(value || ''),
+        parsedData.maternal?.husbandProfile?.nik || parsedData.maternal?.partnerNik
+      );
+    }
+
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [field]: value
+      };
+
+      const validation = validateMaternalForm(next);
+
+      setValidationErrors((prevErrors) => {
+        const updated = { ...prevErrors };
+        const fieldKey = field as string;
+
+        if (validation.errors[fieldKey]) {
+          updated[fieldKey] = validation.errors[fieldKey];
+        } else {
+          delete updated[fieldKey];
+        }
+
+        // Cross-field obstetric rules (G - P - A - H)
+        const obstetricFields = [
+          'gravidaCount',
+          'parityCount',
+          'abortionCount',
+          'livingChildrenCount'
+        ];
+        if (obstetricFields.includes(fieldKey)) {
+          obstetricFields.forEach((key) => {
+            if (validation.errors[key]) {
+              updated[key] = validation.errors[key];
+            } else {
+              delete updated[key];
+            }
+          });
+        }
+
+        // Cross-field date rules (marriageDate, hpht, motherBirthDate)
+        const dateFields = ['marriageDate', 'hpht', 'motherBirthDate'];
+        if (dateFields.includes(fieldKey)) {
+          ['marriageDate', 'hpht'].forEach((key) => {
+            if (validation.errors[key]) {
+              updated[key] = validation.errors[key];
+            } else {
+              delete updated[key];
+            }
+          });
+        }
+
+        return updated;
+      });
+
+      return next;
+    });
+  }, []);
+
+  const handleDiseaseChange = React.useCallback((key: string, value: any, yearOrNotes?: string) => {
+    setFormData((prev) => {
+      const updatedDiseaseHistory = { ...prev.diseaseHistory, [key]: value };
+      if (yearOrNotes !== undefined) {
+        updatedDiseaseHistory[`${key}Notes`] = yearOrNotes;
+      }
+      const next = {
+        ...prev,
+        diseaseHistory: updatedDiseaseHistory
+      };
+
+      const validation = validateMaternalForm(next);
+      const conditionYearKey = `condition_${key}_year`;
+
+      setValidationErrors((prevErrors) => {
+        const updated = { ...prevErrors };
+        if (validation.errors[conditionYearKey]) {
+          updated[conditionYearKey] = validation.errors[conditionYearKey];
+        } else {
+          delete updated[conditionYearKey];
+        }
+        return updated;
+      });
+
+      return next;
+    });
+  }, []);
 
   const handleNestedArrayChange = React.useCallback(
     (
@@ -187,10 +249,7 @@ export function useInspectorEditState({
   );
 
   const handleAddNestedItem = React.useCallback(
-    (
-      key: 'previousPregnancies' | 'contraceptiveHistories',
-      defaultItem: any
-    ) => {
+    (key: 'previousPregnancies' | 'contraceptiveHistories', defaultItem: any) => {
       setFormData((prev) => ({
         ...prev,
         [key]: [...(prev[key] as any[]), defaultItem]
@@ -200,10 +259,7 @@ export function useInspectorEditState({
   );
 
   const handleRemoveNestedItem = React.useCallback(
-    (
-      key: 'previousPregnancies' | 'contraceptiveHistories',
-      index: number
-    ) => {
+    (key: 'previousPregnancies' | 'contraceptiveHistories', index: number) => {
       setFormData((prev) => {
         const currentList = [...(prev[key] as any[])];
         currentList.splice(index, 1);
@@ -218,6 +274,14 @@ export function useInspectorEditState({
 
   const handleImmunizationFieldChange = React.useCallback(
     (field: keyof EditableImmunizationData, value: any) => {
+      if (field === 'childNik') {
+        checkNikAvailabilityDebounced(
+          'childNik',
+          String(value || ''),
+          parsedData.child?.childNik || parsedData.patient?.nik
+        );
+      }
+
       setImmunizationFormData((prev) => {
         const next = {
           ...prev,
@@ -229,10 +293,26 @@ export function useInspectorEditState({
 
         setValidationErrors((prevErrors) => {
           const updated = { ...prevErrors };
-          if (validation.errors[fieldKey]) {
-            updated[fieldKey] = validation.errors[fieldKey];
-          } else {
-            delete updated[fieldKey];
+
+          if (fieldKey === 'entries' || fieldKey === 'childBirthDate') {
+            for (const k of Object.keys(updated)) {
+              if (k.startsWith('entry_') || k === 'entries') {
+                delete updated[k];
+              }
+            }
+            for (const [k, v] of Object.entries(validation.errors)) {
+              if (k.startsWith('entry_') || k === 'entries') {
+                updated[k] = v;
+              }
+            }
+          }
+
+          if (fieldKey !== 'entries') {
+            if (validation.errors[fieldKey]) {
+              updated[fieldKey] = validation.errors[fieldKey];
+            } else {
+              delete updated[fieldKey];
+            }
           }
           return updated;
         });
@@ -243,21 +323,22 @@ export function useInspectorEditState({
     []
   );
 
-  const handleVaccineValueChange = React.useCallback(
-    (fieldId: string, value: string) => {
-      setImmunizationFormData((prev) => ({
-        ...prev,
-        vaccineValues: {
-          ...prev.vaccineValues,
-          [fieldId]: value
-        }
-      }));
-    },
-    []
-  );
+  const handleVaccineValueChange = React.useCallback((fieldId: string, value: string) => {
+    setImmunizationFormData((prev) => ({
+      ...prev,
+      vaccineValues: {
+        ...prev.vaccineValues,
+        [fieldId]: value
+      }
+    }));
+  }, []);
 
   const handleRegularFieldChange = React.useCallback(
     (field: keyof EditableRegularData, value: any) => {
+      if (field === 'nik') {
+        checkNikAvailabilityDebounced('nik', String(value || ''), parsedData.patient?.nik);
+      }
+
       setRegularFormData((prev) => {
         const next = {
           ...prev,

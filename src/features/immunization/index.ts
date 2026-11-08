@@ -10,5 +10,4 @@ export * from './components/organisms/immunization-booking-stepper';
 export * from './components/organisms/immunization-document-view';
 export * from './components/organisms/immunization-admin-inspector';
 export * from './components/organisms/immunization-inspector-tab';
-export * from './components/organisms/milestone-entry-modal';
 export * from './services/immunization-docx.service';

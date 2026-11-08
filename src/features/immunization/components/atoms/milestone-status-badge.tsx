@@ -4,9 +4,30 @@ import type { VaccineAdministrationStatus } from '../../types/immunization.types
 
 export interface MilestoneStatusBadgeProps {
   status: VaccineAdministrationStatus;
+  variant?: 'pill' | 'text';
 }
 
-export function MilestoneStatusBadge({ status }: MilestoneStatusBadgeProps) {
+export function MilestoneStatusBadge({ status, variant = 'pill' }: MilestoneStatusBadgeProps) {
+  if (variant === 'text') {
+    switch (status) {
+      case 'GIVEN':
+        return (
+          <span className='text-xs font-semibold text-emerald-600 dark:text-emerald-400'>
+            Sudah Diberikan
+          </span>
+        );
+      case 'POSTPONED':
+        return (
+          <span className='text-xs font-medium text-amber-600 dark:text-amber-400'>Ditunda</span>
+        );
+      case 'CONTRAINDICATED':
+        return <span className='text-xs font-medium text-destructive'>Kontraindikasi</span>;
+      case 'NOT_GIVEN':
+      default:
+        return <span className='text-xs text-muted-foreground/70'>Belum Diberikan</span>;
+    }
+  }
+
   switch (status) {
     case 'GIVEN':
       return (

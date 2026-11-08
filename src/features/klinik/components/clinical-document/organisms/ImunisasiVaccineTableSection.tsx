@@ -10,36 +10,33 @@ export interface ImunisasiVaccineTableSectionProps {
 
 export const ImunisasiVaccineTableSection: React.FC<ImunisasiVaccineTableSectionProps> = ({
   config,
-  data = [],
+  data = []
 }) => {
   const colWidths = [25.77, 10.12, 7.82, 17.03, 19.33, 19.93];
 
   return (
-    <div className="w-full">
-      <table className="w-full border-collapse border border-black table-fixed">
+    <div className='w-full'>
+      <table className='w-full border-collapse border border-black table-fixed'>
         <colgroup>
           {colWidths.map((w, i) => (
             <col key={i} style={{ width: `${w}%` }} />
           ))}
         </colgroup>
         <thead>
-          <tr className="h-[26px] bg-white border-b border-black">
+          <tr className='h-[26px] bg-white border-b border-black'>
             {config.headers.map((header, idx) => (
-              <th
-                key={idx}
-                className="border border-black px-1 py-1 text-center align-middle"
-              >
+              <th key={idx} className='border border-black px-1 py-1 text-center align-middle'>
                 {header === 'TGL SUNTIK' ? (
-                  <div className="flex flex-col items-center justify-center leading-none">
-                    <FormText customPt={7.5} bold align="center">
+                  <div className='flex flex-col items-center justify-center leading-none'>
+                    <FormText customPt={8.5} bold align='center'>
                       TGL
                     </FormText>
-                    <FormText customPt={7.5} bold align="center">
+                    <FormText customPt={8.5} bold align='center'>
                       SUNTIK
                     </FormText>
                   </div>
                 ) : (
-                  <FormText customPt={7.5} bold align="center">
+                  <FormText customPt={8.5} bold align='center'>
                     {header}
                   </FormText>
                 )}
@@ -55,8 +52,8 @@ export const ImunisasiVaccineTableSection: React.FC<ImunisasiVaccineTableSection
               data={data[idx]}
               defaultSubjective={config.subjective}
               defaultObjective={config.objective}
-              bodyPt={7.2}
-              smallPt={6.3}
+              bodyPt={8.2}
+              smallPt={7.2}
             />
           ))}
         </tbody>
