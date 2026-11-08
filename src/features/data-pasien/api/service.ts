@@ -334,42 +334,30 @@ export async function createPatient(data: PatientMutationPayload) {
 export async function updatePatient(id: string, data: Partial<PatientMutationPayload>) {
   const payload: Record<string, unknown> = {};
 
-  if (data.medical_record_number !== undefined && data.medical_record_number.trim() !== '') {
-    payload.medicalRecordNumber = data.medical_record_number.trim();
-  } else if (data.medicalRecordNumber !== undefined && data.medicalRecordNumber.trim() !== '') {
-    payload.medicalRecordNumber = data.medicalRecordNumber.trim();
+  if (data.medical_record_number !== undefined) {
+    payload.medicalRecordNumber = data.medical_record_number?.trim() || null;
+  } else if (data.medicalRecordNumber !== undefined) {
+    payload.medicalRecordNumber = data.medicalRecordNumber?.trim() || null;
   }
   if (data.name !== undefined) payload.fullName = data.name.trim();
-  if (data.nik !== undefined && data.nik.trim() !== '') {
-    payload.nik = data.nik.trim();
-  }
-  if (data.phone !== undefined) payload.phone = data.phone ? data.phone.trim() : null;
-  if (data.email !== undefined) payload.email = data.email ? data.email.trim() : null;
-  if (data.emergency_contact !== undefined && data.emergency_contact.trim() !== '') {
-    payload.emergencyContactPhone = data.emergency_contact.trim();
+  if (data.nik !== undefined) payload.nik = data.nik?.trim() || null;
+  if (data.phone !== undefined) payload.phone = data.phone?.trim() || null;
+  if (data.email !== undefined) payload.email = data.email?.trim() || null;
+  if (data.emergencyContactPhone !== undefined) {
+    payload.emergencyContactPhone = data.emergencyContactPhone?.trim() || null;
+  } else if (data.emergency_contact !== undefined) {
+    payload.emergencyContactPhone = data.emergency_contact?.trim() || null;
   }
   if (data.emergencyContactName !== undefined) {
-    payload.emergencyContactName = data.emergencyContactName
-      ? data.emergencyContactName.trim()
-      : null;
-  }
-  if (data.emergencyContactPhone !== undefined) {
-    payload.emergencyContactPhone = data.emergencyContactPhone
-      ? data.emergencyContactPhone.trim()
-      : null;
+    payload.emergencyContactName = data.emergencyContactName?.trim() || null;
   }
   if (data.emergencyContactRelationship !== undefined) {
-    payload.emergencyContactRelationship = data.emergencyContactRelationship
-      ? data.emergencyContactRelationship.trim()
-      : null;
+    payload.emergencyContactRelationship = data.emergencyContactRelationship?.trim() || null;
   }
-  if (data.line1 !== undefined) payload.line1 = data.line1 ? data.line1.trim() : null;
-  if (data.occupation !== undefined)
-    payload.occupation = data.occupation ? data.occupation.trim() : null;
-  if (data.mother_name !== undefined)
-    payload.motherName = data.mother_name ? data.mother_name.trim() : null;
-  if (data.birth_place !== undefined)
-    payload.birthPlace = data.birth_place ? data.birth_place.trim() : null;
+  if (data.line1 !== undefined) payload.line1 = data.line1?.trim() || null;
+  if (data.occupation !== undefined) payload.occupation = data.occupation?.trim() || null;
+  if (data.mother_name !== undefined) payload.motherName = data.mother_name?.trim() || null;
+  if (data.birth_place !== undefined) payload.birthPlace = data.birth_place?.trim() || null;
   if (data.birth_date !== undefined) payload.birthDate = data.birth_date || null;
   if (data.gender !== undefined) payload.gender = data.gender;
   if (data.blood_type !== undefined) payload.bloodType = data.blood_type || null;

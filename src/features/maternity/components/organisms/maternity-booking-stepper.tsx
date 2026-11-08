@@ -227,7 +227,6 @@ export function MaternityBookingStepper({
 
   const validateStep3 = () => {
     const errs: Record<string, string> = {};
-    if (!partnerName.trim()) errs.partnerName = 'Nama suami wajib diisi';
     if (partnerNik.trim() && !/^\d{16}$/.test(partnerNik.trim())) {
       errs.partnerNik = 'NIK suami harus 16 digit angka';
     }
@@ -237,9 +236,7 @@ export function MaternityBookingStepper({
 
   const validateStep4 = () => {
     const errs: Record<string, string> = {};
-    if (!hpht) {
-      errs.hpht = 'HPHT (Hari Pertama Haid Terakhir) wajib diisi';
-    } else {
+    if (hpht) {
       const hDate = new Date(hpht);
       const today = new Date();
       today.setHours(23, 59, 59, 999);
@@ -297,15 +294,17 @@ export function MaternityBookingStepper({
       return parts.length > 0 ? parts.join(', ') : '';
     })();
 
-    const husbandProfile: MaternalHusbandProfile = {
-      fullName: partnerName.trim(),
-      nik: partnerNik.trim() || null,
-      birthDate: partnerBirthDate || null,
-      job: partnerJob || null,
-      education: partnerEducation || null,
-      bloodType: partnerBloodType || null,
-      phoneNumber: partnerPhone.trim() || null
-    };
+    const husbandProfile: MaternalHusbandProfile | undefined = partnerName.trim()
+      ? {
+          fullName: partnerName.trim(),
+          nik: partnerNik.trim() || null,
+          birthDate: partnerBirthDate || null,
+          job: partnerJob || null,
+          education: partnerEducation || null,
+          bloodType: partnerBloodType || null,
+          phoneNumber: partnerPhone.trim() || null
+        }
+      : undefined;
 
     const payload: CreateMaternityIntakePayload = {
       patientId,
@@ -334,7 +333,7 @@ export function MaternityBookingStepper({
       posyandu: posyandu.trim() || undefined,
       puskesmas: puskesmas.trim() || undefined,
 
-      partnerName: partnerName.trim(),
+      partnerName: partnerName.trim() || undefined,
       partnerNik: partnerNik.trim() || undefined,
       partnerBirthDate: partnerBirthDate || undefined,
       partnerJob: partnerJob || undefined,
@@ -350,7 +349,7 @@ export function MaternityBookingStepper({
       tetanusStatus,
       motherBloodType,
 
-      hpht,
+      hpht: hpht || undefined,
       currentComplaints: currentComplaints.trim(),
       gravidaCount: Number(gravidaCount) || 1,
       parityCount: Number(parityCount) || 0,
@@ -671,7 +670,7 @@ export function MaternityBookingStepper({
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5'>
                 <div className='space-y-1.5'>
                   <Label className='text-xs font-medium'>
-                    Nama Lengkap Suami <span className='text-rose-500'>*</span>
+                    Nama Lengkap Suami
                   </Label>
                   <Input
                     value={partnerName}
@@ -811,7 +810,7 @@ export function MaternityBookingStepper({
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-3.5'>
                 <div className='space-y-1.5'>
                   <Label className='text-xs font-medium'>
-                    HPHT (Hari Pertama Haid Terakhir) <span className='text-rose-500'>*</span>
+                    HPHT (Hari Pertama Haid Terakhir)
                   </Label>
                   <CustomDatePicker
                     value={hpht}

@@ -229,7 +229,6 @@ export type MaternalIntakeResponse = MaternityIntake;
 
 export interface ChildImmunizationResponse extends CreateChildImmunizationPayload {
   id: string;
-  intakeSubmissionId: string;
   createdAt: string;
   updatedAt: string;
   entries?: (ChildImmunizationEntryPayload & {
@@ -237,8 +236,6 @@ export interface ChildImmunizationResponse extends CreateChildImmunizationPayloa
     createdAt: string;
     updatedAt: string;
   })[];
-  answers?: Record<string, unknown>;
-  automatic?: Record<string, unknown>;
 }
 
 export interface FormRequirementData {

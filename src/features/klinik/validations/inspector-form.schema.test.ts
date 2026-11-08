@@ -41,6 +41,49 @@ describe('Inspector Form Zod Validation', () => {
       expect(res.isValid).toBe(false);
       expect(res.errors.fullName).toBe('Nama lengkap wajib diisi');
     });
+
+    it('should reject empty complaint when explicitly empty', () => {
+      const res = validateRegularForm({
+        fullName: 'Budi Santoso',
+        complaint: ''
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.complaint).toBe('Keluhan utama wajib diisi');
+    });
+
+    it('should reject missing emergency contact phone when name is provided', () => {
+      const res = validateRegularForm({
+        fullName: 'Budi Santoso',
+        emergencyContactName: 'Ahmad Fauzi',
+        emergencyContactPhone: ''
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.emergencyContactPhone).toBe(
+        'Nomor telepon kontak darurat wajib diisi jika nama diisi'
+      );
+    });
+
+    it('should reject missing emergency contact name when phone is provided', () => {
+      const res = validateRegularForm({
+        fullName: 'Budi Santoso',
+        emergencyContactName: '',
+        emergencyContactPhone: '081234567890'
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.emergencyContactName).toBe(
+        'Nama kontak darurat wajib diisi jika nomor telepon diisi'
+      );
+    });
+
+    it('should pass when both emergency contact name and phone are empty', () => {
+      const res = validateRegularForm({
+        fullName: 'Budi Santoso',
+        emergencyContactName: '',
+        emergencyContactPhone: ''
+      });
+      expect(res.isValid).toBe(true);
+      expect(Object.keys(res.errors).length).toBe(0);
+    });
   });
 
   describe('validateMaternalForm', () => {

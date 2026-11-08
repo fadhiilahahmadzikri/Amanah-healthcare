@@ -274,6 +274,7 @@ export const maternalFormZodSchema = z
     marriageDate: z.string().nullable().optional(),
     hpht: z.string().nullable().optional(),
     currentComplaints: z.string().trim().min(1, 'Keluhan saat ini wajib diisi'),
+    partnerName: z.string().max(255, 'Nama suami maksimal 255 karakter').nullable().optional(),
     partnerNik: z
       .string()
       .trim()
@@ -417,6 +418,7 @@ export function validateMaternalForm(data: Partial<EditableMaternalData>): Mater
     marriageDate: data.marriageDate ? data.marriageDate.trim() : null,
     hpht: data.hpht ? data.hpht.trim() : null,
     currentComplaints: data.currentComplaints ? data.currentComplaints.trim() : '',
+    partnerName: data.partnerName ? data.partnerName.trim() : null,
     partnerNik: data.partnerNik ? data.partnerNik.trim() : null,
     phoneNumber: data.phoneNumber ? data.phoneNumber.trim().replace(/[\s-]/g, '') : null,
     partnerPhone: data.partnerPhone ? data.partnerPhone.trim().replace(/[\s-]/g, '') : null,
@@ -607,6 +609,15 @@ export const MATERNITY_FIELD_TAB_MAP: Record<string, MaternityInspectorTab> = {
   partnerEducation: 'identitas',
   partnerBloodType: 'identitas',
   partnerPhone: 'identitas',
+  husband: 'identitas',
+  'husband.fullName': 'identitas',
+  'husband.nik': 'identitas',
+  'husband.birthDate': 'identitas',
+  'husband.age': 'identitas',
+  'husband.job': 'identitas',
+  'husband.education': 'identitas',
+  'husband.bloodType': 'identitas',
+  'husband.phoneNumber': 'identitas',
   dasawisma: 'identitas',
   posyandu: 'identitas',
   puskesmas: 'identitas',
@@ -667,6 +678,14 @@ export const MATERNITY_FIELD_DOM_ID_MAP: Record<string, string> = {
   partnerBloodType: 'maternity-husband-bloodtype',
   partnerEducation: 'maternity-husband-education',
   partnerJob: 'maternity-husband-job',
+  husband: 'maternity-husband-name',
+  'husband.fullName': 'maternity-husband-name',
+  'husband.nik': 'maternity-husband-nik',
+  'husband.birthDate': 'maternity-husband-birthdate',
+  'husband.phoneNumber': 'maternity-husband-phone',
+  'husband.bloodType': 'maternity-husband-bloodtype',
+  'husband.education': 'maternity-husband-education',
+  'husband.job': 'maternity-husband-job',
   dasawisma: 'maternity-dasawisma',
   posyandu: 'maternity-posyandu',
   puskesmas: 'maternity-puskesmas',
@@ -690,6 +709,7 @@ export const MATERNITY_FIELD_DOM_ID_MAP: Record<string, string> = {
 
 export function getTabForErrorKey(key: string): MaternityInspectorTab {
   if (MATERNITY_FIELD_TAB_MAP[key]) return MATERNITY_FIELD_TAB_MAP[key];
+  if (key.startsWith('husband.') || key === 'husband') return 'identitas';
   if (key.startsWith('prev_preg_')) return 'obstetri';
   if (key.startsWith('contra_')) return 'klinis';
   if (key.startsWith('condition_')) return 'skrining';

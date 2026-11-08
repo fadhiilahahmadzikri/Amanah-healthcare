@@ -38,7 +38,7 @@ export function RegularIdentitySection({
   references
 }: RegularIdentitySectionProps) {
   const [showNik, setShowNik] = React.useState(false);
-  const { answers, patient } = data;
+  const { patient } = data;
   const relationship = getRelationshipLabel(patient?.relationshipType);
 
   const isChild = React.useMemo(() => {
@@ -48,7 +48,7 @@ export function RegularIdentitySection({
     ) {
       return true;
     }
-    const bDate = patient?.birthDate || answers.birthDate;
+    const bDate = patient?.birthDate;
     if (bDate) {
       const birthYear = new Date(bDate).getFullYear();
       const currentYear = new Date().getFullYear();
@@ -57,7 +57,7 @@ export function RegularIdentitySection({
       }
     }
     return false;
-  }, [patient, relationship, answers.birthDate]);
+  }, [patient, relationship]);
 
   const mrn = patient?.medicalRecordNumber || '';
   const nik = patient?.nik || '';
@@ -68,10 +68,6 @@ export function RegularIdentitySection({
   const occupation = rawOccupation || '';
   const phone = patient?.phone || '';
   const email = patient?.email || '';
-  const emergency =
-    patient?.emergencyContactName || patient?.emergencyContactPhone
-      ? `${patient?.emergencyContactName || ''} (${patient?.emergencyContactRelationship || 'Kontak'})${patient?.emergencyContactPhone ? ` - ${patient?.emergencyContactPhone}` : ''}`
-      : null;
 
   const regionValues: PatientRegionValues = React.useMemo(
     () => ({
@@ -184,9 +180,16 @@ export function RegularIdentitySection({
 
           <CustomDatePicker
             id='reg-birthdate-input'
-            label='Tanggal Lahir'
+            label='Tanggal Lahir *'
             value={regularFormData.birthDate ?? (patient?.birthDate || '')}
-            onChange={(val) => onRegularFieldChange('birthDate', val)}
+            onChange={(val) => {
+              onRegularFieldChange('birthDate', val);
+              if (validationErrors?.birthDate && val.trim().length > 0) {
+                onClearError?.('birthDate');
+              }
+            }}
+            error={validationErrors?.birthDate}
+            invalid={Boolean(validationErrors?.birthDate)}
             placeholder='YYYY-MM-DD'
             disableFutureDates
             variant='underline'
@@ -279,7 +282,14 @@ export function RegularIdentitySection({
               id='reg-emg-name-input'
               label='Nama Kontak Darurat'
               value={regularFormData.emergencyContactName ?? (patient?.emergencyContactName || '')}
-              onChange={(val) => onRegularFieldChange('emergencyContactName', val)}
+              onChange={(val) => {
+                onRegularFieldChange('emergencyContactName', val);
+                if (validationErrors?.emergencyContactName && val.trim().length > 0) {
+                  onClearError?.('emergencyContactName');
+                }
+              }}
+              error={validationErrors?.emergencyContactName}
+              invalid={Boolean(validationErrors?.emergencyContactName)}
               placeholder='Nama kontak darurat...'
             />
             <PatientLineInput
@@ -288,7 +298,14 @@ export function RegularIdentitySection({
               value={
                 regularFormData.emergencyContactPhone ?? (patient?.emergencyContactPhone || '')
               }
-              onChange={(val) => onRegularFieldChange('emergencyContactPhone', val)}
+              onChange={(val) => {
+                onRegularFieldChange('emergencyContactPhone', val);
+                if (validationErrors?.emergencyContactPhone && val.trim().length > 0) {
+                  onClearError?.('emergencyContactPhone');
+                }
+              }}
+              error={validationErrors?.emergencyContactPhone}
+              invalid={Boolean(validationErrors?.emergencyContactPhone)}
               placeholder='08xxxxxxxxxx'
               isMonospace
             />
@@ -366,7 +383,6 @@ export function RegularIdentitySection({
 
           <PatientLineInput id='read-email' label='Email Pasien' value={email} readOnly />
 
-          {/* Alamat Domisili Pasien */}
           <div className='col-span-1 sm:col-span-2 space-y-3 pt-2 pb-1 border-t border-border/30'>
             <div className='flex items-center justify-between pb-1'>
               <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
@@ -429,25 +445,23 @@ export function RegularIdentitySection({
             </div>
           </div>
 
-          {emergency && (
-            <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-border/30'>
-              <PatientLineInput
-                id='read-emg-name'
-                label='Nama Kontak Darurat'
-                value={regularFormData?.emergencyContactName || patient?.emergencyContactName || ''}
-                readOnly
-              />
-              <PatientLineInput
-                id='read-emg-phone'
-                label='No. Telp Kontak Darurat'
-                value={
-                  regularFormData?.emergencyContactPhone || patient?.emergencyContactPhone || ''
-                }
-                isMonospace
-                readOnly
-              />
-            </div>
-          )}
+          <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-border/30'>
+            <PatientLineInput
+              id='read-emg-name'
+              label='Nama Kontak Darurat'
+              value={regularFormData?.emergencyContactName || patient?.emergencyContactName || ''}
+              readOnly
+            />
+            <PatientLineInput
+              id='read-emg-phone'
+              label='No. Telp Kontak Darurat'
+              value={
+                regularFormData?.emergencyContactPhone || patient?.emergencyContactPhone || ''
+              }
+              isMonospace
+              readOnly
+            />
+          </div>
         </div>
       )}
     </div>

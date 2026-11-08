@@ -11,7 +11,6 @@ export type ClinicalHistoryTabType =
 
 export interface MaternalHistoryItem {
   id: string;
-  intakeSubmissionId: string;
   patientId: string;
   appointmentId: string | null;
   motherName: string;
@@ -32,7 +31,6 @@ export interface MaternalHistoryItem {
 
 export interface ImmunizationHistoryItem {
   id: string;
-  intakeSubmissionId: string;
   patientId: string;
   appointmentId: string | null;
   childName: string;

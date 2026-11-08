@@ -5,8 +5,7 @@ import { usePatientFormReferences } from '@/features/data-pasien/model/usePatien
 import type { InspectorTabProps } from './types';
 import {
   RegularIdentitySection,
-  RegularEncounterSection,
-  RegularClinicalNotesSection
+  RegularEncounterSection
 } from './sections';
 
 export function InspectorGenericView({
@@ -22,7 +21,6 @@ export function InspectorGenericView({
 
   return (
     <div className='flex flex-col gap-5 font-sans'>
-      {/* 1. Profil Identitas Pasien (Editable atau Read-Only) */}
       <RegularIdentitySection
         data={data}
         isEditing={isEditing}
@@ -33,17 +31,15 @@ export function InspectorGenericView({
         references={references}
       />
 
-      {/* 2. Informasi Pendaftaran & Keluhan Utama */}
       <RegularEncounterSection
         appointment={appointment}
         data={data}
         isEditing={isEditing}
         regularFormData={regularFormData}
         onRegularFieldChange={onRegularFieldChange}
+        validationErrors={validationErrors}
+        onClearError={onClearError}
       />
-
-      {/* 3. Kalkulasi Otomatis & Jawaban Formulir Tambahan */}
-      <RegularClinicalNotesSection data={data} />
     </div>
   );
 }

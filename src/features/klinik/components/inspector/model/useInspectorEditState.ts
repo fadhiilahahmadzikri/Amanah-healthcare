@@ -58,6 +58,31 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
       : buildInitialRegularData(parsedData, appointment)
   );
 
+  const initialMaternal = React.useMemo(() => buildInitialMaternalData(parsedData), [parsedData]);
+  const initialImmunization = React.useMemo(() => buildInitialImmunizationData(parsedData), [parsedData]);
+  const initialRegular = React.useMemo(
+    () => buildInitialRegularData(parsedData, appointment),
+    [parsedData, appointment]
+  );
+
+  const isDirty = React.useMemo(() => {
+    if (parsedData.flow === 'pregnancy') {
+      return JSON.stringify(formData) !== JSON.stringify(initialMaternal);
+    }
+    if (parsedData.flow === 'immunization') {
+      return JSON.stringify(immunizationFormData) !== JSON.stringify(initialImmunization);
+    }
+    return JSON.stringify(regularFormData) !== JSON.stringify(initialRegular);
+  }, [
+    parsedData.flow,
+    formData,
+    initialMaternal,
+    immunizationFormData,
+    initialImmunization,
+    regularFormData,
+    initialRegular
+  ]);
+
   React.useEffect(() => {
     if (!isEditing) {
       setFormData(buildInitialMaternalData(parsedData));
@@ -124,7 +149,6 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
             });
           }
         } catch {
-          // Ignore transient network errors during live validation
         }
       }, 400);
     },
@@ -160,7 +184,6 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
           delete updated[fieldKey];
         }
 
-        // Cross-field obstetric rules (G - P - A - H)
         const obstetricFields = [
           'gravidaCount',
           'parityCount',
@@ -177,7 +200,6 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
           });
         }
 
-        // Cross-field date rules (marriageDate, hpht, motherBirthDate)
         const dateFields = ['marriageDate', 'hpht', 'motherBirthDate'];
         if (dateFields.includes(fieldKey)) {
           ['marriageDate', 'hpht'].forEach((key) => {
@@ -346,22 +368,12 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
         };
 
         const validation = validateRegularForm(next);
-        const fieldKey = field as string;
-
-        setValidationErrors((prevErrors) => {
-          const updated = { ...prevErrors };
-          if (validation.errors[fieldKey]) {
-            updated[fieldKey] = validation.errors[fieldKey];
-          } else {
-            delete updated[fieldKey];
-          }
-          return updated;
-        });
+        setValidationErrors(validation.errors);
 
         return next;
       });
     },
-    []
+    [checkNikAvailabilityDebounced, parsedData.patient?.nik]
   );
 
   const handleCancelEdit = React.useCallback(() => {
@@ -392,6 +404,7 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
     handleImmunizationFieldChange,
     handleVaccineValueChange,
     handleRegularFieldChange,
-    handleCancelEdit
+    handleCancelEdit,
+    isDirty
   };
 }

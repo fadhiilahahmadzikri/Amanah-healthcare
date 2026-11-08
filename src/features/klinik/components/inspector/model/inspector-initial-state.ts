@@ -56,7 +56,7 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     posyandu: m?.posyandu || '',
     puskesmas: m?.puskesmas || '',
 
-    partnerName: m?.partnerName || '',
+    partnerName: m?.partnerName || m?.husbandProfile?.fullName || '',
     partnerNik: m?.partnerNik || '',
     partnerBirthDate: m?.partnerBirthDate || '',
     partnerAge: m?.partnerAge || '',
@@ -76,7 +76,7 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     estimatedDueDate: m?.estimatedDueDate || '',
     gestationalAgeWeeks: m?.gestationalAgeWeeks || '',
     gestationalAgeFormatted: m?.gestationalAgeFormatted || '',
-    currentComplaints: m?.currentComplaints || '',
+    currentComplaints: m?.currentComplaints || parsedData.complaint || '',
 
     gravidaCount: m?.gravidaCount ?? '',
     parityCount: m?.parityCount ?? '',
@@ -110,7 +110,6 @@ export function buildInitialImmunizationData(
   parsedData: UnifiedInspectorData
 ): EditableImmunizationData {
   const c = parsedData.child;
-  const a = parsedData.answers || {};
   const entries: any[] = c?.entries || [];
 
   const vaccineValues: Record<string, string> = {};
@@ -125,16 +124,10 @@ export function buildInitialImmunizationData(
         }
       }
     });
-  } else {
-    Object.keys(a).forEach((key) => {
-      if (key.startsWith('vaccine_')) {
-        vaccineValues[key] = String(a[key]);
-      }
-    });
   }
 
-  const birthDate = c?.childBirthDate || a.childBirthDate || a.birthDate || '';
-  let childAge = c?.childAgeFormatted || a.childAgeFormatted || '';
+  const birthDate = c?.childBirthDate || '';
+  let childAge = c?.childAgeFormatted || '';
   if (!childAge && birthDate) {
     try {
       childAge = calculateChildAge(birthDate);
@@ -143,30 +136,19 @@ export function buildInitialImmunizationData(
     }
   }
 
-  const hasVaccineHistory =
-    c?.previousVaccineHistory && c.previousVaccineHistory !== 'Belum pernah imunisasi sama sekali'
-      ? 'Ya, pernah'
-      : (a.hasVaccineHistory as string) ||
-        (entries.length > 0 ? 'Ya, pernah' : 'Belum pernah sama sekali');
-
-  const previousVaccineHistory =
-    c?.previousVaccineHistory || (a.previousVaccineHistory as string) || '';
-
-  const hasAllergyHistory =
-    c?.childAllergyHistory && c.childAllergyHistory !== 'Tidak ada riwayat alergi.'
-      ? 'Ada riwayat alergi'
-      : (a.hasAllergyHistory as string) || 'Tidak ada alergi';
-
-  const childAllergyHistory = c?.childAllergyHistory || (a.childAllergyHistory as string) || '';
+  const previousVaccineHistory = c?.previousVaccineHistory || '';
+  const childAllergyHistory = c?.childAllergyHistory || '';
+  const hasVaccineHistory = previousVaccineHistory ? 'Ya, pernah' : 'Belum pernah';
+  const hasAllergyHistory = childAllergyHistory ? 'Ada riwayat alergi' : 'Tidak ada riwayat alergi';
 
   return {
     medicalRecordNumber: parsedData.patient?.medicalRecordNumber || '',
     birthPlace: parsedData.patient?.birthPlace || '',
     childName: c?.childName || parsedData.patient?.fullName || '',
     childNik: c?.childNik || parsedData.patient?.nik || '',
-    childBirthDate: c?.childBirthDate || '',
+    childBirthDate: birthDate,
     childSex: c?.childSex || '',
-    childAgeFormatted: c?.childAgeFormatted || '',
+    childAgeFormatted: childAge,
     parentPhone: c?.parentPhone || parsedData.patient?.phone || '',
     fatherName: c?.fatherName || '',
     motherName: c?.motherName || parsedData.patient?.motherName || '',
@@ -193,11 +175,9 @@ export function buildInitialRegularData(
   parsedData: UnifiedInspectorData,
   appointment: Appointment
 ): EditableRegularData {
-  const a = parsedData.answers || {};
   const p = parsedData.patient;
   return {
-    complaint: a.complaint || a.keluhanUtama || appointment.complaint || parsedData.complaint || '',
-    answers: { ...a },
+    complaint: appointment.complaint || parsedData.complaint || '',
     medicalRecordNumber: p?.medicalRecordNumber || '',
     nik: p?.nik || '',
     fullName: p?.fullName || appointment.patient_name || '',

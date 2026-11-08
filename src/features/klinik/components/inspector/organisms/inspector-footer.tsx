@@ -4,12 +4,14 @@ import { Button } from '@/components/ui/button';
 
 interface InspectorFooterProps {
   isSaving: boolean;
+  isSaveDisabled?: boolean;
   onCancel: () => void;
   onSave: () => void;
 }
 
 export function InspectorFooter({
   isSaving,
+  isSaveDisabled = false,
   onCancel,
   onSave
 }: InspectorFooterProps) {
@@ -39,7 +41,7 @@ export function InspectorFooter({
           size='sm'
           onClick={onSave}
           isLoading={isSaving}
-          disabled={isSaving}
+          disabled={isSaving || isSaveDisabled}
           className='h-8 text-xs font-semibold gap-1.5'
         >
           <Icons.check className='size-3.5' /> Simpan Perubahan

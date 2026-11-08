@@ -4,20 +4,24 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { clinicEssentialsApi } from '@/features/clinic-essentials/api/clinic-essentials.api';
 import type { Appointment } from '../api/types';
-import { useInspectorData, useInspectorEditState, useInspectorSave } from './inspector/model';
+import {
+  useInspectorData,
+  useInspectorEditState,
+  useInspectorSave,
+  useActiveInspectorState
+} from './inspector/model';
 import { InspectorHeader } from './inspector/organisms/inspector-header';
 import { InspectorFooter } from './inspector/organisms/inspector-footer';
-import {
-  MaternityAdminInspector,
-  type MaternityIntake,
-  type MaternalHusbandProfile
-} from '@/features/maternity';
-import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import { MaternityAdminInspector } from '@/features/maternity';
 import { ImmunizationAdminInspector } from '@/features/immunization';
 import { InspectorGenericView } from './inspector/inspector-generic-view';
+import {
+  validateMaternalForm,
+  validateRegularForm,
+  validateImmunizationForm
+} from '../validations/inspector-form.schema';
 import {
   ClinicalDocumentFullscreenReader,
   adaptToPmbFormData,
@@ -68,13 +72,10 @@ export function AppointmentFormInspector({
     regularFormData,
     handleFieldChange,
     handleDiseaseChange,
-    handleNestedArrayChange,
-    handleAddNestedItem,
-    handleRemoveNestedItem,
     handleImmunizationFieldChange,
-    handleVaccineValueChange,
     handleRegularFieldChange,
-    handleCancelEdit
+    handleCancelEdit,
+    isDirty
   } = useInspectorEditState({ parsedData, appointment });
 
   const { isSaving, handleSaveEdit } = useInspectorSave({
@@ -88,6 +89,29 @@ export function AppointmentFormInspector({
     regularFormData,
     setValidationErrors,
     setIsEditing
+  });
+
+  const {
+    activeMaternityIntake,
+    activeChildIntake,
+    activeUnifiedData,
+    maternalRegionValues,
+    handleMaternalRegionChange,
+    handleMaternityFieldChange,
+    handleHusbandFieldChange
+  } = useActiveInspectorState({
+    isPregnancy,
+    isImmunization,
+    isEditing,
+    parsedData,
+    appointment,
+    formData,
+    immunizationFormData,
+    regularFormData,
+    handleFieldChange,
+    handleDiseaseChange,
+    validationErrors,
+    handleClearError
   });
 
   const [isReaderOpen, setIsReaderOpen] = React.useState(false);
@@ -106,278 +130,26 @@ export function AppointmentFormInspector({
     return intakeForms.find((f) => f.code === targetCode)?.schema ?? null;
   }, [intakeForms, isPregnancy, isImmunization]);
 
-  const activeMaternityIntake = React.useMemo<MaternityIntake | null>(() => {
-    if (!isPregnancy || !parsedData.maternal) return null;
-    const resolvedMotherBirthDate =
-      (isEditing ? formData.motherBirthDate : null) ||
-      parsedData.maternal.motherBirthDate ||
-      parsedData.patient?.birthDate ||
-      null;
-
-    if (!isEditing) {
-      return {
-        ...parsedData.maternal,
-        motherBirthDate: resolvedMotherBirthDate,
-        motherName: parsedData.maternal.motherName || parsedData.patient?.fullName || '',
-        motherNik: parsedData.maternal.motherNik || parsedData.patient?.nik || '',
-        line1: parsedData.maternal.line1 || parsedData.patient?.line1 || null,
-        provinceName: parsedData.maternal.provinceName || parsedData.patient?.provinceName || null,
-        provinceCode: parsedData.maternal.provinceCode || parsedData.patient?.provinceCode || null,
-        regencyName: parsedData.maternal.regencyName || parsedData.patient?.regencyName || null,
-        regencyCode: parsedData.maternal.regencyCode || parsedData.patient?.regencyCode || null,
-        districtName: parsedData.maternal.districtName || parsedData.patient?.districtName || null,
-        districtCode: parsedData.maternal.districtCode || parsedData.patient?.districtCode || null,
-        villageName: parsedData.maternal.villageName || parsedData.patient?.villageName || null,
-        villageCode: parsedData.maternal.villageCode || parsedData.patient?.villageCode || null
-      };
-    }
-
-    const currentPartnerPhone =
-      formData.partnerPhone ?? parsedData.maternal.husbandProfile?.phoneNumber ?? '';
-
-    return {
-      ...parsedData.maternal,
-      ...formData,
-      motherBirthDate: resolvedMotherBirthDate,
-      husbandProfile: {
-        ...parsedData.maternal.husbandProfile,
-        fullName: formData.partnerName || '',
-        nik: formData.partnerNik || null,
-        birthDate: formData.partnerBirthDate || null,
-        age: formData.partnerAge || null,
-        job: formData.partnerJob || null,
-        education: formData.partnerEducation || null,
-        bloodType: formData.partnerBloodType || null,
-        phoneNumber: currentPartnerPhone || null
-      }
-    };
-  }, [isPregnancy, isEditing, parsedData.maternal, parsedData.patient, formData]);
-
-  const activeChildIntake = React.useMemo(() => {
-    if (!isImmunization || !parsedData.child) return null;
-    const resolvedChildBirthDate =
-      (isEditing ? immunizationFormData.childBirthDate : null) ||
-      (parsedData.child as any).childBirthDate ||
-      parsedData.patient?.birthDate ||
-      null;
-
-    if (!isEditing) {
-      return {
-        ...parsedData.child,
-        childBirthDate: resolvedChildBirthDate
-      } as any;
-    }
-    return {
-      ...parsedData.child,
-      ...immunizationFormData,
-      childBirthDate: resolvedChildBirthDate
-    } as any;
-  }, [isImmunization, isEditing, parsedData.child, parsedData.patient, immunizationFormData]);
-
-  const activeUnifiedData = React.useMemo<typeof parsedData>(() => {
-    const activePatient = parsedData.patient
-      ? {
-          ...parsedData.patient,
-          fullName: isPregnancy
-            ? formData.motherName || parsedData.patient.fullName
-            : isImmunization
-              ? immunizationFormData.childName || parsedData.patient.fullName
-              : regularFormData.fullName || parsedData.patient.fullName,
-          nik: isPregnancy
-            ? formData.motherNik || parsedData.patient.nik
-            : isImmunization
-              ? immunizationFormData.childNik || parsedData.patient.nik
-              : regularFormData.nik || parsedData.patient.nik,
-          phone: isPregnancy
-            ? formData.phoneNumber || parsedData.patient.phone
-            : isImmunization
-              ? immunizationFormData.parentPhone || parsedData.patient.phone
-              : regularFormData.phone || parsedData.patient.phone,
-          address: isPregnancy
-            ? formData.domicileAddress || parsedData.patient.address
-            : isImmunization
-              ? immunizationFormData.childAddress || parsedData.patient.address
-              : regularFormData.line1 || regularFormData.address || parsedData.patient.address,
-          line1: isPregnancy
-            ? formData.line1 || parsedData.patient.line1
-            : isImmunization
-              ? immunizationFormData.line1 || parsedData.patient.line1
-              : regularFormData.line1 || parsedData.patient.line1,
-          villageName: isPregnancy
-            ? formData.villageName || parsedData.patient.villageName
-            : isImmunization
-              ? immunizationFormData.villageName || parsedData.patient.villageName
-              : regularFormData.villageName || parsedData.patient.villageName,
-          districtName: isPregnancy
-            ? formData.districtName || parsedData.patient.districtName
-            : isImmunization
-              ? immunizationFormData.districtName || parsedData.patient.districtName
-              : regularFormData.districtName || parsedData.patient.districtName,
-          regencyName: isPregnancy
-            ? formData.regencyName || parsedData.patient.regencyName
-            : isImmunization
-              ? immunizationFormData.regencyName || parsedData.patient.regencyName
-              : regularFormData.regencyName || parsedData.patient.regencyName,
-          provinceName: isPregnancy
-            ? formData.provinceName || parsedData.patient.provinceName
-            : isImmunization
-              ? immunizationFormData.provinceName || parsedData.patient.provinceName
-              : regularFormData.provinceName || parsedData.patient.provinceName,
-          ...(isPregnancy || isImmunization
-            ? {}
-            : {
-                medicalRecordNumber:
-                  regularFormData.medicalRecordNumber || parsedData.patient.medicalRecordNumber,
-                motherName: regularFormData.motherName || parsedData.patient.motherName,
-                birthPlace: regularFormData.birthPlace || parsedData.patient.birthPlace,
-                birthDate: regularFormData.birthDate || parsedData.patient.birthDate,
-                gender: regularFormData.gender || parsedData.patient.gender,
-                bloodType: regularFormData.bloodType || parsedData.patient.bloodType,
-                occupation: regularFormData.occupation || parsedData.patient.occupation,
-                email: regularFormData.email || parsedData.patient.email,
-                emergencyContactName:
-                  regularFormData.emergencyContactName || parsedData.patient.emergencyContactName,
-                emergencyContactPhone:
-                  regularFormData.emergencyContactPhone || parsedData.patient.emergencyContactPhone,
-                emergencyContactRelationship:
-                  regularFormData.emergencyContactRelationship ||
-                  parsedData.patient.emergencyContactRelationship
-              })
-        }
-      : undefined;
-
-    const activeAnswers = {
-      ...parsedData.answers,
-      ...regularFormData.answers,
-      complaint: regularFormData.complaint || parsedData.complaint,
-      keluhanUtama: regularFormData.complaint || parsedData.complaint
-    };
-
-    return {
-      ...parsedData,
-      patient: activePatient,
-      answers: activeAnswers,
-      maternal: activeMaternityIntake as any,
-      child: activeChildIntake as any
-    };
-  }, [
-    parsedData,
-    activeMaternityIntake,
-    activeChildIntake,
-    regularFormData,
-    isPregnancy,
-    isImmunization,
-    formData.motherName,
-    formData.motherNik,
-    formData.phoneNumber,
-    formData.domicileAddress,
-    formData.line1,
-    formData.villageName,
-    formData.districtName,
-    formData.regencyName,
-    formData.provinceName,
-    immunizationFormData.childName,
-    immunizationFormData.childNik,
-    immunizationFormData.parentPhone,
-    immunizationFormData.childAddress,
-    immunizationFormData.line1,
-    immunizationFormData.villageName,
-    immunizationFormData.districtName,
-    immunizationFormData.regencyName,
-    immunizationFormData.provinceName
-  ]);
-
-  const handleMaternityFieldChange = React.useCallback(
-    (field: keyof MaternityIntake, val: any) => {
-      if (field === 'previousPregnancies') {
-        handleFieldChange('previousPregnancies' as any, val);
-      } else if (field === 'contraceptiveHistories') {
-        handleFieldChange('contraceptiveHistories' as any, val);
-      } else if (field === 'conditionResponses') {
-        handleFieldChange('conditionResponses' as any, val);
-        val.forEach((cond: any) => {
-          handleDiseaseChange(
-            cond.conditionCode,
-            cond.hasCondition,
-            cond.diagnosisYear ? String(cond.diagnosisYear) : undefined
-          );
-        });
-      } else {
-        handleFieldChange(field as any, val);
-      }
-    },
-    [handleFieldChange, handleDiseaseChange]
-  );
-
-  const handleHusbandFieldChange = React.useCallback(
-    (field: keyof MaternalHusbandProfile, val: any) => {
-      if (field === 'fullName') handleFieldChange('partnerName' as any, val);
-      else if (field === 'nik') handleFieldChange('partnerNik' as any, val);
-      else if (field === 'birthDate') handleFieldChange('partnerBirthDate' as any, val);
-      else if (field === 'job') handleFieldChange('partnerJob' as any, val);
-      else if (field === 'education') handleFieldChange('partnerEducation' as any, val);
-      else if (field === 'bloodType') handleFieldChange('partnerBloodType' as any, val);
-      else if (field === 'phoneNumber') handleFieldChange('partnerPhone' as any, val);
-    },
-    [handleFieldChange]
-  );
-
-  const maternalRegionValues: PatientRegionValues = React.useMemo(
-    () => ({
-      provinceName: formData.provinceName || parsedData.patient?.provinceName || '',
-      provinceCode: formData.provinceCode || parsedData.patient?.provinceCode || '',
-      regencyName: formData.regencyName || parsedData.patient?.regencyName || '',
-      regencyCode: formData.regencyCode || parsedData.patient?.regencyCode || '',
-      districtName: formData.districtName || parsedData.patient?.districtName || '',
-      districtCode: formData.districtCode || parsedData.patient?.districtCode || '',
-      villageName: formData.villageName || parsedData.patient?.villageName || '',
-      villageCode: formData.villageCode || parsedData.patient?.villageCode || '',
-      line1: formData.line1 || parsedData.patient?.line1 || formData.domicileAddress || ''
-    }),
-    [formData, parsedData.patient]
-  );
-
-  const handleMaternalRegionChange = React.useCallback(
-    (updates: Partial<PatientRegionValues>) => {
-      Object.entries(updates).forEach(([key, val]) => {
-        handleFieldChange(key as any, val);
-      });
-      const merged = { ...maternalRegionValues, ...updates };
-      const parts = [
-        merged.line1,
-        merged.villageName ? `Kel. ${merged.villageName}` : '',
-        merged.districtName ? `Kec. ${merged.districtName}` : '',
-        merged.regencyName,
-        merged.provinceName ? `Prov. ${merged.provinceName}` : ''
-      ].filter(Boolean);
-      handleFieldChange('domicileAddress', parts.join(', '));
-      if (validationErrors.domicileAddress) {
-        handleClearError('domicileAddress');
-      }
-    },
-    [handleFieldChange, maternalRegionValues, validationErrors.domicileAddress, handleClearError]
-  );
-
   const pmbFormData = React.useMemo(() => {
-    if (isPregnancy) {
+    if (isPregnancy && (!isEditing || isReaderOpen || isExporting)) {
       return adaptToPmbFormData(activeUnifiedData, appointment, activeSchema);
     }
     return null;
-  }, [activeUnifiedData, appointment, isPregnancy, activeSchema]);
+  }, [activeUnifiedData, appointment, isPregnancy, activeSchema, isEditing, isReaderOpen, isExporting]);
 
   const imunisasiFormData = React.useMemo(() => {
-    if (isImmunization) {
+    if (isImmunization && (!isEditing || isReaderOpen || isExporting)) {
       return adaptToImunisasiFormData(activeUnifiedData, appointment, activeSchema);
     }
     return null;
-  }, [activeUnifiedData, appointment, isImmunization, activeSchema]);
+  }, [activeUnifiedData, appointment, isImmunization, activeSchema, isEditing, isReaderOpen, isExporting]);
 
   const regulerFormData = React.useMemo(() => {
-    if (!isPregnancy && !isImmunization) {
+    if (!isPregnancy && !isImmunization && (!isEditing || isReaderOpen || isExporting)) {
       return adaptToRegulerFormData(activeUnifiedData, appointment, activeSchema);
     }
     return null;
-  }, [activeUnifiedData, appointment, isPregnancy, isImmunization, activeSchema]);
+  }, [activeUnifiedData, appointment, isPregnancy, isImmunization, activeSchema, isEditing, isReaderOpen, isExporting]);
 
   const handleDownload = async (format: 'docx' | 'xlsx') => {
     try {
@@ -413,6 +185,26 @@ export function AppointmentFormInspector({
       setIsExporting(false);
     }
   };
+
+  const isSaveDisabled = React.useMemo(() => {
+    if (!isEditing) return false;
+    if (Object.keys(validationErrors).length > 0) return true;
+    if (isPregnancy) {
+      return !validateMaternalForm(formData).isValid;
+    }
+    if (isImmunization) {
+      return !validateImmunizationForm(immunizationFormData).isValid;
+    }
+    return !validateRegularForm(regularFormData).isValid;
+  }, [
+    isEditing,
+    validationErrors,
+    isPregnancy,
+    isImmunization,
+    formData,
+    immunizationFormData,
+    regularFormData
+  ]);
 
   return (
     <div className='w-full flex flex-col font-sans select-none justify-between h-full min-h-0'>
@@ -457,7 +249,7 @@ export function AppointmentFormInspector({
           />
         ) : isImmunization ? (
           <ImmunizationAdminInspector
-            intake={activeChildIntake}
+            intake={activeChildIntake as any}
             entries={(activeChildIntake?.entries || []) as any}
             isEditing={isEditing}
             onIntakeFieldChange={(field, val) => handleImmunizationFieldChange(field as any, val)}
@@ -483,18 +275,25 @@ export function AppointmentFormInspector({
       </div>
 
       {isEditing && (
-        <InspectorFooter isSaving={isSaving} onCancel={handleCancelEdit} onSave={handleSaveEdit} />
+        <InspectorFooter
+          isSaving={isSaving}
+          isSaveDisabled={isSaveDisabled}
+          onCancel={handleCancelEdit}
+          onSave={() => handleSaveEdit(isDirty)}
+        />
       )}
 
-      <div
-        id='isolated-clinical-printable'
-        className='fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0'
-        aria-hidden='true'
-      >
-        {isPregnancy && <PmbFormTemplate data={pmbFormData} />}
-        {isImmunization && <ImunisasiFormTemplate data={imunisasiFormData} />}
-        {!isPregnancy && !isImmunization && <RegulerFormTemplate data={regulerFormData} />}
-      </div>
+      {!isEditing && (
+        <div
+          id='isolated-clinical-printable'
+          className='fixed left-[-9999px] top-[-9999px] pointer-events-none opacity-0'
+          aria-hidden='true'
+        >
+          {isPregnancy && <PmbFormTemplate data={pmbFormData} />}
+          {isImmunization && <ImunisasiFormTemplate data={imunisasiFormData} />}
+          {!isPregnancy && !isImmunization && <RegulerFormTemplate data={regulerFormData} />}
+        </div>
+      )}
 
       <ClinicalDocumentFullscreenReader
         isOpen={isReaderOpen}

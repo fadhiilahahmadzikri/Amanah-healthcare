@@ -37,7 +37,7 @@ export function MaternityObstetricSection({
         <div className='grid grid-cols-1 md:grid-cols-3 gap-4 shrink-0'>
           <CustomDatePicker
             id='maternity-hpht'
-            label='HPHT (Hari Pertama Haid Terakhir) *'
+            label='HPHT (Hari Pertama Haid Terakhir)'
             value={intake?.hpht || ''}
             onChange={(val) => {
               onIntakeFieldChange('hpht', val);
@@ -52,7 +52,7 @@ export function MaternityObstetricSection({
 
           <CustomDatePicker
             id='maternity-hpl'
-            label='Taksiran Persalinan (HPL) *'
+            label='Taksiran Persalinan (HPL)'
             value={intake?.estimatedDueDate || ''}
             onChange={(val) => {
               onIntakeFieldChange('estimatedDueDate', val);
@@ -143,7 +143,7 @@ export function MaternityObstetricSection({
         <div className='shrink-0'>
           <PatientLineTextarea
             id='maternity-current-complaints'
-            label='Keluhan Utama Saat Ini'
+            label='Keluhan Utama Saat Ini *'
             value={intake?.currentComplaints}
             onChange={(val) => {
               onIntakeFieldChange('currentComplaints', val);

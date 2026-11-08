@@ -45,43 +45,20 @@ export function useInspectorData(appointment: Appointment) {
 
   const parsedData = React.useMemo<UnifiedInspectorData>(() => {
     const rawData =
-      serverIntake &&
-      typeof serverIntake === 'object' &&
-      'data' in serverIntake &&
-      serverIntake.data
-        ? typeof serverIntake.data === 'object' && 'data' in serverIntake.data
-          ? (serverIntake.data as any).data
-          : serverIntake.data
+      serverIntake && typeof serverIntake === 'object' && 'data' in serverIntake
+        ? (serverIntake as any).data
         : serverIntake;
 
     const flow = serverIntake?.flow ?? appointment.medical_flow ?? null;
 
-    let answers: Record<string, any> = {};
-    let automatic: Record<string, any> = {};
     let maternal: MaternalIntakeResponse | undefined = undefined;
     let child: ChildImmunizationResponse | undefined = undefined;
 
     if (rawData) {
       if (flow === FLOW_NAMES.PREGNANCY) {
         maternal = rawData as MaternalIntakeResponse;
-        answers = (maternal.answers as Record<string, any>) || {};
-        automatic = (maternal.automatic as Record<string, any>) || {};
       } else if (flow === FLOW_NAMES.IMMUNIZATION) {
         child = rawData as ChildImmunizationResponse;
-        answers = (child.answers as Record<string, any>) || {};
-        automatic = (child.automatic as Record<string, any>) || {};
-      } else {
-        answers = (rawData.answers as Record<string, any>) || {};
-        automatic = (rawData.automatic as Record<string, any>) || {};
-      }
-    }
-
-    if (appointment.medical_intake) {
-      if (Object.keys(answers).length === 0 && appointment.medical_intake.answersByFieldId) {
-        answers = { ...appointment.medical_intake.answersByFieldId };
-      }
-      if (Object.keys(automatic).length === 0 && appointment.medical_intake.automatic) {
-        automatic = { ...appointment.medical_intake.automatic };
       }
     }
 
@@ -186,8 +163,6 @@ export function useInspectorData(appointment: Appointment) {
 
     return {
       flow,
-      answers,
-      automatic,
       maternal,
       child,
       patient,

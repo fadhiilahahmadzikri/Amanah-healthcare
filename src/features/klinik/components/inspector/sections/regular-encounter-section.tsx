@@ -12,6 +12,8 @@ export interface RegularEncounterSectionProps {
   isEditing?: boolean;
   regularFormData?: EditableRegularData;
   onRegularFieldChange?: (field: keyof EditableRegularData, val: any) => void;
+  validationErrors?: Record<string, string>;
+  onClearError?: (field: string) => void;
 }
 
 export function RegularEncounterSection({
@@ -19,7 +21,9 @@ export function RegularEncounterSection({
   data,
   isEditing = false,
   regularFormData,
-  onRegularFieldChange
+  onRegularFieldChange,
+  validationErrors,
+  onClearError
 }: RegularEncounterSectionProps) {
   const scheduledDateFormatted = formatClinicDate(
     data.scheduledDate || appointment.date,
@@ -95,10 +99,18 @@ export function RegularEncounterSection({
         {isEditing && regularFormData && onRegularFieldChange ? (
           <PatientLineInput
             id='reg-complaint-input'
-            label='Keluhan Utama / Alasan Kunjungan'
+            label='Keluhan Utama / Alasan Kunjungan *'
             value={regularFormData.complaint}
-            onChange={(val) => onRegularFieldChange('complaint', val)}
+            onChange={(val) => {
+              onRegularFieldChange('complaint', val);
+              if (validationErrors?.complaint && val.trim().length > 0) {
+                onClearError?.('complaint');
+              }
+            }}
+            error={validationErrors?.complaint}
+            invalid={Boolean(validationErrors?.complaint)}
             placeholder='Keluhan utama saat konsultasi...'
+            required
           />
         ) : (
           <PatientLineInput
@@ -106,8 +118,6 @@ export function RegularEncounterSection({
             label='Keluhan Utama / Alasan Kunjungan'
             value={
               regularFormData?.complaint ||
-              data.answers.complaint ||
-              data.answers.keluhanUtama ||
               data.complaint ||
               appointment.complaint ||
               ''

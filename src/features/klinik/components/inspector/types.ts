@@ -37,8 +37,6 @@ export interface UnifiedInspectorPatient {
 
 export interface UnifiedInspectorData {
   flow?: string | null;
-  answers: Record<string, any>;
-  automatic: Record<string, any>;
   maternal?: MaternalIntakeResponse;
   child?: ChildImmunizationResponse;
   patient?: UnifiedInspectorPatient;
@@ -220,9 +218,7 @@ export interface EditableRegularData {
   weightKg?: string | number;
   bloodPressure?: string;
   notes?: string;
-  answers: Record<string, any>;
 
-  // Patient Identity & Demographic (Full Editability)
   medicalRecordNumber?: string;
   nik?: string;
   fullName?: string;
@@ -254,7 +250,6 @@ export interface InspectorTabProps {
   data: UnifiedInspectorData;
   isEditing?: boolean;
 
-  // Maternal form
   formData?: EditableMaternalData;
   onFieldChange?: (field: keyof EditableMaternalData, value: any) => void;
   onDiseaseChange?: (key: string, value: any, yearOrNotes?: string) => void;
@@ -273,16 +268,13 @@ export interface InspectorTabProps {
     index: number
   ) => void;
 
-  // Immunization form
   immunizationFormData?: EditableImmunizationData;
   onImmunizationFieldChange?: (field: keyof EditableImmunizationData, value: any) => void;
   onVaccineValueChange?: (fieldId: string, value: string) => void;
 
-  // Regular form
   regularFormData?: EditableRegularData;
   onRegularFieldChange?: (field: keyof EditableRegularData, value: any) => void;
 
-  // Validation
   validationErrors?: Record<string, string>;
   onClearError?: (field: string) => void;
 }

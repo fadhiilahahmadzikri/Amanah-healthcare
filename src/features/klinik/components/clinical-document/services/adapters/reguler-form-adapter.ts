@@ -6,32 +6,18 @@ import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { formatClinicDate } from '@/lib/date-format';
 import { getInactiveFieldIds, formatGender } from './clinical-adapter-helpers';
 
-/**
- * Adapter from upstream UnifiedInspectorData to 1:1 RegulerFormData (General Intake)
- */
 export function adaptToRegulerFormData(
   data: UnifiedInspectorData,
   appointment?: Appointment,
   schema?: FormJsonSchema | Record<string, any> | null
 ): RegulerFormData {
   const p = data.patient;
-  const answers = data.answers || {};
   const _inactive = getInactiveFieldIds(schema);
 
   const bDate = p?.birthDate;
   const age = bDate ? `${new Date().getFullYear() - new Date(bDate).getFullYear()} Tahun` : '';
 
   const complaint = appointment?.complaint || data.complaint || '';
-  const allergy = answers.allergyHistory || '';
-
-  const heightVal = answers.vitalHeightCm;
-  const vitalHeightCm = heightVal ? `${heightVal} cm` : '';
-
-  const weightVal = answers.vitalWeightKg;
-  const vitalWeightKg = weightVal ? `${weightVal} kg` : '';
-
-  const vitalBloodPressure = answers.vitalBloodPressure || '';
-  const additionalNotes = answers.additionalNotes || '';
 
   const resolvedAddress = (() => {
     const l1 = p?.line1;
@@ -85,11 +71,11 @@ export function adaptToRegulerFormData(
     },
     clinical: {
       chiefComplaint: complaint,
-      allergyHistory: allergy,
-      vitalHeightCm,
-      vitalWeightKg,
-      vitalBloodPressure,
-      additionalNotes
+      allergyHistory: '',
+      vitalHeightCm: '',
+      vitalWeightKg: '',
+      vitalBloodPressure: '',
+      additionalNotes: ''
     }
   };
 }

@@ -75,16 +75,29 @@ export function buildMaternityIntakePayload(
     }
   }
 
-  const husband: HusbandPayload = {
-    fullName: submittedValues.partnerName || null,
-    nik: submittedValues.partnerNik || null,
-    birthDate: submittedValues.partnerBirthDate || null,
-    age: parsePureInteger(submittedValues.partnerAge),
-    job: submittedValues.partnerJob || null,
-    education: submittedValues.partnerEducation || null,
-    bloodType: submittedValues.partnerBloodType || null,
-    phoneNumber: submittedValues.partnerPhone || null
-  };
+  const hasHusbandData = Boolean(
+    submittedValues.partnerName?.trim() ||
+    submittedValues.partnerNik?.trim() ||
+    submittedValues.partnerBirthDate ||
+    submittedValues.partnerAge ||
+    submittedValues.partnerJob?.trim() ||
+    submittedValues.partnerEducation?.trim() ||
+    submittedValues.partnerBloodType?.trim() ||
+    submittedValues.partnerPhone?.trim()
+  );
+
+  const husband: HusbandPayload | undefined = hasHusbandData
+    ? {
+        fullName: submittedValues.partnerName?.trim() || null,
+        nik: submittedValues.partnerNik?.trim() || null,
+        birthDate: submittedValues.partnerBirthDate || null,
+        age: parsePureInteger(submittedValues.partnerAge),
+        job: submittedValues.partnerJob?.trim() || null,
+        education: submittedValues.partnerEducation?.trim() || null,
+        bloodType: submittedValues.partnerBloodType?.trim() || null,
+        phoneNumber: submittedValues.partnerPhone?.trim() || null
+      }
+    : undefined;
 
   const toOptionCode = (val: string | undefined): string => {
     if (!val) return 'tidak';

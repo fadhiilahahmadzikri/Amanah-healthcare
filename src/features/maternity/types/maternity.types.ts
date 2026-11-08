@@ -54,7 +54,6 @@ export interface MaternalConditionResponse {
 
 export interface MaternityIntake {
   id: string;
-  intakeSubmissionId?: string | null;
   patientId: string;
   appointmentId?: string | null;
   motherNik: string;

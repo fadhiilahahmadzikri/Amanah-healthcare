@@ -52,7 +52,6 @@ export interface ImmunizationClinicalEntry {
 
 export interface ImmunizationIntakeRecord {
   id: string;
-  intakeSubmissionId?: string | null;
   patientId: string;
   appointmentId?: string | null;
   childName: string;
