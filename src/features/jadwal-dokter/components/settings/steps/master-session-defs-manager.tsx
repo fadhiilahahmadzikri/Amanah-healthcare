@@ -122,7 +122,8 @@ export function MasterSessionDefsManager({
 
     if (targetIndex !== -1 && currentShift) {
       if (field === 'defaultEndsAt') {
-        const endMin = parseTimeEndToMinutes(value);
+        const startMin = parseTimeToMinutes(currentShift.defaultStartsAt);
+        const endMin = parseTimeEndToMinutes(value, startMin);
         const nextActive = sorted.slice(targetIndex + 1).find((d) => d.isActive);
         if (nextActive) {
           const nextStartMin = parseTimeToMinutes(nextActive.defaultStartsAt);
@@ -145,7 +146,8 @@ export function MasterSessionDefsManager({
           .toReversed()
           .find((d) => d.isActive);
         if (prevActive) {
-          const prevEndMin = parseTimeEndToMinutes(prevActive.defaultEndsAt);
+          const prevStartMin = parseTimeToMinutes(prevActive.defaultStartsAt);
+          const prevEndMin = parseTimeEndToMinutes(prevActive.defaultEndsAt, prevStartMin);
           if (startMin < prevEndMin) {
             // Collision detected with previous shift! Open AlertDialog on-demand
             setPendingAdjustment({
@@ -414,6 +416,7 @@ export function MasterSessionDefsManager({
                         <ShiftTimeSelect
                           value={endsAt}
                           onChange={(val) => handleTimeChange(def.id, 'defaultEndsAt', `${val}:00`)}
+                          minTime={startsAt}
                           portalContainerRef={portalContainerRef}
                           className='h-8 text-xs'
                           ariaLabel={`Jam selesai shift ${displayLabel}`}

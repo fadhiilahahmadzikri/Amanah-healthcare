@@ -44,15 +44,27 @@ export function generateBaseTimeOptions(intervalMinutes = 30): string[] {
  */
 export function getEffectiveTimeOptions(
   currentTime?: string | null,
-  intervalMinutes = 30
+  intervalMinutes = 30,
+  minTime?: string | null
 ): string[] {
   const base = generateBaseTimeOptions(intervalMinutes);
-  if (!currentTime) return base;
-  const formatted = formatTimeToHHmm(currentTime, '');
-  if (!formatted || base.includes(formatted)) return base;
-  return [...base, formatted].toSorted(
-    (a, b) => parseTimeEndToMinutes(a) - parseTimeEndToMinutes(b)
-  );
+  let options = base;
+  if (currentTime) {
+    const formatted = formatTimeToHHmm(currentTime, '');
+    if (formatted && !options.includes(formatted)) {
+      options = [...options, formatted].toSorted(
+        (a, b) => parseTimeToMinutes(a) - parseTimeToMinutes(b)
+      );
+    }
+  }
+  if (minTime) {
+    const minStartMin = parseTimeToMinutes(minTime);
+    options = options.filter((time) => {
+      const timeEndMin = parseTimeEndToMinutes(time, minStartMin);
+      return timeEndMin > minStartMin;
+    });
+  }
+  return options;
 }
 
 /**
@@ -68,17 +80,13 @@ export function parseTimeToMinutes(timeStr?: string | null): number {
 
 /**
  * Mengonversi waktu selesai ke menit sejak 00:00,
- * memperlakukan '24:00' atau midnight pergantian hari sebagai 1440 menit.
+ * memperlakukan '24:00' atau midnight pergantian hari (00:00 saat startsAt > 0) sebagai 1440 menit.
  */
 export function parseTimeEndToMinutes(timeStr?: string | null, startMin = 0): number {
   if (!timeStr) return 0;
-  const trimmed = timeStr.trim();
-  if (trimmed.startsWith('24:')) {
-    return 1440;
-  }
-  const min = parseTimeToMinutes(trimmed);
-  if (min === 0 && startMin >= 12 * 60) {
-    return 1440;
+  let min = parseTimeToMinutes(timeStr);
+  if (min === 0 && startMin > 0) {
+    min = 1440;
   }
   return min;
 }
@@ -235,7 +243,8 @@ export function getAdjacentShiftGapMinutes(
   if (currentIndex === -1 || currentIndex === activeDefs.length - 1) return null;
 
   const nextDef = activeDefs[currentIndex + 1];
-  const currentEndMin = parseTimeEndToMinutes(currentDef.defaultEndsAt);
+  const currentStartMin = parseTimeToMinutes(currentDef.defaultStartsAt);
+  const currentEndMin = parseTimeEndToMinutes(currentDef.defaultEndsAt, currentStartMin);
   const nextStartMin = parseTimeToMinutes(nextDef.defaultStartsAt);
 
   if (nextStartMin > currentEndMin) {

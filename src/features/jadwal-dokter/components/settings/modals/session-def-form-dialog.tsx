@@ -12,7 +12,8 @@ import {
   parseTimeToMinutes,
   parseTimeEndToMinutes,
   minutesToTimeString,
-  formatTimeToHHmm
+  formatTimeToHHmm,
+  getEffectiveTimeOptions
 } from '../../../utils/shift-time-validator';
 import { ShiftTimeSelect } from '../atoms/shift-time-select';
 import { ShiftIconPickerPopover } from '../atoms/shift-icon-picker-popover';
@@ -64,7 +65,9 @@ export function SessionDefFormDialog({
 
       if (existingDefs && existingDefs.length > 0) {
         const sorted = [...existingDefs].toSorted(
-          (a, b) => parseTimeEndToMinutes(b.defaultEndsAt) - parseTimeEndToMinutes(a.defaultEndsAt)
+          (a, b) =>
+            parseTimeEndToMinutes(b.defaultEndsAt, parseTimeToMinutes(b.defaultStartsAt)) -
+            parseTimeEndToMinutes(a.defaultEndsAt, parseTimeToMinutes(a.defaultStartsAt))
         );
         const latestEndStr = formatTimeToHHmm(sorted[0].defaultEndsAt, '08:00');
         const startMin = parseTimeToMinutes(latestEndStr);
@@ -95,11 +98,13 @@ export function SessionDefFormDialog({
 
   const handleStartsAtChange = (newStart: string) => {
     setStartsAt(newStart);
-    const startMin = parseTimeToMinutes(newStart);
-    const endMin = parseTimeEndToMinutes(endsAt, startMin);
-    if (endMin <= startMin) {
-      const nextEnd = Math.min(1440, startMin + 120);
-      setEndsAt(minutesToTimeString(nextEnd > startMin ? nextEnd : Math.min(1440, startMin + 30)));
+    const newStartMin = parseTimeToMinutes(newStart);
+    const currentEndMin = parseTimeEndToMinutes(endsAt, newStartMin);
+    if (currentEndMin <= newStartMin) {
+      const validOptions = getEffectiveTimeOptions(null, 30, newStart);
+      if (validOptions.length > 0) {
+        setEndsAt(validOptions[0]);
+      }
     }
   };
 
@@ -119,19 +124,22 @@ export function SessionDefFormDialog({
       toast.error('Kode prefix harus 1-4 karakter alfanumerik (contoh: PAGI, TST, S1)');
       return;
     }
-    if (startsAt >= endsAt) {
-      toast.error('Jam selesai harus lebih besar dari jam mulai');
+    const startMin = parseTimeToMinutes(startsAt);
+    const endMin = parseTimeEndToMinutes(endsAt, startMin);
+    if (endMin <= startMin) {
+      toast.error('Jam selesai harus lebih lambat dari jam mulai (maksimal 24:00)');
       return;
     }
 
     try {
       setIsSubmitting(true);
+      const canonicalEndsAt = endMin === 1440 && endsAt === '00:00' ? '24:00' : endsAt;
       await onSubmit({
         label: cleanLabel,
         codePrefix: cleanPrefix,
         icon: icon ? icon.trim() : undefined,
         defaultStartsAt: `${startsAt}:00`,
-        defaultEndsAt: `${endsAt}:00`
+        defaultEndsAt: `${canonicalEndsAt}:00`
       });
       onClose();
     } catch (err: unknown) {
@@ -230,6 +238,7 @@ export function SessionDefFormDialog({
               <ShiftTimeSelect
                 value={endsAt}
                 onChange={setEndsAt}
+                minTime={startsAt}
                 portalContainerRef={portalContainerRef}
                 ariaLabel='Pilih atau ketik jam selesai shift'
               />

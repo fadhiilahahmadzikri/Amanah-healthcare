@@ -9,7 +9,9 @@ import { cn } from '@/lib/utils';
 import {
   formatTimeToHHmm,
   getEffectiveTimeOptions,
-  isValidTimeString
+  isValidTimeString,
+  parseTimeToMinutes,
+  parseTimeEndToMinutes
 } from '../../../utils/shift-time-validator';
 
 export interface ShiftTimeSelectProps {
@@ -19,6 +21,7 @@ export interface ShiftTimeSelectProps {
   className?: string;
   portalContainerRef?: React.RefObject<HTMLElement | null>;
   ariaLabel?: string;
+  minTime?: string;
 }
 
 export function ShiftTimeSelect({
@@ -27,7 +30,8 @@ export function ShiftTimeSelect({
   disabled = false,
   className,
   portalContainerRef,
-  ariaLabel
+  ariaLabel,
+  minTime
 }: ShiftTimeSelectProps) {
   const formattedValue = formatTimeToHHmm(value, '00:00');
   const [open, setOpen] = useState(false);
@@ -39,13 +43,21 @@ export function ShiftTimeSelect({
     setErrorMsg(null);
   }, [formattedValue, open]);
 
-  const options = getEffectiveTimeOptions(formattedValue);
+  const options = getEffectiveTimeOptions(formattedValue, 30, minTime);
 
   const handleApplyManual = () => {
     const trimmed = manualInput.trim();
     if (!isValidTimeString(trimmed)) {
       setErrorMsg('Format harus HH:mm (00:00 - 24:00)');
       return;
+    }
+    if (minTime) {
+      const minStartMin = parseTimeToMinutes(minTime);
+      const inputEndMin = parseTimeEndToMinutes(trimmed, minStartMin);
+      if (inputEndMin <= minStartMin) {
+        setErrorMsg(`Jam selesai harus setelah ${minTime} (maksimal 24:00)`);
+        return;
+      }
     }
     onChange(trimmed);
     setOpen(false);
