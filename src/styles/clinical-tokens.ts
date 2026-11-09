@@ -281,9 +281,29 @@ export const getStatusConfig = (status: string): StatusConfig => {
         label: 'Dibatalkan'
       };
     case APPOINTMENT_STATUS.LATE:
+    case 'LATE':
+    case 'TERLAMBAT':
       return {
-        ...clinicalTokens.colors.status.cancelled,
+        pillBg: 'bg-orange-500/10 dark:bg-orange-500/20',
+        pillBorder: 'border-orange-500/20 dark:border-orange-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-orange-600 dark:text-orange-400 font-bold',
+        dotGradient: 'bg-orange-500',
+        hex: '#F97316',
         label: 'Terlambat'
+      };
+    case APPOINTMENT_STATUS.NO_SHOW:
+    case 'NO_SHOW':
+    case 'TIDAK_HADIR':
+    case 'ABSENT':
+      return {
+        pillBg: 'bg-rose-500/10 dark:bg-rose-500/20',
+        pillBorder: 'border-rose-500/20 dark:border-rose-500/30',
+        pillShadow: 'shadow-none',
+        textGradient: 'text-rose-600 dark:text-rose-400 font-bold',
+        dotGradient: 'bg-rose-500',
+        hex: '#F43F5E',
+        label: 'Tidak Hadir'
       };
     case 'TERKONEKSI':
       return {

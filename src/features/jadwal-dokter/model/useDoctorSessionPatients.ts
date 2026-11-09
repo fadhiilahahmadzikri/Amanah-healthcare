@@ -10,6 +10,7 @@ export type FilterStatusType =
   | 'all'
   | 'waiting'
   | 'in_service'
+  | 'late'
   | 'no_show'
   | 'completed'
   | 'cancelled';
@@ -30,7 +31,16 @@ export const PATIENT_STATUS_OPTIONS: readonly {
     label: 'Di Sesi',
     dotColor: 'bg-sky-500'
   },
-  { value: 'no_show', label: 'Terlambat', dotColor: 'bg-orange-500' },
+  {
+    value: APPOINTMENT_STATUS.LATE.toLowerCase() as FilterStatusType,
+    label: 'Terlambat',
+    dotColor: 'bg-orange-500'
+  },
+  {
+    value: APPOINTMENT_STATUS.NO_SHOW.toLowerCase() as FilterStatusType,
+    label: 'Tidak Hadir',
+    dotColor: 'bg-rose-500'
+  },
   {
     value: APPOINTMENT_STATUS.COMPLETED.toLowerCase() as FilterStatusType,
     label: 'Selesai',

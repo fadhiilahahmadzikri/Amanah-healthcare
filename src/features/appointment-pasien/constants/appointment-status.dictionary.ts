@@ -44,6 +44,11 @@ export const APPOINTMENT_STATUS_MAP: Record<AppointmentStatus, StatusPresentatio
     label: APPOINTMENT_STATUS_REGISTRY.LATE.label,
     description: APPOINTMENT_STATUS_REGISTRY.LATE.description,
     ...APPOINTMENT_STATUS_REGISTRY.LATE.styling
+  },
+  NO_SHOW: {
+    label: APPOINTMENT_STATUS_REGISTRY.NO_SHOW.label,
+    description: APPOINTMENT_STATUS_REGISTRY.NO_SHOW.description,
+    ...APPOINTMENT_STATUS_REGISTRY.NO_SHOW.styling
   }
 };
 

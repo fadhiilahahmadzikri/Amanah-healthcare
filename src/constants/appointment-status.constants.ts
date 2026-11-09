@@ -4,13 +4,21 @@ export const APPOINTMENT_STATUS = {
   IN_SERVICE: 'IN_SERVICE',
   COMPLETED: 'COMPLETED',
   CANCELLED: 'CANCELLED',
-  LATE: 'LATE'
+  LATE: 'LATE',
+  NO_SHOW: 'NO_SHOW'
 } as const;
 
 export type CanonicalAppointmentStatus =
   (typeof APPOINTMENT_STATUS)[keyof typeof APPOINTMENT_STATUS];
 
-export type DomainAppointmentStatus = 'BOOKED' | 'WAITING' | 'IN_SERVICE' | 'COMPLETED' | 'CANCELLED' | 'LATE';
+export type DomainAppointmentStatus =
+  | 'BOOKED'
+  | 'WAITING'
+  | 'IN_SERVICE'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'LATE'
+  | 'NO_SHOW';
 
 export interface StatusStyling {
   readonly pillBg: string;
@@ -180,20 +188,40 @@ export const APPOINTMENT_STATUS_REGISTRY: Record<
     code: APPOINTMENT_STATUS.LATE,
     domainStatus: 'LATE',
     label: 'Terlambat',
-    description: 'Pasien belum hadir melebihi batas toleransi waktu',
-    uiStatus: 'Tidak Hadir',
+    description: 'Pasien belum hadir melebihi batas waktu kedatangan',
+    uiStatus: 'Terlambat',
     badge: 'Terlambat',
+    queueDisplayStatus: 'WAITING',
+    isTerminal: false,
+    isInService: false,
+    isWaiting: true,
+    isBooked: false,
+    styling: {
+      pillBg: 'bg-orange-500/10 dark:bg-orange-500/20',
+      pillBorder: 'border-orange-500/20 dark:border-orange-500/30',
+      textGradient: 'text-orange-600 dark:text-orange-400 font-bold',
+      dotGradient: 'bg-orange-500',
+      hex: '#F97316'
+    }
+  }),
+  [APPOINTMENT_STATUS.NO_SHOW]: new AppointmentStatusDescriptor({
+    code: APPOINTMENT_STATUS.NO_SHOW,
+    domainStatus: 'NO_SHOW',
+    label: 'Tidak Hadir',
+    description: 'Pasien tidak hadir setelah batas waktu toleransi atau sesi berakhir',
+    uiStatus: 'Tidak Hadir',
+    badge: 'Tidak Hadir',
     queueDisplayStatus: 'NO_SHOW',
     isTerminal: true,
     isInService: false,
     isWaiting: false,
     isBooked: false,
     styling: {
-      pillBg: 'bg-slate-100 dark:bg-slate-800/60',
-      pillBorder: 'border-slate-300 dark:border-slate-700',
-      textGradient: 'text-slate-700 dark:text-slate-200',
-      dotGradient: 'bg-slate-400 dark:bg-slate-500',
-      hex: '#64748B'
+      pillBg: 'bg-rose-500/10 dark:bg-rose-500/20',
+      pillBorder: 'border-rose-500/20 dark:border-rose-500/30',
+      textGradient: 'text-rose-600 dark:text-rose-400 font-bold',
+      dotGradient: 'bg-rose-500',
+      hex: '#F43F5E'
     }
   })
 };
@@ -218,8 +246,9 @@ const STATUS_ALIASES: Readonly<Record<string, CanonicalAppointmentStatus>> = {
   TIDAK_ADA_DOKTER: APPOINTMENT_STATUS.CANCELLED,
   LATE: APPOINTMENT_STATUS.LATE,
   TERLAMBAT: APPOINTMENT_STATUS.LATE,
-  NO_SHOW: APPOINTMENT_STATUS.LATE,
-  TIDAK_HADIR: APPOINTMENT_STATUS.LATE
+  TELAT: APPOINTMENT_STATUS.LATE,
+  NO_SHOW: APPOINTMENT_STATUS.NO_SHOW,
+  TIDAK_HADIR: APPOINTMENT_STATUS.NO_SHOW
 };
 
 export function normalizeAppointmentStatus(raw?: string | null): CanonicalAppointmentStatus {

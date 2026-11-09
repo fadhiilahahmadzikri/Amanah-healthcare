@@ -116,6 +116,26 @@ export function StatusBadge({
         c2: 'var(--destructive)',
         c3: 'var(--destructive)'
       },
+      LATE: {
+        c1: 'rgba(249, 115, 22, 0.2)',
+        c2: 'rgba(249, 115, 22, 0.6)',
+        c3: '#F97316'
+      },
+      TERLAMBAT: {
+        c1: 'rgba(249, 115, 22, 0.2)',
+        c2: 'rgba(249, 115, 22, 0.6)',
+        c3: '#F97316'
+      },
+      NO_SHOW: {
+        c1: 'rgba(244, 63, 94, 0.2)',
+        c2: 'rgba(244, 63, 94, 0.6)',
+        c3: '#F43F5E'
+      },
+      TIDAK_HADIR: {
+        c1: 'rgba(244, 63, 94, 0.2)',
+        c2: 'rgba(244, 63, 94, 0.6)',
+        c3: '#F43F5E'
+      },
       REPLACEMENT: {
         c1: 'rgba(168, 85, 247, 0.2)',
         c2: 'rgba(168, 85, 247, 0.6)',
@@ -270,6 +290,26 @@ export function StatusBadge({
         c1: 'var(--destructive-border)',
         c2: 'var(--destructive)',
         c3: 'var(--destructive)'
+      },
+      LATE: {
+        c1: 'rgba(249, 115, 22, 0.2)',
+        c2: 'rgba(249, 115, 22, 0.6)',
+        c3: '#F97316'
+      },
+      TERLAMBAT: {
+        c1: 'rgba(249, 115, 22, 0.2)',
+        c2: 'rgba(249, 115, 22, 0.6)',
+        c3: '#F97316'
+      },
+      NO_SHOW: {
+        c1: 'rgba(244, 63, 94, 0.2)',
+        c2: 'rgba(244, 63, 94, 0.6)',
+        c3: '#F43F5E'
+      },
+      TIDAK_HADIR: {
+        c1: 'rgba(244, 63, 94, 0.2)',
+        c2: 'rgba(244, 63, 94, 0.6)',
+        c3: '#F43F5E'
       },
       REPLACEMENT: {
         c1: 'rgba(168, 85, 247, 0.2)',

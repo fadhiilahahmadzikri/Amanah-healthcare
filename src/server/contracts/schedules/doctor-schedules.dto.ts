@@ -497,7 +497,7 @@ export const completeAppointmentResponseSchema = z
 export type CompleteAppointmentResponse = z.infer<typeof completeAppointmentResponseSchema>;
 
 export const updateAppointmentStatusPayloadSchema = z.object({
-  status: z.enum(['waiting', 'in_service', 'completed', 'no_show', 'cancelled']),
+  status: z.enum(['waiting', 'in_service', 'completed', 'late', 'no_show', 'cancelled']),
   notes: z.string().optional()
 });
 export type UpdateAppointmentStatusPayload = z.infer<typeof updateAppointmentStatusPayloadSchema>;
