@@ -46,7 +46,11 @@ export interface UnifiedInspectorData {
   scheduledDate?: string;
   scheduledStartTime?: string;
   complaint?: string;
+  poliklinikId?: string;
   poliklinikName?: string;
+  categoryId?: string;
+  categoryName?: string;
+  serviceId?: string;
   serviceName?: string;
 }
 
@@ -214,6 +218,12 @@ export interface EditableImmunizationData {
 
 export interface EditableRegularData {
   complaint: string;
+  unitId?: string;
+  unitName?: string;
+  categoryId?: string;
+  categoryName?: string;
+  serviceId?: string;
+  serviceName?: string;
   allergyHistory?: string;
   heightCm?: string | number;
   weightKg?: string | number;

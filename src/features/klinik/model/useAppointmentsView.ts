@@ -123,6 +123,8 @@ export function useAppointmentsView(): UseAppointmentsViewResult {
       doctor_id: apt.staffId,
       staff_id: apt.staffId,
       poliklinik_id: apt.poliklinikId,
+      category_id: apt.categoryId,
+      category_name: apt.categoryName,
       layanan_id: apt.layananId,
       allowedActions:
         apt.allowedActions ||

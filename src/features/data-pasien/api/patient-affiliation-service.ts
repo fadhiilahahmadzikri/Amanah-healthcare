@@ -293,6 +293,8 @@ export interface BackendAppointmentItem {
   patientId: string;
   poliklinikId: string;
   poliklinikName?: string;
+  categoryId?: string;
+  categoryName?: string;
   layananId: string;
   layananName?: string;
   staffId?: string;

@@ -183,9 +183,13 @@ export function useInspectorData(appointment: Appointment) {
       bookingCode: appointment.booking_code,
       scheduledDate: appointment.date,
       scheduledStartTime: appointment.scheduled_start_time || '',
-      complaint: appointment.complaint || '',
-      poliklinikName: appointment.poliklinik_name || '',
-      serviceName: appointment.service || ''
+      complaint: appointment.complaint,
+      poliklinikId: appointment.poliklinik_id,
+      poliklinikName: appointment.poliklinik_name,
+      categoryId: appointment.category_id,
+      categoryName: appointment.category_name,
+      serviceId: appointment.layanan_id,
+      serviceName: appointment.service
     };
   }, [serverIntake, appointment, matchingAffiliation, patientRecord]);
 

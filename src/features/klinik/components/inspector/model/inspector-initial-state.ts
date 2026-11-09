@@ -177,7 +177,13 @@ export function buildInitialRegularData(
 ): EditableRegularData {
   const p = parsedData.patient;
   return {
-    complaint: appointment.complaint || parsedData.complaint || '',
+    complaint: parsedData.complaint ?? appointment.complaint ?? '',
+    unitId: parsedData.poliklinikId ?? '',
+    unitName: parsedData.poliklinikName ?? '',
+    categoryId: parsedData.categoryId ?? '',
+    categoryName: parsedData.categoryName ?? '',
+    serviceId: parsedData.serviceId ?? '',
+    serviceName: parsedData.serviceName ?? '',
     medicalRecordNumber: p?.medicalRecordNumber || '',
     nik: p?.nik || '',
     fullName: p?.fullName || appointment.patient_name || '',

@@ -307,6 +307,32 @@ export async function changeAppointmentRoom(
   }
 }
 
+export async function changeAppointmentService(
+  appointmentId: string,
+  serviceId: string
+): Promise<{ success: boolean; message: string; appointment?: AdminAppointment }> {
+  try {
+    const response = await clientFetch<{ message: string; data?: any }>(
+      `/api/v1/admin/appointments/${appointmentId}/service`,
+      {
+        method: 'PATCH',
+        body: JSON.stringify({ serviceId })
+      }
+    );
+
+    return {
+      success: true,
+      message: response.message || 'Layanan medis berhasil dialihkan',
+      appointment: response.data ? mapToAdminAppointment(response.data) : undefined
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : String(error)
+    };
+  }
+}
+
 export async function callPatient(appointmentId: string | number, notes?: string) {
   return await clientFetch(`/api/v1/appointments/${appointmentId}/call`, {
     method: 'POST',

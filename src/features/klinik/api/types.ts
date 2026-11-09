@@ -52,6 +52,8 @@ export interface Appointment {
   doctor_id?: string;
   staff_id?: string;
   poliklinik_id?: string;
+  category_id?: string;
+  category_name?: string;
   layanan_id?: string;
   medical_flow?: MedicalAppointmentFlow;
   medical_intake?: MedicalIntakeRecord;

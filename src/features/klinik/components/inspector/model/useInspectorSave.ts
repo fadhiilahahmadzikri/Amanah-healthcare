@@ -10,6 +10,7 @@ import type {
   EditableRegularData
 } from '../types';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
+import { changeAppointmentService } from '@/features/appointment-pasien/api/service';
 import { saveMaternalAction } from './save-maternal-action';
 import { saveImmunizationAction } from './save-immunization-action';
 import { saveRegularAction } from './save-regular-action';
@@ -82,6 +83,36 @@ export function useInspectorSave({
       }
       try {
         setIsSaving(true);
+
+        if (
+          regularFormData.serviceId &&
+          regularFormData.serviceId !== appointment.layanan_id
+        ) {
+          const res = await changeAppointmentService(
+            appointment.id,
+            regularFormData.serviceId
+          );
+          if (!res.success) {
+            throw new Error(res.message || 'Gagal mengalihkan layanan janji temu');
+          }
+          appointment.layanan_id = regularFormData.serviceId;
+          if (regularFormData.serviceName) {
+            appointment.service = regularFormData.serviceName;
+          }
+          if (regularFormData.unitId) {
+            appointment.poliklinik_id = regularFormData.unitId;
+          }
+          if (regularFormData.unitName) {
+            appointment.poliklinik_name = regularFormData.unitName;
+          }
+          if (regularFormData.categoryId) {
+            appointment.category_id = regularFormData.categoryId;
+          }
+          if (regularFormData.categoryName) {
+            appointment.category_name = regularFormData.categoryName;
+          }
+        }
+
         if (isPregnancy) {
           await saveMaternalAction({
             formData,
