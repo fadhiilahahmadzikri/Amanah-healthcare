@@ -2,9 +2,8 @@ import { describe, expect, it } from 'bun:test';
 import { buildInitialRegularData } from '../../src/features/klinik/components/inspector/model/inspector-initial-state';
 import type { Appointment } from '../../src/features/klinik/api/types';
 import type { UnifiedInspectorData } from '../../src/features/klinik/components/inspector/types';
-import type { ClinicServiceCascaderSelection } from '../../src/features/clinic-essentials';
 
-describe('Clinic Service Cascader & Inspector Model Unit Tests', () => {
+describe('Regular Encounter Model & Security Permissions Unit Tests', () => {
   it('correctly populates facility relation fields directly from canonical parsedData without fallbacks', () => {
     const mockParsedData: UnifiedInspectorData = {
       bookingCode: 'BOOK-20261110-001',
@@ -77,24 +76,6 @@ describe('Clinic Service Cascader & Inspector Model Unit Tests', () => {
     expect(regularData.categoryName).toBe('');
     expect(regularData.serviceId).toBe('');
     expect(regularData.serviceName).toBe('');
-  });
-
-  it('validates ClinicServiceCascaderSelection structure contract', () => {
-    const selection: ClinicServiceCascaderSelection = {
-      unitId: 'u-1',
-      unitName: 'Poli Umum',
-      categoryId: 'c-1',
-      categoryName: 'Pemeriksaan Dasar',
-      serviceId: 's-1',
-      serviceName: 'Konsultasi Dokter Umum'
-    };
-
-    expect(selection.unitId).toBe('u-1');
-    expect(selection.unitName).toBe('Poli Umum');
-    expect(selection.categoryId).toBe('c-1');
-    expect(selection.categoryName).toBe('Pemeriksaan Dasar');
-    expect(selection.serviceId).toBe('s-1');
-    expect(selection.serviceName).toBe('Konsultasi Dokter Umum');
   });
 
   it('verifies that external patient role is strictly blocked from assignment permissions', () => {

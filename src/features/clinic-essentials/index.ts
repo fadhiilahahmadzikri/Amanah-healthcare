@@ -5,4 +5,3 @@ export * from './components/clinic-essentials-view';
 export * from './components/clinic-essential-form-modal';
 export * from './model/useClinicEssentialFormModal';
 export * from './utils/essential-icon-resolver';
-export * from './components/molecules/clinic-service-cascader';
