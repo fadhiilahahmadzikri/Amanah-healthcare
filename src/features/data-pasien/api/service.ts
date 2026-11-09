@@ -49,6 +49,7 @@ export interface BackendPatientRecord {
   isMaster?: boolean;
   hasOwnAccount?: boolean;
   affiliateCount?: number;
+  relationshipTypeId?: string | null;
   relationshipType?: string | null;
   relationLabel?: string | null;
   masterPatientId?: string | null;
@@ -115,6 +116,8 @@ export function mapBackendPatient(r: BackendPatientRecord): Patient {
     is_master: r.isMaster ?? true,
     has_own_account: r.hasOwnAccount ?? false,
     affiliate_count: Number(r.affiliateCount ?? mappedAffiliates.length),
+    relationship_type_id: r.relationshipTypeId ?? null,
+    relationshipTypeId: r.relationshipTypeId ?? null,
     relationship_type: r.relationshipType ?? null,
     relation_label: r.relationLabel ?? null,
     master_patient_id: r.masterPatientId ?? null,

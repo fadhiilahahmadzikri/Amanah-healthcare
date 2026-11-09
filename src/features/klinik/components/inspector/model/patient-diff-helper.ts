@@ -137,7 +137,8 @@ export function getRegularPatientDiff(
   check('district_code', formData.districtCode, initialRegular.districtCode);
   check('village_name', formData.villageName, initialRegular.villageName);
   check('village_code', formData.villageCode, initialRegular.villageCode);
-  check('relationshipType' as any, formData.relationshipType, initialRegular.relationshipType);
+  check('relationshipTypeId', formData.relationshipTypeId, initialRegular.relationshipTypeId);
+  check('relationshipType', formData.relationshipType, initialRegular.relationshipType);
   check('emergencyContactName', formData.emergencyContactName, initialRegular.emergencyContactName);
   check('emergencyContactPhone', formData.emergencyContactPhone, initialRegular.emergencyContactPhone);
   check(

@@ -76,6 +76,11 @@ export function useInspectorData(appointment: Appointment) {
             districtCode: rawPatient.districtCode || patientRecord?.district_code || undefined,
             villageName: rawPatient.villageName || patientRecord?.village_name || undefined,
             villageCode: rawPatient.villageCode || patientRecord?.village_code || undefined,
+            relationshipTypeId:
+              rawPatient.relationshipTypeId ||
+              patientRecord?.relationship_type_id ||
+              patientRecord?.relationshipTypeId ||
+              undefined,
             relationshipType:
               rawPatient.relationshipType || patientRecord?.relationship_type || undefined,
             relationLabel:
@@ -118,6 +123,10 @@ export function useInspectorData(appointment: Appointment) {
             districtCode: patientRecord.district_code || undefined,
             villageName: patientRecord.village_name || undefined,
             villageCode: patientRecord.village_code || undefined,
+            relationshipTypeId:
+              patientRecord.relationship_type_id ||
+              patientRecord.relationshipTypeId ||
+              undefined,
             relationshipType: patientRecord.relationship_type || undefined,
             relationLabel: patientRecord.relation_label || undefined,
             emergencyContactName:

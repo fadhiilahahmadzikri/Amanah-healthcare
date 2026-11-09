@@ -46,6 +46,8 @@ export interface Patient {
   is_master?: boolean;
   has_own_account?: boolean;
   affiliate_count?: number;
+  relationship_type_id?: string | null;
+  relationshipTypeId?: string | null;
   relationship_type?: string | null;
   relation_label?: string | null;
   master_patient_id?: string | null;

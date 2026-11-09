@@ -28,6 +28,7 @@ export interface UnifiedInspectorPatient {
   regencyCode?: string;
   provinceName?: string;
   provinceCode?: string;
+  relationshipTypeId?: string;
   relationshipType?: string;
   relationLabel?: string;
   emergencyContactName?: string;
@@ -240,6 +241,7 @@ export interface EditableRegularData {
   districtCode?: string;
   villageName?: string;
   villageCode?: string;
+  relationshipTypeId?: string;
   relationshipType?: string;
   relationLabel?: string;
   emergencyContactName?: string;

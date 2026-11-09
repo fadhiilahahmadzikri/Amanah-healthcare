@@ -109,8 +109,19 @@ export function RegularIdentitySection({
           <PatientRelationshipSelector
             id='reg-relationship-select'
             label='Hubungan Keluarga'
-            value={regularFormData.relationshipType || patient?.relationshipType || ''}
-            onChange={(val) => onRegularFieldChange('relationshipType', val)}
+            value={
+              regularFormData.relationshipTypeId ||
+              patient?.relationshipTypeId ||
+              regularFormData.relationshipType ||
+              patient?.relationshipType ||
+              ''
+            }
+            onChange={(val, opt) => {
+              if (opt?.id) {
+                onRegularFieldChange('relationshipTypeId', opt.id);
+              }
+              onRegularFieldChange('relationshipType', val);
+            }}
             options={references?.relationships}
           />
 

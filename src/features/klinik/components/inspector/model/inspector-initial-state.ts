@@ -199,6 +199,7 @@ export function buildInitialRegularData(
     districtCode: p?.districtCode || '',
     villageName: p?.villageName || '',
     villageCode: p?.villageCode || '',
+    relationshipTypeId: p?.relationshipTypeId || '',
     relationshipType: p?.relationshipType || '',
     relationLabel: p?.relationLabel || '',
     emergencyContactName: p?.emergencyContactName || '',
