@@ -39,6 +39,7 @@ export function RegularEncounterSection({
   const queryClient = useQueryClient();
   const { audience, can } = useAuthContext();
   const canManageAssignments = audience === 'internal' || can('appointments:manage');
+  const canSelectService = isEditing && Boolean(onRegularFieldChange);
 
   const [isDoctorModalOpen, setIsDoctorModalOpen] = React.useState(false);
   const [isRoomModalOpen, setIsRoomModalOpen] = React.useState(false);
@@ -52,7 +53,7 @@ export function RegularEncounterSection({
   const { data: units = [], isLoading: isLoadingUnits } = useQuery({
     queryKey: ['clinic-essentials-active-units'],
     queryFn: () => clinicEssentialsApi.getUnits({ status: 'active' }),
-    enabled: isEditing && canManageAssignments,
+    enabled: canSelectService,
     staleTime: 5 * 60_000
   });
 
@@ -60,7 +61,7 @@ export function RegularEncounterSection({
   const { data: categories = [], isLoading: isLoadingCategories } = useQuery({
     queryKey: ['clinic-essentials-categories-by-unit', activeUnitId],
     queryFn: () => clinicEssentialsApi.getCategories(activeUnitId, { status: 'active' }),
-    enabled: isEditing && canManageAssignments && Boolean(activeUnitId),
+    enabled: canSelectService && Boolean(activeUnitId),
     staleTime: 5 * 60_000
   });
 
@@ -69,7 +70,7 @@ export function RegularEncounterSection({
     queryKey: ['clinic-essentials-services-by-category', activeCategoryId, activeUnitId],
     queryFn: () =>
       clinicEssentialsApi.getServices(activeCategoryId, activeUnitId, { status: 'active' }),
-    enabled: isEditing && canManageAssignments && Boolean(activeCategoryId),
+    enabled: canSelectService && Boolean(activeCategoryId),
     staleTime: 5 * 60_000
   });
 
@@ -140,7 +141,7 @@ export function RegularEncounterSection({
         />
 
         {/* Poliklinik Tujuan */}
-        {isEditing && canManageAssignments && onRegularFieldChange ? (
+        {canSelectService ? (
           <PatientSearchableSelect
             id='enc-unit-select'
             label='Poliklinik Tujuan'
@@ -162,7 +163,7 @@ export function RegularEncounterSection({
         )}
 
         {/* Kelompok Layanan */}
-        {isEditing && canManageAssignments && onRegularFieldChange ? (
+        {canSelectService ? (
           <PatientSearchableSelect
             id='enc-category-select'
             label='Kelompok Layanan'
@@ -192,7 +193,7 @@ export function RegularEncounterSection({
         )}
 
         {/* Layanan Medis */}
-        {isEditing && canManageAssignments && onRegularFieldChange ? (
+        {canSelectService ? (
           <PatientSearchableSelect
             id='enc-service-select'
             label='Layanan Medis'

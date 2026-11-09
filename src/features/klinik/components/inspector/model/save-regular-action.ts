@@ -34,10 +34,6 @@ export async function saveRegularAction({
   setValidationErrors({});
 
   const targetId = (serverIntake as any)?.data?.id ?? (serverIntake as any)?.id;
-  if (!targetId) {
-    toast.error('Gagal menyimpan: ID formulir intake tidak ditemukan.');
-    throw new Error('ID formulir intake tidak ditemukan');
-  }
 
   const newNik = regularFormData.nik?.trim();
   const originalNik = parsedData.patient?.nik?.trim();
@@ -63,6 +59,8 @@ export async function saveRegularAction({
     }
   }
 
-  await kiaIntakeService.updateGenericIntake(targetId, complaintPayload);
+  if (targetId && (serverIntake as any)?.type === 'regular') {
+    await kiaIntakeService.updateGenericIntake(targetId, complaintPayload);
+  }
   appointment.complaint = regularFormData.complaint.trim() || '';
 }

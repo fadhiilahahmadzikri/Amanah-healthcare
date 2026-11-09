@@ -307,18 +307,52 @@ export async function changeAppointmentRoom(
   }
 }
 
+export interface ChangeAppointmentServiceOptions {
+  isExternal?: boolean;
+  complaint?: string;
+}
+
 export async function changeAppointmentService(
   appointmentId: string,
-  serviceId: string
+  serviceId: string,
+  optionsOrIsExternal?: ChangeAppointmentServiceOptions | boolean
 ): Promise<{ success: boolean; message: string; appointment?: AdminAppointment }> {
   try {
+    const isExternal =
+      typeof optionsOrIsExternal === 'boolean'
+        ? optionsOrIsExternal
+        : Boolean(optionsOrIsExternal?.isExternal);
+    const complaint =
+      typeof optionsOrIsExternal === 'object' ? optionsOrIsExternal?.complaint : undefined;
+
+    const endpoint = isExternal
+      ? `/api/v1/appointments/${appointmentId}/service`
+      : `/api/v1/admin/appointments/${appointmentId}/service`;
+
+    const requestPayload: { serviceId: string; complaint?: string } = { serviceId };
+    if (complaint !== undefined) {
+      requestPayload.complaint = complaint;
+    }
+
     const response = await clientFetch<{ message: string; data?: any }>(
-      `/api/v1/admin/appointments/${appointmentId}/service`,
+      endpoint,
       {
         method: 'PATCH',
-        body: JSON.stringify({ serviceId })
+        body: JSON.stringify(requestPayload)
       }
-    );
+    ).catch(async (err) => {
+      // If admin endpoint returns 403 Forbidden for a patient session, use patient endpoint
+      if (!isExternal) {
+        return clientFetch<{ message: string; data?: any }>(
+          `/api/v1/appointments/${appointmentId}/service`,
+          {
+            method: 'PATCH',
+            body: JSON.stringify(requestPayload)
+          }
+        );
+      }
+      throw err;
+    });
 
     return {
       success: true,

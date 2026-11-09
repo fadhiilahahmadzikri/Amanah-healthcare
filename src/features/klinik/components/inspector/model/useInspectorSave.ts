@@ -84,40 +84,59 @@ export function useInspectorSave({
       try {
         setIsSaving(true);
 
-        if (
+        const serviceChanged = Boolean(
           regularFormData.serviceId &&
           regularFormData.serviceId !== appointment.layanan_id
-        ) {
-          const res = await changeAppointmentService(
-            appointment.id,
-            regularFormData.serviceId
-          );
-          if (!res.success) {
-            throw new Error(res.message || 'Gagal mengalihkan layanan janji temu');
+        );
+        const complaintChanged =
+          regularFormData.complaint !== undefined &&
+          regularFormData.complaint.trim() !== (appointment.complaint || '').trim();
+
+        if (serviceChanged || complaintChanged) {
+          const targetServiceId = regularFormData.serviceId || appointment.layanan_id;
+          if (targetServiceId) {
+            const res = await changeAppointmentService(
+              appointment.id,
+              targetServiceId,
+              { complaint: regularFormData.complaint.trim() }
+            );
+            if (!res.success) {
+              throw new Error(res.message || 'Gagal memperbarui layanan janji temu');
+            }
+            appointment.complaint = regularFormData.complaint.trim();
+            if (serviceChanged) {
+              appointment.layanan_id = regularFormData.serviceId;
+              if (regularFormData.serviceName) {
+                appointment.service = regularFormData.serviceName;
+              }
+              if (regularFormData.unitId) {
+                appointment.poliklinik_id = regularFormData.unitId;
+              }
+              if (regularFormData.unitName) {
+                appointment.poliklinik_name = regularFormData.unitName;
+              }
+              if (regularFormData.categoryId) {
+                appointment.category_id = regularFormData.categoryId;
+              }
+              if (regularFormData.categoryName) {
+                appointment.category_name = regularFormData.categoryName;
+              }
+              if (res.appointment?.queueNumber) {
+                appointment.queue_number = res.appointment.queueNumber;
+              }
+              if (res.appointment?.medicalFlow !== undefined) {
+                appointment.medical_flow = res.appointment.medicalFlow || undefined;
+                parsedData.flow = res.appointment.medicalFlow || null;
+              }
+            }
           }
-          appointment.layanan_id = regularFormData.serviceId;
-          if (regularFormData.serviceName) {
-            appointment.service = regularFormData.serviceName;
-          }
-          if (regularFormData.unitId) {
-            appointment.poliklinik_id = regularFormData.unitId;
-          }
-          if (regularFormData.unitName) {
-            appointment.poliklinik_name = regularFormData.unitName;
-          }
-          if (regularFormData.categoryId) {
-            appointment.category_id = regularFormData.categoryId;
-          }
-          if (regularFormData.categoryName) {
-            appointment.category_name = regularFormData.categoryName;
-          }
-          if (res.appointment?.queueNumber) {
-            appointment.queue_number = res.appointment.queueNumber;
-          }
-          if (res.appointment?.medicalFlow !== undefined) {
-            appointment.medical_flow = res.appointment.medicalFlow || undefined;
-            parsedData.flow = res.appointment.medicalFlow || null;
-          }
+        }
+
+        if (!isPregnancy) {
+          parsedData.maternal = undefined;
+        }
+        if (!isImmunization) {
+          parsedData.child = undefined;
         }
 
         if (isPregnancy) {
