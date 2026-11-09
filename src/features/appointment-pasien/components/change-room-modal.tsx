@@ -23,7 +23,7 @@ export interface ChangeRoomModalProps {
   appointmentDate?: string;
   appointmentTime?: string;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (room?: any) => void;
   onViewAppointment?: (appointmentId: string) => void;
   onViewDoctorSchedule?: (doctorId: string, targetSessionTime?: string) => void;
 }
@@ -118,7 +118,7 @@ export function ChangeRoomModal({
               }
             : undefined
       });
-      onSuccess?.();
+      onSuccess?.(selectedRoom || undefined);
       onClose();
     },
     onError: (err: Error) => {

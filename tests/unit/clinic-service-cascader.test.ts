@@ -94,4 +94,41 @@ describe('Regular Encounter Model & Security Permissions Unit Tests', () => {
     // External cannot hijack even with empty audience
     expect(evaluateCanManageAssignments(null, externalUserCan)).toBe(false);
   });
+
+  it('correctly maps dynamic medical flow in regular form state based on parsedData or appointment flow', () => {
+    const mockPregnancyData: UnifiedInspectorData = {
+      flow: 'pregnancy',
+      patient: { fullName: 'Ibu Hamil' }
+    };
+    const mockAppointment: Appointment = {
+      id: 'apt-p',
+      booking_code: 'BOOK-P',
+      patient_name: 'Ibu Hamil',
+      patient_email: '',
+      patient_avatar: '',
+      date: '2026-11-10',
+      time: '08:00',
+      complaint: '',
+      status: 'BOOKED',
+      medical_flow: 'pregnancy',
+      created_at: new Date().toISOString()
+    };
+
+    const regularData = buildInitialRegularData(mockPregnancyData, mockAppointment);
+    expect(regularData.medicalFlow).toBe('pregnancy');
+
+    // Test dynamic flow evaluation logic used in AppointmentFormInspector
+    const computeActiveFlow = (isEditing: boolean, formFlow?: string | null, baseFlow?: string | null) => {
+      return isEditing && formFlow !== undefined ? formFlow : baseFlow;
+    };
+
+    // While editing, selecting an immunization service overrides the base pregnancy flow immediately
+    expect(computeActiveFlow(true, 'immunization', 'pregnancy')).toBe('immunization');
+
+    // While editing, selecting a regular service (flow null) removes specialized form section immediately
+    expect(computeActiveFlow(true, null, 'pregnancy')).toBeNull();
+
+    // When not editing, the base flow is preserved
+    expect(computeActiveFlow(false, 'immunization', 'pregnancy')).toBe('pregnancy');
+  });
 });

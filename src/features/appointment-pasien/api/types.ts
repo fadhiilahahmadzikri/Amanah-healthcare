@@ -41,12 +41,15 @@ export interface AdminAppointment {
   doctorId?: string | null;
   poliklinikId?: string | null;
   poliklinikName: string;
+  categoryId?: string | null;
+  categoryName?: string | null;
   roomName?: string | null;
   roomLocation?: string | null;
   layananId?: string | null;
   layananName?: string | null;
   visitType: string;
   complaint: string;
+  medicalFlow?: 'pregnancy' | 'immunization' | null;
   cancellationReason?: string | null;
   status: AppointmentStatus;
   allowedActions: AppointmentAction[];
@@ -258,7 +261,10 @@ export interface BackendAppointmentRecord {
   staffId?: string;
   doctorId?: string;
   practitioner?: { staffProfile?: { fullName?: string }; medicalSpecialty?: { name?: string } };
+  poliklinikId?: string;
   poliklinikName?: string;
+  categoryId?: string;
+  categoryName?: string;
   roomName?: string;
   roomLocation?: string;
   clinicRoom?: { name?: string; location?: string; clinicUnit?: { name?: string } };

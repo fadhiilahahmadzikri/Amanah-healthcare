@@ -43,7 +43,7 @@ export interface ChangeDoctorModalProps {
   appointmentDate?: string;
   appointmentTime?: string;
   onClose: () => void;
-  onSuccess?: () => void;
+  onSuccess?: (doctor?: DoctorCandidateItem) => void;
   onViewAppointment?: (appointmentId: string) => void;
 }
 
@@ -196,7 +196,7 @@ export function ChangeDoctorModal({
               }
             : undefined
       });
-      onSuccess?.();
+      onSuccess?.(selectedDoctor || undefined);
       onClose();
     },
     onError: (err: Error) => {

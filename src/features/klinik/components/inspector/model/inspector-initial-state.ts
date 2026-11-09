@@ -184,6 +184,7 @@ export function buildInitialRegularData(
     categoryName: parsedData.categoryName ?? '',
     serviceId: parsedData.serviceId ?? '',
     serviceName: parsedData.serviceName ?? '',
+    medicalFlow: (parsedData.flow as 'pregnancy' | 'immunization') ?? (appointment.medical_flow as 'pregnancy' | 'immunization') ?? null,
     medicalRecordNumber: p?.medicalRecordNumber || '',
     nik: p?.nik || '',
     fullName: p?.fullName || appointment.patient_name || '',

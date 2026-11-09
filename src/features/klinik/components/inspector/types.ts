@@ -224,6 +224,7 @@ export interface EditableRegularData {
   categoryName?: string;
   serviceId?: string;
   serviceName?: string;
+  medicalFlow?: 'pregnancy' | 'immunization' | null;
   allergyHistory?: string;
   heightCm?: string | number;
   weightKg?: string | number;

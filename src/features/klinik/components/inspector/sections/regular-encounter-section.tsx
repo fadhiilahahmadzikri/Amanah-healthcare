@@ -95,10 +95,16 @@ export function RegularEncounterSection({
     if (!onRegularFieldChange) return;
     onRegularFieldChange('serviceId', item.id);
     onRegularFieldChange('serviceName', item.name);
+    const selectedService = services.find((s) => s.id === item.id);
+    onRegularFieldChange(
+      'medicalFlow',
+      (selectedService?.intakeFormCode as 'pregnancy' | 'immunization') || null
+    );
   };
 
   const handleRefreshAssignments = () => {
     void queryClient.invalidateQueries({ queryKey: ['appointments'] });
+    void queryClient.invalidateQueries({ queryKey: klinikKeys.all });
     void queryClient.invalidateQueries({
       queryKey: klinikKeys.appointmentIntake(appointment.id)
     });
@@ -116,7 +122,7 @@ export function RegularEncounterSection({
         <PatientLineInput
           id='enc-booking-code'
           label='Kode Booking'
-          value={data.bookingCode || '-'}
+          value={data.bookingCode || ''}
           readOnly
           isMonospace
           className='text-primary font-semibold'
@@ -150,7 +156,7 @@ export function RegularEncounterSection({
           <PatientLineInput
             id='enc-unit-read'
             label='Poliklinik Tujuan'
-            value={data.poliklinikName || '-'}
+            value={data.poliklinikName || ''}
             readOnly
           />
         )}
@@ -180,7 +186,7 @@ export function RegularEncounterSection({
           <PatientLineInput
             id='enc-category-read'
             label='Kelompok Layanan'
-            value={data.categoryName || '-'}
+            value={data.categoryName || ''}
             readOnly
           />
         )}
@@ -210,7 +216,7 @@ export function RegularEncounterSection({
           <PatientLineInput
             id='enc-service-read'
             label='Layanan Medis'
-            value={data.serviceName || '-'}
+            value={data.serviceName || ''}
             readOnly
           />
         )}
@@ -219,7 +225,7 @@ export function RegularEncounterSection({
         <PatientLineInput
           id='enc-doctor'
           label='Dokter Jaga / Pemeriksa'
-          value={appointment.doctor_name || '-'}
+          value={appointment.doctor_name || ''}
           readOnly
           trailingIcon={
             canManageAssignments ? (
@@ -239,7 +245,7 @@ export function RegularEncounterSection({
         <PatientLineInput
           id='enc-room'
           label='Ruang & Lokasi'
-          value={appointment.room_name || appointment.room_location || '-'}
+          value={appointment.room_name || appointment.room_location || ''}
           readOnly
           trailingIcon={
             canManageAssignments ? (
@@ -277,7 +283,7 @@ export function RegularEncounterSection({
             <PatientLineInput
               id='read-complaint'
               label='Keluhan Utama / Alasan Kunjungan'
-              value={data.complaint || '-'}
+              value={data.complaint || ''}
               readOnly
             />
           )}
@@ -290,15 +296,19 @@ export function RegularEncounterSection({
           <ChangeDoctorModal
             isOpen={isDoctorModalOpen}
             appointmentId={appointment.id}
-            patientName={appointment.patient_name || '-'}
+            patientName={appointment.patient_name || ''}
             patientId={appointment.patient_id}
-            queueNumber={appointment.queue_number || '-'}
-            currentDoctorName={appointment.doctor_name || '-'}
+            queueNumber={appointment.queue_number || ''}
+            currentDoctorName={appointment.doctor_name || ''}
             appointmentDate={appointment.date}
-            appointmentTime={appointment.scheduled_start_time || '-'}
+            appointmentTime={appointment.scheduled_start_time || ''}
             onClose={() => setIsDoctorModalOpen(false)}
-            onSuccess={() => {
+            onSuccess={(doc?: any) => {
               setIsDoctorModalOpen(false);
+              if (doc?.name) {
+                appointment.doctor_name = doc.name;
+                appointment.doctor_id = doc.id;
+              }
               handleRefreshAssignments();
             }}
           />
@@ -306,15 +316,21 @@ export function RegularEncounterSection({
           <ChangeRoomModal
             isOpen={isRoomModalOpen}
             appointmentId={appointment.id}
-            patientName={appointment.patient_name || '-'}
+            patientName={appointment.patient_name || ''}
             patientId={appointment.patient_id}
-            queueNumber={appointment.queue_number || '-'}
-            currentRoomName={appointment.room_name || appointment.room_location || '-'}
+            queueNumber={appointment.queue_number || ''}
+            currentRoomName={appointment.room_name || appointment.room_location || ''}
             appointmentDate={appointment.date}
-            appointmentTime={appointment.scheduled_start_time || '-'}
+            appointmentTime={appointment.scheduled_start_time || ''}
             onClose={() => setIsRoomModalOpen(false)}
-            onSuccess={() => {
+            onSuccess={(room?: any) => {
               setIsRoomModalOpen(false);
+              if (room?.name) {
+                appointment.room_name = room.name;
+                if (room.location) {
+                  appointment.room_location = room.location;
+                }
+              }
               handleRefreshAssignments();
             }}
           />

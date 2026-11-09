@@ -111,6 +111,13 @@ export function useInspectorSave({
           if (regularFormData.categoryName) {
             appointment.category_name = regularFormData.categoryName;
           }
+          if (res.appointment?.queueNumber) {
+            appointment.queue_number = res.appointment.queueNumber;
+          }
+          if (res.appointment?.medicalFlow !== undefined) {
+            appointment.medical_flow = res.appointment.medicalFlow || undefined;
+            parsedData.flow = res.appointment.medicalFlow || null;
+          }
         }
 
         if (isPregnancy) {

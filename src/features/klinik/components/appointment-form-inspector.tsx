@@ -42,6 +42,7 @@ import {
   RegulerFormTemplate,
   type ClinicalFormFlow
 } from './clinical-document';
+import { FLOW_NAMES } from '../constants/medical-appointment-types';
 
 export interface AppointmentFormInspectorProps {
   appointment: Appointment;
@@ -64,8 +65,13 @@ export function AppointmentFormInspector({
 
   const references = usePatientFormReferences();
 
-  const { serverIntake, isLoading, parsedData, isPregnancy, isImmunization } =
-    useInspectorData(appointment);
+  const {
+    serverIntake,
+    isLoading,
+    parsedData,
+    isPregnancy: baseIsPregnancy,
+    isImmunization: baseIsImmunization
+  } = useInspectorData(appointment);
 
   const {
     isEditing,
@@ -83,6 +89,14 @@ export function AppointmentFormInspector({
     handleCancelEdit,
     isDirty
   } = useInspectorEditState({ parsedData, appointment });
+
+  const activeFlow =
+    isEditing && regularFormData?.medicalFlow !== undefined
+      ? regularFormData.medicalFlow
+      : parsedData.flow;
+  const isPregnancy = activeFlow === FLOW_NAMES.PREGNANCY;
+  const isImmunization =
+    activeFlow === FLOW_NAMES.IMMUNIZATION || (!isEditing && baseIsImmunization);
 
   const { isSaving, handleSaveEdit } = useInspectorSave({
     appointment,
