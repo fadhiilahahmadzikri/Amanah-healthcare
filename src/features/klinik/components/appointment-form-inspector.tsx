@@ -16,7 +16,11 @@ import { InspectorHeader } from './inspector/organisms/inspector-header';
 import { InspectorFooter } from './inspector/organisms/inspector-footer';
 import { MaternityAdminInspector } from '@/features/maternity';
 import { ImmunizationAdminInspector } from '@/features/immunization';
-import { InspectorGenericView } from './inspector/inspector-generic-view';
+import {
+  RegularIdentitySection,
+  RegularEncounterSection
+} from './inspector/sections';
+import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import {
   validateMaternalForm,
   validateRegularForm,
@@ -57,6 +61,8 @@ export function AppointmentFormInspector({
     ((appointment.status as string) === 'COMPLETED' ||
       (appointment.status as string) === 'completed' ||
       (appointment.status as string) === 'SELESAI');
+
+  const references = usePatientFormReferences();
 
   const { serverIntake, isLoading, parsedData, isPregnancy, isImmunization } =
     useInspectorData(appointment);
@@ -189,13 +195,14 @@ export function AppointmentFormInspector({
   const isSaveDisabled = React.useMemo(() => {
     if (!isEditing) return false;
     if (Object.keys(validationErrors).length > 0) return true;
+    if (!validateRegularForm(regularFormData).isValid) return true;
     if (isPregnancy) {
       return !validateMaternalForm(formData).isValid;
     }
     if (isImmunization) {
       return !validateImmunizationForm(immunizationFormData).isValid;
     }
-    return !validateRegularForm(regularFormData).isValid;
+    return false;
   }, [
     isEditing,
     validationErrors,
@@ -228,8 +235,28 @@ export function AppointmentFormInspector({
             <span className='text-xs font-medium'>Memuat formulir medis...</span>
           </div>
         ) : (
-          <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
-            {isPregnancy ? (
+          <div className='flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-5 font-sans'>
+            <RegularIdentitySection
+              data={parsedData}
+              isEditing={isEditing}
+              regularFormData={regularFormData}
+              onRegularFieldChange={handleRegularFieldChange}
+              validationErrors={validationErrors}
+              onClearError={handleClearError}
+              references={references}
+            />
+
+            <RegularEncounterSection
+              appointment={appointment}
+              data={parsedData}
+              isEditing={isEditing}
+              regularFormData={regularFormData}
+              onRegularFieldChange={handleRegularFieldChange}
+              validationErrors={validationErrors}
+              onClearError={handleClearError}
+            />
+
+            {isPregnancy && (
               <MaternityAdminInspector
                 intake={activeMaternityIntake}
                 isEditing={isEditing}
@@ -249,7 +276,9 @@ export function AppointmentFormInspector({
                 validationErrors={validationErrors}
                 onClearError={handleClearError}
               />
-            ) : isImmunization ? (
+            )}
+
+            {isImmunization && (
               <ImmunizationAdminInspector
                 intake={activeChildIntake as any}
                 entries={(activeChildIntake?.entries || []) as any}
@@ -260,16 +289,6 @@ export function AppointmentFormInspector({
                 onEntriesChange={(updatedEntries) =>
                   handleImmunizationFieldChange('entries' as any, updatedEntries)
                 }
-                validationErrors={validationErrors}
-                onClearError={handleClearError}
-              />
-            ) : (
-              <InspectorGenericView
-                appointment={appointment}
-                data={parsedData}
-                isEditing={isEditing}
-                regularFormData={regularFormData}
-                onRegularFieldChange={handleRegularFieldChange}
                 validationErrors={validationErrors}
                 onClearError={handleClearError}
               />

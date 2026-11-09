@@ -3,20 +3,22 @@ import { toast } from 'sonner';
 import { kiaIntakeService } from '../../../api/kia-intake-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
 import type { Appointment } from '../../../api/types';
-import type { UnifiedInspectorData, EditableMaternalData } from '../types';
+import type { UnifiedInspectorData, EditableMaternalData, EditableRegularData } from '../types';
 import {
   validateMaternalForm,
+  validateRegularForm,
   getMaternityTabWithErrors,
   MATERNITY_TAB_LABELS
 } from '../../../validations/inspector-form.schema';
-import { buildInitialMaternalData } from './inspector-initial-state';
-import { getMaternalPatientDiff } from './patient-diff-helper';
+import { buildInitialMaternalData, buildInitialRegularData } from './inspector-initial-state';
+import { getMaternalPatientDiff, getRegularPatientDiff } from './patient-diff-helper';
 import { CANONICAL_MATERNAL_CONDITIONS } from '@/features/maternity/constants/maternity.constants';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 import { toNullableString } from './inspector-save-utils';
 
 export interface SaveMaternalParams {
   formData: EditableMaternalData;
+  regularFormData?: EditableRegularData;
   parsedData: UnifiedInspectorData;
   appointment: Appointment;
   setValidationErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -24,10 +26,20 @@ export interface SaveMaternalParams {
 
 export async function saveMaternalAction({
   formData,
+  regularFormData,
   parsedData,
   appointment,
   setValidationErrors
 }: SaveMaternalParams): Promise<void> {
+  if (regularFormData) {
+    const regValidation = validateRegularForm(regularFormData);
+    if (!regValidation.isValid) {
+      setValidationErrors(regValidation.errors);
+      toast.error('Periksa kembali isian identitas pasien yang ditandai merah.');
+      throw new Error('Validasi identitas pasien gagal');
+    }
+  }
+
   const validation = validateMaternalForm(formData);
   if (!validation.isValid) {
     setValidationErrors(validation.errors);
@@ -175,13 +187,21 @@ export async function saveMaternalAction({
 
   const patientId = parsedData.patient?.id || appointment.patient_id;
   if (patientId) {
-    const initialMaternal = buildInitialMaternalData(parsedData);
-    const diffPayload = getMaternalPatientDiff(formData, initialMaternal);
-    if (Object.keys(diffPayload).length > 0) {
-      await updatePatient(patientId, diffPayload);
+    if (regularFormData) {
+      const initialRegular = buildInitialRegularData(parsedData, appointment);
+      const diffPayload = getRegularPatientDiff(regularFormData, initialRegular);
+      if (Object.keys(diffPayload).length > 0) {
+        await updatePatient(patientId, diffPayload);
+      }
+    } else {
+      const initialMaternal = buildInitialMaternalData(parsedData);
+      const diffPayload = getMaternalPatientDiff(formData, initialMaternal);
+      if (Object.keys(diffPayload).length > 0) {
+        await updatePatient(patientId, diffPayload);
+      }
     }
   }
 
   await kiaIntakeService.updateMaternityIntake(targetId, payload);
-  appointment.complaint = formData.currentComplaints.trim() || '';
+  appointment.complaint = regularFormData?.complaint?.trim() || formData.currentComplaints.trim() || '';
 }

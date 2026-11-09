@@ -66,13 +66,14 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
   );
 
   const isDirty = React.useMemo(() => {
+    const isRegularDirty = JSON.stringify(regularFormData) !== JSON.stringify(initialRegular);
     if (parsedData.flow === 'pregnancy') {
-      return JSON.stringify(formData) !== JSON.stringify(initialMaternal);
+      return isRegularDirty || JSON.stringify(formData) !== JSON.stringify(initialMaternal);
     }
     if (parsedData.flow === 'immunization') {
-      return JSON.stringify(immunizationFormData) !== JSON.stringify(initialImmunization);
+      return isRegularDirty || JSON.stringify(immunizationFormData) !== JSON.stringify(initialImmunization);
     }
-    return JSON.stringify(regularFormData) !== JSON.stringify(initialRegular);
+    return isRegularDirty;
   }, [
     parsedData.flow,
     formData,

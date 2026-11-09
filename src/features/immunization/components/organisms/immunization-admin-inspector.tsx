@@ -6,8 +6,7 @@ import type {
   ImmunizationIntakeRecord
 } from '../../types/immunization.types';
 import {
-  ImmunizationChildIdentitySection,
-  ImmunizationParentAddressSection,
+  ImmunizationParentInfoSection,
   ImmunizationHistorySection,
   ImmunizationMilestoneTrajectorySection
 } from './immunization-inspector';
@@ -59,15 +58,7 @@ export function ImmunizationAdminInspector({
 
   return (
     <div className='flex flex-col gap-5 font-sans'>
-      <ImmunizationChildIdentitySection
-        intake={intake}
-        isEditing={isEditing}
-        onIntakeFieldChange={onIntakeFieldChange}
-        validationErrors={validationErrors}
-        onClearError={onClearError}
-      />
-
-      <ImmunizationParentAddressSection
+      <ImmunizationParentInfoSection
         intake={intake}
         isEditing={isEditing}
         onIntakeFieldChange={onIntakeFieldChange}

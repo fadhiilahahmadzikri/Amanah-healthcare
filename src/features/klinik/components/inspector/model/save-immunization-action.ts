@@ -3,15 +3,16 @@ import { toast } from 'sonner';
 import { kiaIntakeService } from '../../../api/kia-intake-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
 import type { Appointment } from '../../../api/types';
-import type { UnifiedInspectorData, EditableImmunizationData } from '../types';
-import { validateImmunizationForm } from '../../../validations/inspector-form.schema';
-import { buildInitialImmunizationData } from './inspector-initial-state';
-import { getImmunizationPatientDiff } from './patient-diff-helper';
+import type { UnifiedInspectorData, EditableImmunizationData, EditableRegularData } from '../types';
+import { validateImmunizationForm, validateRegularForm } from '../../../validations/inspector-form.schema';
+import { buildInitialImmunizationData, buildInitialRegularData } from './inspector-initial-state';
+import { getImmunizationPatientDiff, getRegularPatientDiff } from './patient-diff-helper';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
 import { toNullableString } from './inspector-save-utils';
 
 export interface SaveImmunizationParams {
   immunizationFormData: EditableImmunizationData;
+  regularFormData?: EditableRegularData;
   parsedData: UnifiedInspectorData;
   appointment: Appointment;
   setValidationErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -19,10 +20,20 @@ export interface SaveImmunizationParams {
 
 export async function saveImmunizationAction({
   immunizationFormData,
+  regularFormData,
   parsedData,
   appointment,
   setValidationErrors
 }: SaveImmunizationParams): Promise<void> {
+  if (regularFormData) {
+    const regValidation = validateRegularForm(regularFormData);
+    if (!regValidation.isValid) {
+      setValidationErrors(regValidation.errors);
+      toast.error('Periksa kembali isian identitas pasien yang ditandai merah.');
+      throw new Error('Validasi identitas pasien gagal');
+    }
+  }
+
   const validation = validateImmunizationForm(immunizationFormData);
   if (!validation.isValid) {
     setValidationErrors(validation.errors);
@@ -96,12 +107,23 @@ export async function saveImmunizationAction({
 
   const patientId = parsedData.patient?.id || appointment.patient_id;
   if (patientId) {
-    const initialChild = buildInitialImmunizationData(parsedData);
-    const diffPayload = getImmunizationPatientDiff(immunizationFormData, initialChild);
-    if (Object.keys(diffPayload).length > 0) {
-      await updatePatient(patientId, diffPayload);
+    if (regularFormData) {
+      const initialRegular = buildInitialRegularData(parsedData, appointment);
+      const diffPayload = getRegularPatientDiff(regularFormData, initialRegular);
+      if (Object.keys(diffPayload).length > 0) {
+        await updatePatient(patientId, diffPayload);
+      }
+    } else {
+      const initialChild = buildInitialImmunizationData(parsedData);
+      const diffPayload = getImmunizationPatientDiff(immunizationFormData, initialChild);
+      if (Object.keys(diffPayload).length > 0) {
+        await updatePatient(patientId, diffPayload);
+      }
     }
   }
 
   await kiaIntakeService.updateImmunizationIntake(targetId, payload);
+  if (regularFormData?.complaint) {
+    appointment.complaint = regularFormData.complaint.trim() || '';
+  }
 }

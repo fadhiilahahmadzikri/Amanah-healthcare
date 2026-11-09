@@ -85,6 +85,7 @@ export function useInspectorSave({
         if (isPregnancy) {
           await saveMaternalAction({
             formData,
+            regularFormData,
             parsedData,
             appointment,
             setValidationErrors
@@ -93,6 +94,7 @@ export function useInspectorSave({
         } else if (isImmunization) {
           await saveImmunizationAction({
             immunizationFormData,
+            regularFormData,
             parsedData,
             appointment,
             setValidationErrors

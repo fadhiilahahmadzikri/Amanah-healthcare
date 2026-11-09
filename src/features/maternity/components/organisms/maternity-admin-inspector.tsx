@@ -12,7 +12,7 @@ import type {
 } from '../../types/maternity.types';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import {
-  MaternityIdentitySection,
+  MaternalHusbandSection,
   MaternityObstetricSection,
   MaternityClinicalKbSection,
   MaternityScreeningSection
@@ -110,16 +110,13 @@ export function MaternityAdminInspector({
 
   return (
     <div className='flex flex-col gap-5 font-sans'>
-      <MaternityIdentitySection
+      <MaternalHusbandSection
         intake={intake}
         isEditing={isEditing}
         onIntakeFieldChange={onIntakeFieldChange}
         onHusbandFieldChange={onHusbandFieldChange}
-        regionValues={regionValues}
-        onRegionChange={onRegionChange}
         validationErrors={validationErrors}
         onClearError={onClearError}
-        religionOptions={religionOptions}
         educationOptions={educationOptions}
         occupationOptions={occupationOptions}
         bloodTypeOptions={bloodTypeOptions}
