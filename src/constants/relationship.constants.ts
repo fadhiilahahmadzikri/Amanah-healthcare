@@ -28,14 +28,13 @@ export const PROTECTED_RELATIONSHIP_CODES = new Set<string>([
 
 /**
  * Utility to dynamically format relationship labels.
- * Upstream relation labels from the database take precedence; falls back to formatted code.
+ * Upstream relation labels from the database take precedence.
  * Zero hardcoded maps or artificial constants.
  */
-export function getRelationshipLabel(type?: string | null, customLabel?: string | null): string {
-  if (customLabel && customLabel.trim().length > 0) {
-    return customLabel.trim();
+export function getRelationshipLabel(type?: string | null, label?: string | null): string {
+  if (label && label.trim().length > 0) {
+    return label.trim();
   }
   if (!type || type.trim().length === 0) return '-';
-  // Gracefully format dynamic relational code (e.g. "anak_kandung" -> "Anak Kandung")
   return type.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }

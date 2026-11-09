@@ -29,7 +29,7 @@ export interface UsePatientMobileCardsResult {
   closeActionDrawer: () => void;
 
   // Reusable formatters (SSOT & Agnostic)
-  getCleanRelationLabel: (type?: string | null, customLabel?: string | null) => string;
+  getCleanRelationLabel: (type?: string | null, label?: string | null) => string;
   getRelationStatusKey: (type?: string | null) => string;
   getDemographicSlots: (patient: Patient) => DemographicSlotItem[];
   formatVisitDate: (date?: string | null) => string;
@@ -64,8 +64,8 @@ export function usePatientMobileCards(): UsePatientMobileCardsResult {
   }, []);
 
   const getCleanRelationLabel = useCallback(
-    (type?: string | null, customLabel?: string | null): string => {
-      return getRelationshipLabel(type, customLabel);
+    (type?: string | null, label?: string | null): string => {
+      return getRelationshipLabel(type, label);
     },
     []
   );

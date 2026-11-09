@@ -372,6 +372,14 @@ export async function updatePatient(id: string, data: Partial<PatientMutationPay
   if (data.status !== undefined) {
     payload.status = data.status === 'inactive' ? 'inactive' : 'active';
   }
+  if (data.relationshipType !== undefined) {
+    payload.relationshipType = data.relationshipType?.trim() || null;
+  } else if (data.relationship_type !== undefined) {
+    payload.relationshipType = data.relationship_type?.trim() || null;
+  }
+  if (data.relationshipTypeId !== undefined) {
+    payload.relationshipTypeId = data.relationshipTypeId;
+  }
 
   if (Object.keys(payload).length === 0) {
     return {

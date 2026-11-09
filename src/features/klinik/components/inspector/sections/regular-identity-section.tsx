@@ -5,6 +5,7 @@ import { Icons } from '@/components/icons';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { getGenderLabel, type Gender } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
+import { PatientRelationshipSelector } from '@/features/data-pasien/components/registration/molecules/patient-relationship-selector';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
@@ -39,25 +40,10 @@ export function RegularIdentitySection({
 }: RegularIdentitySectionProps) {
   const [showNik, setShowNik] = React.useState(false);
   const { patient } = data;
-  const relationship = getRelationshipLabel(patient?.relationshipType);
-
-  const isChild = React.useMemo(() => {
-    if (
-      patient?.relationshipType === 'child' ||
-      String(relationship).toLowerCase().includes('anak')
-    ) {
-      return true;
-    }
-    const bDate = patient?.birthDate;
-    if (bDate) {
-      const birthYear = new Date(bDate).getFullYear();
-      const currentYear = new Date().getFullYear();
-      if (!Number.isNaN(birthYear) && currentYear - birthYear < 17) {
-        return true;
-      }
-    }
-    return false;
-  }, [patient, relationship]);
+  const relationship =
+    patient?.relationLabel ||
+    references?.relationships?.find((r: any) => r.value === patient?.relationshipType)?.label ||
+    getRelationshipLabel(patient?.relationshipType);
 
   const mrn = patient?.medicalRecordNumber || '';
   const nik = patient?.nik || '';
@@ -118,6 +104,14 @@ export function RegularIdentitySection({
             onChange={(val) => onRegularFieldChange('medicalRecordNumber', val)}
             placeholder='RM-XXXX-XXXX'
             isMonospace
+          />
+
+          <PatientRelationshipSelector
+            id='reg-relationship-select'
+            label='Hubungan Keluarga'
+            value={regularFormData.relationshipType || patient?.relationshipType || ''}
+            onChange={(val) => onRegularFieldChange('relationshipType', val)}
+            options={references?.relationships}
           />
 
           <PatientLineInput

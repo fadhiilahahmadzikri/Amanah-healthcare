@@ -166,8 +166,7 @@ export function getAppointmentColumns(
               {estimated}
             </span>
             <span className='text-[11px] text-muted-foreground font-sans mt-0.5'>
-              {scheduled !== '-' && scheduled !== estimated ? `Jadwal: ${scheduled}` : ''}
-              {sessionLabel ? ` (${sessionLabel})` : ''}
+              {sessionLabel || '-'}
             </span>
           </div>
         );

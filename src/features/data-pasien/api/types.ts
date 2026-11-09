@@ -128,4 +128,6 @@ export type PatientMutationPayload = Partial<Patient> & {
   emergencyContactName?: string | null;
   emergencyContactPhone?: string | null;
   emergencyContactRelationship?: string | null;
+  relationshipType?: string | null;
+  relationshipTypeId?: string | null;
 };

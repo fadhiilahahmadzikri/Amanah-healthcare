@@ -240,6 +240,8 @@ export interface EditableRegularData {
   districtCode?: string;
   villageName?: string;
   villageCode?: string;
+  relationshipType?: string;
+  relationLabel?: string;
   emergencyContactName?: string;
   emergencyContactPhone?: string;
   emergencyContactRelationship?: string;

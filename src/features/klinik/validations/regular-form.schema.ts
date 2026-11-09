@@ -51,6 +51,7 @@ export const regularFormZodSchema = z
         { message: 'Nomor telepon kontak darurat tidak valid' }
       ),
     emergencyContactRelationship: z.string().trim().nullable().optional(),
+    relationshipType: z.string().trim().nullable().optional(),
     birthPlace: z.string().trim().nullable().optional(),
     motherName: z.string().trim().nullable().optional(),
     occupation: z.string().trim().nullable().optional(),
@@ -107,6 +108,9 @@ export function validateRegularForm(
       : null,
     emergencyContactRelationship: data.emergencyContactRelationship
       ? data.emergencyContactRelationship.trim()
+      : null,
+    relationshipType: data.relationshipType
+      ? data.relationshipType.trim()
       : null,
     birthPlace: data.birthPlace ? data.birthPlace.trim() : null,
     motherName: data.motherName ? data.motherName.trim() : null,
