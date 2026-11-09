@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
 import { TETANUS_STATUS_OPTIONS } from '../../constants/maternity.constants';
 import type {
@@ -18,12 +17,7 @@ import {
   MaternityClinicalKbSection,
   MaternityScreeningSection
 } from './maternity-inspector';
-import {
-  getMaternityTabWithErrors,
-  getMaternityTabErrorCounts,
-  MATERNITY_FIELD_DOM_ID_MAP,
-  type MaternityInspectorTab
-} from '@/features/klinik/validations/maternity-form.schema';
+import { MATERNITY_FIELD_DOM_ID_MAP } from '@/features/klinik/validations/maternity-form.schema';
 
 export interface MaternityAdminInspectorProps {
   intake?: MaternityIntake | null;
@@ -52,16 +46,8 @@ export function MaternityAdminInspector({
   validationErrors = {},
   onClearError
 }: MaternityAdminInspectorProps) {
-  const [activeTab, setActiveTab] = React.useState<MaternityInspectorTab>('identitas');
-
-  // Automatically switch tab to the first error section and scroll to the first invalid field
   React.useEffect(() => {
     if (validationErrors && Object.keys(validationErrors).length > 0) {
-      const errorTab = getMaternityTabWithErrors(validationErrors);
-      if (errorTab) {
-        setActiveTab(errorTab);
-      }
-
       const firstErrorKey = Object.keys(validationErrors)[0];
       let domId = MATERNITY_FIELD_DOM_ID_MAP[firstErrorKey];
       if (!domId) {
@@ -122,109 +108,51 @@ export function MaternityAdminInspector({
     [references.religions]
   );
 
-  const tabErrorCounts = React.useMemo(
-    () => getMaternityTabErrorCounts(validationErrors),
-    [validationErrors]
-  );
-
   return (
-    <Tabs
-      value={activeTab}
-      onValueChange={(val) => setActiveTab(val as MaternityInspectorTab)}
-      className='w-full flex flex-col h-full min-h-0'
-    >
-      <TabsList className='grid grid-cols-4 w-full h-9 mb-3 shrink-0'>
-        <TabsTrigger value='identitas' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
-          <span>Identitas</span>
-          {tabErrorCounts.identitas > 0 && (
-            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
-              {tabErrorCounts.identitas}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value='obstetri' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
-          <span>Riwayat Kehamilan</span>
-          {tabErrorCounts.obstetri > 0 && (
-            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
-              {tabErrorCounts.obstetri}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value='klinis' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
-          <span>Pemeriksaan Fisik & KB</span>
-          {tabErrorCounts.klinis > 0 && (
-            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
-              {tabErrorCounts.klinis}
-            </span>
-          )}
-        </TabsTrigger>
-        <TabsTrigger value='skrining' className='text-xs font-semibold cursor-pointer truncate relative flex items-center justify-center gap-1.5'>
-          <span>Skrining Penyakit</span>
-          {tabErrorCounts.skrining > 0 && (
-            <span className='px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-destructive text-destructive-foreground min-w-4 text-center leading-none'>
-              {tabErrorCounts.skrining}
-            </span>
-          )}
-        </TabsTrigger>
-      </TabsList>
+    <div className='flex flex-col gap-5 font-sans'>
+      <MaternityIdentitySection
+        intake={intake}
+        isEditing={isEditing}
+        onIntakeFieldChange={onIntakeFieldChange}
+        onHusbandFieldChange={onHusbandFieldChange}
+        regionValues={regionValues}
+        onRegionChange={onRegionChange}
+        validationErrors={validationErrors}
+        onClearError={onClearError}
+        religionOptions={religionOptions}
+        educationOptions={educationOptions}
+        occupationOptions={occupationOptions}
+        bloodTypeOptions={bloodTypeOptions}
+      />
 
-      <div className='flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col'>
-        {/* TAB 1: IDENTITAS IBU & SUAMI */}
-        <TabsContent value='identitas' className='m-0 outline-none flex-1 min-h-0 flex flex-col h-full'>
-          <MaternityIdentitySection
-            intake={intake}
-            isEditing={isEditing}
-            onIntakeFieldChange={onIntakeFieldChange}
-            onHusbandFieldChange={onHusbandFieldChange}
-            regionValues={regionValues}
-            onRegionChange={onRegionChange}
-            validationErrors={validationErrors}
-            onClearError={onClearError}
-            religionOptions={religionOptions}
-            educationOptions={educationOptions}
-            occupationOptions={occupationOptions}
-            bloodTypeOptions={bloodTypeOptions}
-          />
-        </TabsContent>
+      <MaternityObstetricSection
+        intake={intake}
+        isEditing={isEditing}
+        onIntakeFieldChange={onIntakeFieldChange}
+        onPreviousPregnanciesChange={onPreviousPregnanciesChange}
+        validationErrors={validationErrors}
+        onClearError={onClearError}
+      />
 
-        {/* TAB 2: OBSTETRI & RIWAYAT KEHAMILAN */}
-        <TabsContent value='obstetri' className='m-0 outline-none flex-1 min-h-0 flex flex-col h-full'>
-          <MaternityObstetricSection
-            intake={intake}
-            isEditing={isEditing}
-            onIntakeFieldChange={onIntakeFieldChange}
-            onPreviousPregnanciesChange={onPreviousPregnanciesChange}
-            validationErrors={validationErrors}
-            onClearError={onClearError}
-          />
-        </TabsContent>
+      <MaternityClinicalKbSection
+        intake={intake}
+        isEditing={isEditing}
+        onIntakeFieldChange={onIntakeFieldChange}
+        onContraceptiveHistoriesChange={onContraceptiveHistoriesChange}
+        validationErrors={validationErrors}
+        onClearError={onClearError}
+        tetanusOptions={TETANUS_STATUS_OPTIONS}
+        bloodTypeOptions={bloodTypeOptions}
+      />
 
-        {/* TAB 3: PEMERIKSAAN FISIK & KB */}
-        <TabsContent value='klinis' className='m-0 outline-none flex-1 min-h-0 flex flex-col h-full'>
-          <MaternityClinicalKbSection
-            intake={intake}
-            isEditing={isEditing}
-            onIntakeFieldChange={onIntakeFieldChange}
-            onContraceptiveHistoriesChange={onContraceptiveHistoriesChange}
-            validationErrors={validationErrors}
-            onClearError={onClearError}
-            tetanusOptions={TETANUS_STATUS_OPTIONS}
-            bloodTypeOptions={bloodTypeOptions}
-          />
-        </TabsContent>
-
-        {/* TAB 4: SKRINING PENYAKIT & FAKTOR RISIKO */}
-        <TabsContent value='skrining' className='m-0 outline-none flex-1 min-h-0 flex flex-col h-full'>
-          <MaternityScreeningSection
-            intake={intake}
-            isEditing={isEditing}
-            onIntakeFieldChange={onIntakeFieldChange}
-            onConditionsChange={onConditionsChange}
-            validationErrors={validationErrors}
-            onClearError={onClearError}
-          />
-        </TabsContent>
-      </div>
-    </Tabs>
+      <MaternityScreeningSection
+        intake={intake}
+        isEditing={isEditing}
+        onIntakeFieldChange={onIntakeFieldChange}
+        onConditionsChange={onConditionsChange}
+        validationErrors={validationErrors}
+        onClearError={onClearError}
+      />
+    </div>
   );
 }

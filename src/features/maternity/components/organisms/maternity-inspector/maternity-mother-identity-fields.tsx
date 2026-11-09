@@ -2,12 +2,12 @@
 
 import * as React from 'react';
 import { Icons } from '@/components/icons';
-import { MaskedNik } from '@/components/ui/masked-nik';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import {
+  CountryBadge,
   PatientRegionDropdown,
   type PatientRegionValues
 } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
@@ -206,9 +206,12 @@ export function MaternityMotherIdentityFields({
         </div>
 
         <div className='col-span-1 sm:col-span-2 space-y-2 pt-2 pb-1 border-t border-border/30'>
-          <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
-            Alamat Domisili Tempat Tinggal
-          </span>
+          <div className='flex items-center justify-between pb-1'>
+            <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
+              Alamat Domisili Tempat Tinggal
+            </span>
+            <CountryBadge />
+          </div>
           <PatientRegionDropdown
             values={resolvedRegionValues}
             onChange={(updates) => {
@@ -268,16 +271,31 @@ export function MaternityMotherIdentityFields({
       />
 
       <div className='grid grid-cols-2 gap-4'>
-        <div className='space-y-1'>
-          <span className='text-[11px] font-medium text-muted-foreground block'>
-            NIK Ibu (16 Digit)
-          </span>
-          <MaskedNik
-            nik={intake?.motherNik}
-            patientId={intake?.patientId}
-            allowUnmask={true}
-          />
-        </div>
+        <PatientLineInput
+          id='view-mother-nik'
+          label='NIK Ibu (16 Digit)'
+          value={intake?.motherNik || ''}
+          readOnly
+          isMonospace
+          isMasked={!showNik}
+          trailingIcon={
+            intake?.motherNik ? (
+              <button
+                type='button'
+                onClick={() => setShowNik((prev) => !prev)}
+                className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+                tabIndex={-1}
+              >
+                {showNik ? (
+                  <Icons.eyeOff className='size-4 text-primary' />
+                ) : (
+                  <Icons.eye className='size-4 text-muted-foreground' />
+                )}
+              </button>
+            ) : null
+          }
+        />
         <PatientLineInput
           id='view-mother-birthdate'
           label='Tanggal Lahir Ibu'
@@ -333,15 +351,11 @@ export function MaternityMotherIdentityFields({
       </div>
 
       <div className='col-span-1 sm:col-span-2 space-y-3 pt-2 border-t border-border/40'>
-        <div className='flex items-center justify-between'>
+        <div className='flex items-center justify-between pb-1'>
           <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
             Alamat Domisili Tempat Tinggal
           </span>
-          {resolvedRegionValues.villageCode && (
-            <span className='rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'>
-              Terverifikasi
-            </span>
-          )}
+          <CountryBadge />
         </div>
 
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>

@@ -7,6 +7,26 @@ import { PatientLineTextarea } from '../atoms/patient-line-textarea';
 import { PatientSearchableSelect } from './patient-searchable-select';
 import { usePatientRegionCascader } from '@/features/data-pasien/model/usePatientRegionCascader';
 
+export function CountryBadge({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-xs font-medium text-primary',
+        className
+      )}
+    >
+      <svg
+        className='h-3 w-4 shrink-0 overflow-hidden rounded-[2px] border border-slate-300 shadow-xs'
+        viewBox='0 0 3 2'
+      >
+        <rect width='3' height='1' fill='#E70011' />
+        <rect y='1' width='3' height='1' fill='#FFFFFF' />
+      </svg>
+      <strong className='font-semibold'>Indonesia</strong>
+    </div>
+  );
+}
+
 export interface PatientRegionValues {
   provinceName: string;
   provinceCode: string;
@@ -24,13 +44,15 @@ export interface PatientRegionDropdownProps {
   onChange: (updates: Partial<PatientRegionValues>) => void;
   errors?: Partial<Record<keyof PatientRegionValues, string>>;
   className?: string;
+  showCountryBadge?: boolean;
 }
 
 export function PatientRegionDropdown({
   values,
   onChange,
   errors,
-  className
+  className,
+  showCountryBadge = false
 }: PatientRegionDropdownProps) {
   const {
     provinces,
@@ -46,22 +68,11 @@ export function PatientRegionDropdown({
 
   return (
     <div data-slot='patient-region-dropdown' className={cn('space-y-4', className)}>
-      {/* Country pill badge matching POC */}
-      <div className='inline-flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-primary'>
-        <svg
-          className='h-3 w-4 shrink-0 overflow-hidden rounded-[2px] border border-slate-300 shadow-xs'
-          viewBox='0 0 3 2'
-        >
-          <rect width='3' height='1' fill='#E70011' />
-          <rect y='1' width='3' height='1' fill='#FFFFFF' />
-        </svg>
-        <span>
-          Negara: <strong className='font-semibold'>Indonesia</strong>
-        </span>
-        <span className='rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'>
-          Terverifikasi
-        </span>
-      </div>
+      {showCountryBadge ? (
+        <div className='flex justify-end'>
+          <CountryBadge />
+        </div>
+      ) : null}
 
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
         {/* PROVINSI (Span 2) */}

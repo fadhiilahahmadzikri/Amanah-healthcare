@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { Icons } from '@/components/icons';
-import { MaskedNik } from '@/components/ui/masked-nik';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { getGenderLabel, type Gender } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
@@ -12,6 +11,7 @@ import { PatientGenderSelector } from '@/features/data-pasien/components/registr
 import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
 import {
+  CountryBadge,
   PatientRegionDropdown,
   type PatientRegionValues
 } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
@@ -271,9 +271,12 @@ export function RegularIdentitySection({
           />
 
           <div className='col-span-1 sm:col-span-2 space-y-2 pt-2 pb-1 border-t border-border/30'>
-            <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
-              Alamat Domisili Pasien
-            </span>
+            <div className='flex items-center justify-between pb-1'>
+              <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
+                Alamat Domisili Pasien
+              </span>
+              <CountryBadge />
+            </div>
             <PatientRegionDropdown values={regionValues} onChange={handleRegionChange} />
           </div>
 
@@ -337,12 +340,31 @@ export function RegularIdentitySection({
             readOnly
           />
 
-          <div className='space-y-1'>
-            <span className='text-[11px] font-medium text-muted-foreground block'>
-              NIK Pasien (16 Digit)
-            </span>
-            <MaskedNik nik={nik} patientId={patient?.id} allowUnmask={true} />
-          </div>
+          <PatientLineInput
+            id='read-nik'
+            label='NIK Pasien (16 Digit)'
+            value={nik}
+            readOnly
+            isMonospace
+            isMasked={!showNik}
+            trailingIcon={
+              nik ? (
+                <button
+                  type='button'
+                  onClick={() => setShowNik((prev) => !prev)}
+                  className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                  title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+                  tabIndex={-1}
+                >
+                  {showNik ? (
+                    <Icons.eyeOff className='size-4 text-primary' />
+                  ) : (
+                    <Icons.eye className='size-4 text-muted-foreground' />
+                  )}
+                </button>
+              ) : null
+            }
+          />
 
           <PatientLineInput
             id='read-birthplace'
@@ -388,21 +410,7 @@ export function RegularIdentitySection({
               <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
                 Alamat Domisili Pasien
               </span>
-              <div className='inline-flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-primary'>
-                <svg
-                  className='h-3 w-4 shrink-0 overflow-hidden rounded-[2px] border border-slate-300 shadow-xs'
-                  viewBox='0 0 3 2'
-                >
-                  <rect width='3' height='1' fill='#E70011' />
-                  <rect y='1' width='3' height='1' fill='#FFFFFF' />
-                </svg>
-                <span>
-                  Negara: <strong className='font-semibold'>Indonesia</strong>
-                </span>
-                <span className='rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'>
-                  Terverifikasi
-                </span>
-              </div>
+              <CountryBadge />
             </div>
 
             <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>

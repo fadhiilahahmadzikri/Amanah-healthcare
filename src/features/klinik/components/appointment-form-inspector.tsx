@@ -227,49 +227,53 @@ export function AppointmentFormInspector({
             <Icons.spinner className='size-5 animate-spin text-primary' />
             <span className='text-xs font-medium'>Memuat formulir medis...</span>
           </div>
-        ) : isPregnancy ? (
-          <MaternityAdminInspector
-            intake={activeMaternityIntake}
-            isEditing={isEditing}
-            regionValues={maternalRegionValues}
-            onRegionChange={handleMaternalRegionChange}
-            onIntakeFieldChange={handleMaternityFieldChange}
-            onHusbandFieldChange={handleHusbandFieldChange}
-            onPreviousPregnanciesChange={(updated) =>
-              handleMaternityFieldChange('previousPregnancies', updated)
-            }
-            onContraceptiveHistoriesChange={(updated) =>
-              handleMaternityFieldChange('contraceptiveHistories', updated)
-            }
-            onConditionsChange={(updated) =>
-              handleMaternityFieldChange('conditionResponses', updated)
-            }
-            validationErrors={validationErrors}
-            onClearError={handleClearError}
-          />
-        ) : isImmunization ? (
-          <ImmunizationAdminInspector
-            intake={activeChildIntake as any}
-            entries={(activeChildIntake?.entries || []) as any}
-            isEditing={isEditing}
-            onIntakeFieldChange={(field, val) => handleImmunizationFieldChange(field as any, val)}
-            onEntriesChange={(updatedEntries) =>
-              handleImmunizationFieldChange('entries' as any, updatedEntries)
-            }
-            validationErrors={validationErrors}
-            onClearError={handleClearError}
-          />
         ) : (
           <div className='flex-1 overflow-y-auto min-h-0 pr-1'>
-            <InspectorGenericView
-              appointment={appointment}
-              data={parsedData}
-              isEditing={isEditing}
-              regularFormData={regularFormData}
-              onRegularFieldChange={handleRegularFieldChange}
-              validationErrors={validationErrors}
-              onClearError={handleClearError}
-            />
+            {isPregnancy ? (
+              <MaternityAdminInspector
+                intake={activeMaternityIntake}
+                isEditing={isEditing}
+                regionValues={maternalRegionValues}
+                onRegionChange={handleMaternalRegionChange}
+                onIntakeFieldChange={handleMaternityFieldChange}
+                onHusbandFieldChange={handleHusbandFieldChange}
+                onPreviousPregnanciesChange={(updated) =>
+                  handleMaternityFieldChange('previousPregnancies', updated)
+                }
+                onContraceptiveHistoriesChange={(updated) =>
+                  handleMaternityFieldChange('contraceptiveHistories', updated)
+                }
+                onConditionsChange={(updated) =>
+                  handleMaternityFieldChange('conditionResponses', updated)
+                }
+                validationErrors={validationErrors}
+                onClearError={handleClearError}
+              />
+            ) : isImmunization ? (
+              <ImmunizationAdminInspector
+                intake={activeChildIntake as any}
+                entries={(activeChildIntake?.entries || []) as any}
+                isEditing={isEditing}
+                onIntakeFieldChange={(field, val) =>
+                  handleImmunizationFieldChange(field as any, val)
+                }
+                onEntriesChange={(updatedEntries) =>
+                  handleImmunizationFieldChange('entries' as any, updatedEntries)
+                }
+                validationErrors={validationErrors}
+                onClearError={handleClearError}
+              />
+            ) : (
+              <InspectorGenericView
+                appointment={appointment}
+                data={parsedData}
+                isEditing={isEditing}
+                regularFormData={regularFormData}
+                onRegularFieldChange={handleRegularFieldChange}
+                validationErrors={validationErrors}
+                onClearError={handleClearError}
+              />
+            )}
           </div>
         )}
       </div>

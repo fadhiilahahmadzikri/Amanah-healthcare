@@ -211,6 +211,17 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
           });
         }
 
+        const nikFields = ['motherNik', 'partnerNik'];
+        if (nikFields.includes(fieldKey)) {
+          nikFields.forEach((key) => {
+            if (validation.errors[key]) {
+              updated[key] = validation.errors[key];
+            } else {
+              delete updated[key];
+            }
+          });
+        }
+
         return updated;
       });
 

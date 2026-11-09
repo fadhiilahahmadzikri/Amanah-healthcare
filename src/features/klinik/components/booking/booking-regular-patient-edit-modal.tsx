@@ -21,6 +21,7 @@ import { PatientBirthdatePicker } from '@/features/data-pasien/components/regist
 import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
 import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import {
+  CountryBadge,
   PatientRegionDropdown,
   type PatientRegionValues
 } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
@@ -531,9 +532,12 @@ export function BookingRegularPatientEditModal({
                 />
 
                 <div className='space-y-2 pt-1'>
-                  <span className='text-xs font-medium text-foreground block'>
-                    Domisili & Wilayah Alamat
-                  </span>
+                  <div className='flex items-center justify-between pb-1'>
+                    <span className='text-xs font-medium text-foreground block'>
+                      Domisili & Wilayah Alamat
+                    </span>
+                    <CountryBadge />
+                  </div>
                   <PatientRegionDropdown
                     values={region}
                     onChange={(updates) => setRegion((prev) => ({ ...prev, ...updates }))}

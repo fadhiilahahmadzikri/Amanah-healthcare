@@ -46,18 +46,32 @@ export function useInspectorSave({
   const patientId = parsedData.patient?.id || appointment.patient_id;
 
   const invalidateCommonQueries = React.useCallback(async () => {
+    const intakeKey = klinikKeys.appointmentIntake(appointment.id);
+    await queryClient.invalidateQueries({ queryKey: intakeKey });
     await queryClient.invalidateQueries({
-      queryKey: klinikKeys.appointmentIntake(appointment.id)
+      queryKey: ['patient-detail', appointment.patient_id]
     });
+    if (patientId && patientId !== appointment.patient_id) {
+      await queryClient.invalidateQueries({
+        queryKey: ['patient-detail', patientId]
+      });
+    }
+    await queryClient.invalidateQueries({ queryKey: ['patient', patientId] });
+    await queryClient.invalidateQueries({ queryKey: ['patients'] });
     await queryClient.invalidateQueries({ queryKey: ['appointments'] });
     await queryClient.invalidateQueries({ queryKey: ['appointment', appointment.id] });
     await queryClient.invalidateQueries({ queryKey: ['admin-appointments'] });
-    await queryClient.invalidateQueries({ queryKey: ['patients'] });
     await queryClient.invalidateQueries({ queryKey: ['patient-affiliations'] });
-    if (patientId) {
-      await queryClient.invalidateQueries({ queryKey: ['patient', patientId] });
-    }
-  }, [queryClient, appointment.id, patientId]);
+
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: intakeKey }),
+      appointment.patient_id
+        ? queryClient.refetchQueries({
+            queryKey: ['patient-detail', appointment.patient_id]
+          })
+        : Promise.resolve()
+    ]);
+  }, [queryClient, appointment.id, appointment.patient_id, patientId]);
 
   const handleSaveEdit = React.useCallback(
     async (isDirty?: boolean) => {

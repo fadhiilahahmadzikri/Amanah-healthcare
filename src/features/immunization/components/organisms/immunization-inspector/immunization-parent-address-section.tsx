@@ -4,6 +4,7 @@ import * as React from 'react';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import {
+  CountryBadge,
   PatientRegionDropdown,
   type PatientRegionValues
 } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
@@ -102,9 +103,12 @@ export function ImmunizationParentAddressSection({
         </div>
 
         <div className='col-span-1 md:col-span-2 space-y-2 pt-2 pb-1 border-t border-border/30'>
-          <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
-            Alamat Domisili Pasien Anak
-          </span>
+          <div className='flex items-center justify-between pb-1'>
+            <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
+              Alamat Domisili Pasien Anak
+            </span>
+            <CountryBadge />
+          </div>
           <PatientRegionDropdown values={regionValues} onChange={handleRegionChange} />
         </div>
       </div>
@@ -146,21 +150,7 @@ export function ImmunizationParentAddressSection({
           <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
             Alamat Domisili Pasien Anak
           </span>
-          <div className='inline-flex items-center gap-2 rounded-lg border border-border bg-muted/60 px-3 py-1.5 text-xs font-medium text-primary'>
-            <svg
-              className='h-3 w-4 shrink-0 overflow-hidden rounded-[2px] border border-slate-300 shadow-xs'
-              viewBox='0 0 3 2'
-            >
-              <rect width='3' height='1' fill='#E70011' />
-              <rect y='1' width='3' height='1' fill='#FFFFFF' />
-            </svg>
-            <span>
-              Negara: <strong className='font-semibold'>Indonesia</strong>
-            </span>
-            <span className='rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-normal text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400'>
-              Terverifikasi
-            </span>
-          </div>
+          <CountryBadge />
         </div>
 
         <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
@@ -168,7 +158,7 @@ export function ImmunizationParentAddressSection({
             <PatientLineInput
               id='read-child-province'
               label='Provinsi'
-              value={regionValues.provinceName || '-'}
+              value={regionValues.provinceName || ''}
               readOnly
             />
           </div>
@@ -176,27 +166,27 @@ export function ImmunizationParentAddressSection({
             <PatientLineInput
               id='read-child-regency'
               label='Kota / Kabupaten'
-              value={regionValues.regencyName || '-'}
+              value={regionValues.regencyName || ''}
               readOnly
             />
           </div>
           <PatientLineInput
             id='read-child-district'
             label='Kecamatan'
-            value={regionValues.districtName || '-'}
+            value={regionValues.districtName || ''}
             readOnly
           />
           <PatientLineInput
             id='read-child-village'
             label='Kelurahan / Desa'
-            value={regionValues.villageName || '-'}
+            value={regionValues.villageName || ''}
             readOnly
           />
           <div className='col-span-1 sm:col-span-2'>
             <PatientLineTextarea
               id='read-child-line1'
               label='Alamat Detail (Jalan, RT/RW, No. Rumah)'
-              value={regionValues.line1 || intake?.childAddress || '-'}
+              value={regionValues.line1 || intake?.childAddress || ''}
               readOnly
             />
           </div>

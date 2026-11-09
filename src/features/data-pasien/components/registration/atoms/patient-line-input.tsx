@@ -50,7 +50,7 @@ export const PatientLineInput = React.forwardRef<HTMLInputElement, PatientLineIn
     const isInvalid = Boolean(invalid || error);
     const valString = value === null || value === undefined ? '' : String(value);
     const hasValue = Boolean(valString.trim().length > 0);
-    const isFloating = isFocused || hasValue;
+    const isFloating = readOnly ? true : (isFocused || hasValue);
 
     return (
       <div className={cn('relative pt-3', containerClassName)}>

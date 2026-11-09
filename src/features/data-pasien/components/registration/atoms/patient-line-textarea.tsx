@@ -39,7 +39,7 @@ export function PatientLineTextarea({
   const isInvalid = Boolean(invalid || error);
   const valString = value === null || value === undefined ? '' : String(value);
   const hasValue = Boolean(valString.trim().length > 0);
-  const isFloating = isFocused || hasValue;
+  const isFloating = readOnly ? true : (isFocused || hasValue);
 
   const adjustHeight = React.useCallback(() => {
     const element = textareaRef.current;

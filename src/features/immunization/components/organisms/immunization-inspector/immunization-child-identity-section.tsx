@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { Icons } from '@/components/icons';
-import { MaskedNik } from '@/components/ui/masked-nik';
 import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
 import { PatientLineSelect } from '@/features/data-pasien/components/registration/atoms/patient-line-select';
@@ -129,7 +128,7 @@ export function ImmunizationChildIdentitySection({
 
   // READ ONLY MODE
   return (
-    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1 pointer-events-none select-text font-sans'>
+    <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5 pt-1 select-text font-sans'>
       <div className='space-y-4'>
         <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
           Identitas Calon Pasien Anak
@@ -137,20 +136,35 @@ export function ImmunizationChildIdentitySection({
         <PatientLineInput
           id='view-child-name'
           label='Nama Lengkap Anak'
-          value={intake?.childName || '-'}
+          value={intake?.childName || ''}
           readOnly
         />
         <div className='grid grid-cols-2 gap-4'>
-          <div className='space-y-1'>
-            <span className='text-[11px] font-medium text-muted-foreground block'>
-              NIK Anak (16 Digit)
-            </span>
-            <MaskedNik
-              nik={intake?.childNik}
-              patientId={intake?.patientId}
-              allowUnmask={true}
-            />
-          </div>
+          <PatientLineInput
+            id='view-child-nik'
+            label='NIK Anak (16 Digit)'
+            value={intake?.childNik || ''}
+            readOnly
+            isMonospace
+            isMasked={!showNik}
+            trailingIcon={
+              intake?.childNik ? (
+                <button
+                  type='button'
+                  onClick={() => setShowNik((prev) => !prev)}
+                  className='text-muted-foreground hover:text-foreground transition-colors p-1'
+                  title={showNik ? 'Sembunyikan NIK' : 'Tampilkan NIK'}
+                  tabIndex={-1}
+                >
+                  {showNik ? (
+                    <Icons.eyeOff className='size-4 text-primary' />
+                  ) : (
+                    <Icons.eye className='size-4 text-muted-foreground' />
+                  )}
+                </button>
+              ) : null
+            }
+          />
           <PatientLineInput
             id='view-child-sex'
             label='Jenis Kelamin'
@@ -175,7 +189,7 @@ export function ImmunizationChildIdentitySection({
           <PatientLineInput
             id='view-child-age'
             label='Usia Terhitung'
-            value={intake?.childAgeFormatted || '-'}
+            value={intake?.childAgeFormatted || ''}
             readOnly
           />
         </div>
