@@ -43,14 +43,17 @@ export function useActiveInspectorState({
   handleClearError
 }: UseActiveInspectorStateParams) {
   const activeMaternityIntake = React.useMemo<MaternityIntake | null>(() => {
-    if (!isPregnancy || !parsedData.maternal) return null;
+    if (!isPregnancy) return null;
+    if (!isEditing && !parsedData.maternal) return null;
+
     const resolvedMotherBirthDate =
       (isEditing ? formData.motherBirthDate : null) ||
-      parsedData.maternal.motherBirthDate ||
+      parsedData.maternal?.motherBirthDate ||
       parsedData.patient?.birthDate ||
       null;
 
     if (!isEditing) {
+      if (!parsedData.maternal) return null;
       return {
         ...parsedData.maternal,
         motherBirthDate: resolvedMotherBirthDate,
@@ -69,14 +72,14 @@ export function useActiveInspectorState({
     }
 
     const currentPartnerPhone =
-      formData.partnerPhone ?? parsedData.maternal.husbandProfile?.phoneNumber ?? '';
+      formData.partnerPhone ?? parsedData.maternal?.husbandProfile?.phoneNumber ?? '';
 
     return {
-      ...parsedData.maternal,
+      ...(parsedData.maternal || {}),
       ...formData,
       motherBirthDate: resolvedMotherBirthDate,
       husbandProfile: {
-        ...parsedData.maternal.husbandProfile,
+        ...(parsedData.maternal?.husbandProfile || {}),
         fullName: formData.partnerName || '',
         nik: formData.partnerNik || null,
         birthDate: formData.partnerBirthDate || null,
@@ -86,25 +89,28 @@ export function useActiveInspectorState({
         bloodType: formData.partnerBloodType || null,
         phoneNumber: currentPartnerPhone || null
       }
-    };
+    } as MaternityIntake;
   }, [isPregnancy, isEditing, parsedData.maternal, parsedData.patient, formData]);
 
   const activeChildIntake = React.useMemo(() => {
-    if (!isImmunization || !parsedData.child) return null;
+    if (!isImmunization) return null;
+    if (!isEditing && !parsedData.child) return null;
+
     const resolvedChildBirthDate =
       (isEditing ? immunizationFormData.childBirthDate : null) ||
-      parsedData.child.childBirthDate ||
+      parsedData.child?.childBirthDate ||
       parsedData.patient?.birthDate ||
       '';
 
     if (!isEditing) {
+      if (!parsedData.child) return null;
       return {
         ...parsedData.child,
         childBirthDate: resolvedChildBirthDate
       };
     }
     return {
-      ...parsedData.child,
+      ...(parsedData.child || {}),
       ...immunizationFormData,
       childBirthDate: resolvedChildBirthDate
     };

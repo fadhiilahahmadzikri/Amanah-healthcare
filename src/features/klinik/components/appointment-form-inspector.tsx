@@ -21,6 +21,7 @@ import {
   RegularEncounterSection
 } from './inspector/sections';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
+import { isAppointmentTerminal } from '@/features/appointment-pasien/constants/options';
 import {
   validateMaternalForm,
   validateRegularForm,
@@ -57,11 +58,7 @@ export function AppointmentFormInspector({
   hideHeader = false,
   readOnly
 }: AppointmentFormInspectorProps) {
-  const isReadOnly =
-    readOnly ??
-    ((appointment.status as string) === 'COMPLETED' ||
-      (appointment.status as string) === 'completed' ||
-      (appointment.status as string) === 'SELESAI');
+  const isReadOnly = readOnly ?? isAppointmentTerminal(appointment.status);
 
   const references = usePatientFormReferences();
 
@@ -295,7 +292,7 @@ export function AppointmentFormInspector({
             {isImmunization && (
               <ImmunizationAdminInspector
                 intake={activeChildIntake as any}
-                entries={(activeChildIntake?.entries || []) as any}
+                entries={(activeChildIntake?.entries || immunizationFormData?.entries || []) as any}
                 isEditing={isEditing}
                 onIntakeFieldChange={(field, val) =>
                   handleImmunizationFieldChange(field as any, val)

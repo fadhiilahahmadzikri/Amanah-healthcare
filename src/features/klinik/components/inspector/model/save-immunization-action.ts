@@ -43,10 +43,6 @@ export async function saveImmunizationAction({
   setValidationErrors({});
 
   const targetId = parsedData.child?.id;
-  if (!targetId) {
-    toast.error('Gagal menyimpan: ID formulir imunisasi tidak ditemukan.');
-    throw new Error('ID formulir imunisasi tidak ditemukan');
-  }
 
   const newChildNik = immunizationFormData.childNik?.trim();
   const originalChildNik = (parsedData.child?.childNik || parsedData.patient?.nik)?.trim();
@@ -122,7 +118,23 @@ export async function saveImmunizationAction({
     }
   }
 
-  await kiaIntakeService.updateImmunizationIntake(targetId, payload);
+  if (targetId) {
+    await kiaIntakeService.updateImmunizationIntake(targetId, payload);
+  } else {
+    const created = await kiaIntakeService.createImmunizationIntake({
+      ...payload,
+      patientId: patientId || '',
+      appointmentId: appointment.id
+    });
+    if (created && typeof created === 'object' && 'id' in created && created.id) {
+      if (!parsedData.child) {
+        parsedData.child = created as any;
+      } else {
+        parsedData.child.id = created.id;
+      }
+    }
+  }
+
   if (regularFormData?.complaint) {
     appointment.complaint = regularFormData.complaint.trim() || '';
   }

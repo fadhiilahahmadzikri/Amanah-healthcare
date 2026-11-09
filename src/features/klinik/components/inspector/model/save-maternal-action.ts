@@ -53,10 +53,6 @@ export async function saveMaternalAction({
   setValidationErrors({});
 
   const targetId = parsedData.maternal?.id;
-  if (!targetId) {
-    toast.error('Gagal menyimpan: ID formulir KIA & Kehamilan tidak ditemukan.');
-    throw new Error('ID formulir KIA & Kehamilan tidak ditemukan');
-  }
 
   const newMotherNik = formData.motherNik?.trim();
   const originalMotherNik = (parsedData.maternal?.motherNik || parsedData.patient?.nik)?.trim();
@@ -202,6 +198,22 @@ export async function saveMaternalAction({
     }
   }
 
-  await kiaIntakeService.updateMaternityIntake(targetId, payload);
+  if (targetId) {
+    await kiaIntakeService.updateMaternityIntake(targetId, payload);
+  } else {
+    const created = await kiaIntakeService.createMaternityIntake({
+      ...payload,
+      patientId: patientId || '',
+      appointmentId: appointment.id
+    });
+    if (created && typeof created === 'object' && 'id' in created && created.id) {
+      if (!parsedData.maternal) {
+        parsedData.maternal = created as any;
+      } else {
+        parsedData.maternal.id = created.id;
+      }
+    }
+  }
+
   appointment.complaint = regularFormData?.complaint?.trim() || formData.currentComplaints.trim() || '';
 }
