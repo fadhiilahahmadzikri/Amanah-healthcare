@@ -126,7 +126,7 @@ export function buildInitialImmunizationData(
     });
   }
 
-  const birthDate = c?.childBirthDate || '';
+  const birthDate = c?.childBirthDate || parsedData.patient?.birthDate || '';
   let childAge = c?.childAgeFormatted || '';
   if (!childAge && birthDate) {
     try {
@@ -147,7 +147,7 @@ export function buildInitialImmunizationData(
     childName: c?.childName || parsedData.patient?.fullName || '',
     childNik: c?.childNik || parsedData.patient?.nik || '',
     childBirthDate: birthDate,
-    childSex: c?.childSex || '',
+    childSex: c?.childSex || (parsedData.patient?.gender as any) || '',
     childAgeFormatted: childAge,
     parentPhone: c?.parentPhone || parsedData.patient?.phone || '',
     fatherName: c?.fatherName || '',

@@ -85,9 +85,9 @@ export async function saveMaternalAction({
   });
 
   const payload = {
-    motherName: formData.motherName?.trim() || '',
-    motherNik: formData.motherNik?.trim() || '',
-    motherBirthDate: formData.motherBirthDate || null,
+    motherName: formData.motherName?.trim() || parsedData.patient?.fullName || '',
+    motherNik: formData.motherNik?.trim() || parsedData.patient?.nik || '',
+    motherBirthDate: formData.motherBirthDate || parsedData.patient?.birthDate || null,
     motherAge: formData.motherAge ? Number(formData.motherAge) : null,
     marriageOrder: formData.marriageOrder ? Number(formData.marriageOrder) : 1,
     marriageDate: toNullableString(formData.marriageDate),

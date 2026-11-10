@@ -21,7 +21,11 @@ import {
   RegularEncounterSection
 } from './inspector/sections';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
-import { isAppointmentTerminal } from '@/features/appointment-pasien/constants/options';
+import {
+  isAppointmentTerminal,
+  isAppointmentBooked,
+  isPatientPresentInClinic
+} from '@/features/appointment-pasien/constants/options';
 import {
   validateMaternalForm,
   validateRegularForm,
@@ -58,7 +62,11 @@ export function AppointmentFormInspector({
   hideHeader = false,
   readOnly
 }: AppointmentFormInspectorProps) {
-  const isReadOnly = readOnly ?? isAppointmentTerminal(appointment.status);
+  const isTerminal = isAppointmentTerminal(appointment.status);
+  const isPresentInClinic = isPatientPresentInClinic(appointment.status);
+  const isBooked = isAppointmentBooked(appointment.status);
+  const canEditIntake = !readOnly && !isTerminal && isPresentInClinic;
+  const isReadOnly = !canEditIntake;
 
   const references = usePatientFormReferences();
 
@@ -66,7 +74,7 @@ export function AppointmentFormInspector({
     serverIntake,
     isLoading,
     parsedData,
-    isPregnancy: baseIsPregnancy,
+    isPregnancy: _baseIsPregnancy,
     isImmunization: baseIsImmunization
   } = useInspectorData(appointment);
 
@@ -247,6 +255,20 @@ export function AppointmentFormInspector({
           </div>
         ) : (
           <div className='flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-5 font-sans'>
+            {isBooked && !isTerminal && (
+              <div className='flex items-start gap-2.5 p-3 rounded-xl bg-info-subtle border border-info-border text-info-foreground text-xs font-sans'>
+                <Icons.info className='size-4 text-info shrink-0 mt-0.5' />
+                <div className='space-y-0.5'>
+                  <span className='font-semibold block text-foreground'>
+                    Pasien Belum Melakukan Check-In
+                  </span>
+                  <p className='text-muted-foreground text-[11.5px] leading-relaxed'>
+                    Pasien belum tiba di klinik (status: <span className='font-medium text-foreground'>Sudah Buat Janji</span>). Formulir medis terkunci dalam mode pratinjau dan baru dapat diedit setelah pasien tiba dan melakukan check-in.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <RegularIdentitySection
               data={parsedData}
               isEditing={isEditing}

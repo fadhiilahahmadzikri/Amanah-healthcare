@@ -77,13 +77,21 @@ export async function saveImmunizationAction({
     notes: e.notes || null
   }));
 
+  const patientId = parsedData.patient?.id || appointment.patient_id;
+  const resolvedBirthDate =
+    immunizationFormData.childBirthDate?.trim() || parsedData.patient?.birthDate || '';
+  const resolvedChildSex =
+    immunizationFormData.childSex?.trim() || (parsedData.patient?.gender as any) || '';
+
   const payload = {
-    childName: immunizationFormData.childName?.trim() || '',
-    childNik: immunizationFormData.childNik?.trim() || '',
-    childBirthDate: immunizationFormData.childBirthDate || '',
-    childSex: immunizationFormData.childSex || '',
+    patientId: patientId || '',
+    appointmentId: appointment.id,
+    childName: immunizationFormData.childName?.trim() || parsedData.patient?.fullName || '',
+    childNik: immunizationFormData.childNik?.trim() || parsedData.patient?.nik || '',
+    childBirthDate: resolvedBirthDate,
+    childSex: resolvedChildSex,
     childAgeFormatted: toNullableString(immunizationFormData.childAgeFormatted),
-    parentPhone: immunizationFormData.parentPhone?.trim() || '',
+    parentPhone: immunizationFormData.parentPhone?.trim() || parsedData.patient?.phone || '',
     fatherName: toNullableString(immunizationFormData.fatherName),
     motherName: toNullableString(immunizationFormData.motherName),
     childAddress: toNullableString(immunizationFormData.childAddress),
@@ -101,7 +109,6 @@ export async function saveImmunizationAction({
     entries: finalEntries
   };
 
-  const patientId = parsedData.patient?.id || appointment.patient_id;
   if (patientId) {
     if (regularFormData) {
       const initialRegular = buildInitialRegularData(parsedData, appointment);
@@ -119,13 +126,12 @@ export async function saveImmunizationAction({
   }
 
   if (targetId) {
-    await kiaIntakeService.updateImmunizationIntake(targetId, payload);
+    const updatePayload = { ...payload };
+    if (!updatePayload.childBirthDate) delete (updatePayload as any).childBirthDate;
+    if (!updatePayload.childSex) delete (updatePayload as any).childSex;
+    await kiaIntakeService.updateImmunizationIntake(targetId, updatePayload);
   } else {
-    const created = await kiaIntakeService.createImmunizationIntake({
-      ...payload,
-      patientId: patientId || '',
-      appointmentId: appointment.id
-    });
+    const created = await kiaIntakeService.createImmunizationIntake(payload);
     if (created && typeof created === 'object' && 'id' in created && created.id) {
       if (!parsedData.child) {
         parsedData.child = created as any;

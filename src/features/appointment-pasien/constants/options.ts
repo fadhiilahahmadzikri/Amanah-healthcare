@@ -38,6 +38,11 @@ export function isAppointmentBooked(status?: AppointmentStatus | string | null):
   return AppointmentStatusDescriptor.from(status).code === APPOINTMENT_STATUS.BOOKED;
 }
 
+export function isPatientPresentInClinic(status?: AppointmentStatus | string | null): boolean {
+  const desc = AppointmentStatusDescriptor.from(status);
+  return desc.isWaiting || desc.isInService;
+}
+
 export function isAppointmentBeforeCall(status?: AppointmentStatus | string | null): boolean {
   const desc = AppointmentStatusDescriptor.from(status);
   return desc.isWaiting || desc.code === APPOINTMENT_STATUS.BOOKED;
