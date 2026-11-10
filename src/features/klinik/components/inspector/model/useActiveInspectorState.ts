@@ -8,6 +8,12 @@ import type {
 } from '../types';
 import type { MaternityIntake, MaternalHusbandProfile } from '@/features/maternity';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
+import { calculateAgeInYears, calculateBmi } from '../../../utils/medical-appointment';
+import {
+  calculateEddFromLmp,
+  calculateGestationalAge,
+  formatIndonesianDateText
+} from '../../../utils/obstetric-calculator';
 
 interface UseActiveInspectorStateParams {
   isPregnancy: boolean;
@@ -54,11 +60,39 @@ export function useActiveInspectorState({
 
     if (!isEditing) {
       if (!parsedData.maternal) return null;
+
+      const computedBmi = calculateBmi(
+        parsedData.maternal.prePregnancyWeightKg != null ? String(parsedData.maternal.prePregnancyWeightKg) : undefined,
+        parsedData.maternal.heightCm != null ? String(parsedData.maternal.heightCm) : undefined
+      );
+
+      const computedMotherAge = resolvedMotherBirthDate ? calculateAgeInYears(resolvedMotherBirthDate) : null;
+      const partnerBirthDate =
+        parsedData.maternal.partnerBirthDate || parsedData.maternal.husbandProfile?.birthDate || null;
+      const computedPartnerAge = partnerBirthDate ? calculateAgeInYears(partnerBirthDate) : null;
+
+      let estimatedDueDate = parsedData.maternal.estimatedDueDate || null;
+      let gestationalAgeFormatted = parsedData.maternal.gestationalAgeFormatted || null;
+      if (parsedData.maternal.hpht) {
+        try {
+          const edd = calculateEddFromLmp(parsedData.maternal.hpht);
+          if (!estimatedDueDate) estimatedDueDate = formatIndonesianDateText(edd);
+          if (!gestationalAgeFormatted)
+            gestationalAgeFormatted = calculateGestationalAge(edd, new Date()).formatted;
+        } catch {
+          // ignore
+        }
+      }
+
       return {
         ...parsedData.maternal,
         motherBirthDate: resolvedMotherBirthDate,
+        motherAge: parsedData.maternal.motherAge || computedMotherAge || null,
         motherName: parsedData.maternal.motherName || parsedData.patient?.fullName || '',
         motherNik: parsedData.maternal.motherNik || parsedData.patient?.nik || '',
+        initialBmi: parsedData.maternal.initialBmi || computedBmi || null,
+        estimatedDueDate,
+        gestationalAgeFormatted,
         line1: parsedData.maternal.line1 || parsedData.patient?.line1 || null,
         provinceName: parsedData.maternal.provinceName || parsedData.patient?.provinceName || null,
         provinceCode: parsedData.maternal.provinceCode || parsedData.patient?.provinceCode || null,
@@ -67,7 +101,14 @@ export function useActiveInspectorState({
         districtName: parsedData.maternal.districtName || parsedData.patient?.districtName || null,
         districtCode: parsedData.maternal.districtCode || parsedData.patient?.districtCode || null,
         villageName: parsedData.maternal.villageName || parsedData.patient?.villageName || null,
-        villageCode: parsedData.maternal.villageCode || parsedData.patient?.villageCode || null
+        villageCode: parsedData.maternal.villageCode || parsedData.patient?.villageCode || null,
+        husbandProfile: parsedData.maternal.husbandProfile
+          ? {
+              ...parsedData.maternal.husbandProfile,
+              fullName: parsedData.maternal.husbandProfile.fullName || parsedData.maternal.partnerName || '',
+              age: parsedData.maternal.husbandProfile.age || computedPartnerAge || null
+            }
+          : null
       };
     }
 

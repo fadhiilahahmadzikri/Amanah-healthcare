@@ -18,6 +18,12 @@ import {
 } from '../../../validations/inspector-form.schema';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
+import { calculateAgeInYears, calculateBmi } from '../../../utils/medical-appointment';
+import {
+  calculateEddFromLmp,
+  calculateGestationalAge,
+  formatIndonesianDateText
+} from '../../../utils/obstetric-calculator';
 
 interface UseInspectorEditStateParams {
   parsedData: UnifiedInspectorData;
@@ -172,6 +178,42 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
         ...prev,
         [field]: value
       };
+
+      if (field === 'heightCm' || field === 'prePregnancyWeightKg') {
+        const height = field === 'heightCm' ? value : prev.heightCm;
+        const weight = field === 'prePregnancyWeightKg' ? value : prev.prePregnancyWeightKg;
+        const bmi = calculateBmi(
+          weight != null && String(weight) !== '' ? String(weight) : undefined,
+          height != null && String(height) !== '' ? String(height) : undefined
+        );
+        next.initialBmi = bmi || '';
+      }
+
+      if (field === 'motherBirthDate') {
+        const age = value ? calculateAgeInYears(String(value)) : '';
+        next.motherAge = age || '';
+      }
+
+      if (field === 'partnerBirthDate') {
+        const age = value ? calculateAgeInYears(String(value)) : '';
+        next.partnerAge = age || '';
+      }
+
+      if (field === 'hpht') {
+        if (value) {
+          try {
+            const edd = calculateEddFromLmp(String(value));
+            next.estimatedDueDate = formatIndonesianDateText(edd);
+            next.gestationalAgeFormatted = calculateGestationalAge(edd, new Date()).formatted;
+          } catch {
+            next.estimatedDueDate = '';
+            next.gestationalAgeFormatted = '';
+          }
+        } else {
+          next.estimatedDueDate = '';
+          next.gestationalAgeFormatted = '';
+        }
+      }
 
       const validation = validateMaternalForm(next);
 

@@ -5,7 +5,16 @@ import type {
   EditableImmunizationData,
   EditableRegularData
 } from '../types';
-import { calculateChildAge } from '../../../utils/medical-appointment';
+import {
+  calculateChildAge,
+  calculateAgeInYears,
+  calculateBmi
+} from '../../../utils/medical-appointment';
+import {
+  calculateEddFromLmp,
+  calculateGestationalAge,
+  formatIndonesianDateText
+} from '../../../utils/obstetric-calculator';
 
 export function buildInitialMaternalData(parsedData: UnifiedInspectorData): EditableMaternalData {
   const m = parsedData.maternal;
@@ -28,13 +37,39 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
   const prevPregnancies: any[] = Array.isArray(m?.previousPregnancies) ? m.previousPregnancies : [];
   const kbList: any[] = Array.isArray(m?.contraceptiveHistories) ? m.contraceptiveHistories : [];
 
+  const resolvedMotherBirthDate = m?.motherBirthDate || parsedData.patient?.birthDate || '';
+  const computedMotherAge = resolvedMotherBirthDate ? calculateAgeInYears(resolvedMotherBirthDate) : '';
+  const motherAge = m?.motherAge != null && String(m.motherAge) !== '' ? String(m.motherAge) : computedMotherAge;
+
+  const partnerBirthDate = m?.partnerBirthDate || '';
+  const computedPartnerAge = partnerBirthDate ? calculateAgeInYears(partnerBirthDate) : '';
+  const partnerAge = m?.partnerAge != null && String(m.partnerAge) !== '' ? String(m.partnerAge) : computedPartnerAge;
+
+  const heightCm = m?.heightCm != null && String(m.heightCm) !== '' ? String(m.heightCm) : '';
+  const prePregnancyWeightKg =
+    m?.prePregnancyWeightKg != null && String(m.prePregnancyWeightKg) !== '' ? String(m.prePregnancyWeightKg) : '';
+  const computedBmi = calculateBmi(prePregnancyWeightKg, heightCm);
+  const initialBmi = m?.initialBmi != null && String(m.initialBmi) !== '' ? String(m.initialBmi) : computedBmi;
+
+  let estimatedDueDate = m?.estimatedDueDate || '';
+  let gestationalAgeFormatted = m?.gestationalAgeFormatted || '';
+  if (m?.hpht) {
+    try {
+      const edd = calculateEddFromLmp(m.hpht);
+      if (!estimatedDueDate) estimatedDueDate = formatIndonesianDateText(edd);
+      if (!gestationalAgeFormatted) gestationalAgeFormatted = calculateGestationalAge(edd, new Date()).formatted;
+    } catch {
+      // ignore
+    }
+  }
+
   return {
     medicalRecordNumber: parsedData.patient?.medicalRecordNumber || '',
     birthPlace: parsedData.patient?.birthPlace || '',
     motherName: m?.motherName || parsedData.patient?.fullName || '',
     motherNik: m?.motherNik || parsedData.patient?.nik || '',
-    motherBirthDate: m?.motherBirthDate || parsedData.patient?.birthDate || '',
-    motherAge: m?.motherAge || '',
+    motherBirthDate: resolvedMotherBirthDate,
+    motherAge,
     marriageOrder: m?.marriageOrder ?? '',
     marriageDate: m?.marriageDate || '',
     motherJob: m?.motherJob || '',
@@ -58,24 +93,24 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
 
     partnerName: m?.partnerName || m?.husbandProfile?.fullName || '',
     partnerNik: m?.partnerNik || '',
-    partnerBirthDate: m?.partnerBirthDate || '',
-    partnerAge: m?.partnerAge || '',
+    partnerBirthDate,
+    partnerAge,
     partnerJob: m?.partnerJob || '',
     partnerEducation: m?.partnerEducation || '',
     partnerBloodType: m?.partnerBloodType || '',
     partnerPhone: m?.husbandProfile?.phoneNumber || '',
 
-    heightCm: m?.heightCm || '',
-    prePregnancyWeightKg: m?.prePregnancyWeightKg || '',
+    heightCm,
+    prePregnancyWeightKg,
     upperArmCircumferenceCm: m?.upperArmCircumferenceCm || '',
-    initialBmi: m?.initialBmi || '',
+    initialBmi,
     tetanusStatus: m?.tetanusStatus || '',
     motherBloodType: m?.motherBloodType || '',
 
     hpht: m?.hpht || '',
-    estimatedDueDate: m?.estimatedDueDate || '',
+    estimatedDueDate,
     gestationalAgeWeeks: m?.gestationalAgeWeeks || '',
-    gestationalAgeFormatted: m?.gestationalAgeFormatted || '',
+    gestationalAgeFormatted,
     currentComplaints: m?.currentComplaints || parsedData.complaint || '',
 
     gravidaCount: m?.gravidaCount ?? '',
