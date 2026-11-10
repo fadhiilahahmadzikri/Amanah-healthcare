@@ -53,12 +53,8 @@ export function ChatInboxSidebar({
   const [activeTab, setActiveTab] = useState<'all' | 'awaiting'>('all');
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
-  const messagedConversations = useMemo(() => {
-    return conversations.filter((c) => Boolean(c.lastMessageAt || c.lastMessagePreview));
-  }, [conversations]);
-
   const filteredConversations = useMemo(() => {
-    return messagedConversations.filter((c) => {
+    return conversations.filter((c) => {
       const q = searchQuery.toLowerCase().trim();
       if (q) {
         const searchableFields = [
@@ -76,15 +72,15 @@ export function ChatInboxSidebar({
       if (activeTab === 'awaiting') return c.awaitingReply;
       return true;
     });
-  }, [messagedConversations, searchQuery, activeTab]);
+  }, [conversations, searchQuery, activeTab]);
 
-  const totalCount = messagedConversations.length;
-  const awaitingCount = messagedConversations.filter((c) => c.awaitingReply).length;
+  const totalCount = conversations.length;
+  const awaitingCount = conversations.filter((c) => c.awaitingReply).length;
 
   return (
     <aside
       className={cn(
-        'w-full md:w-[270px] lg:w-[290px] border-r border-border/60 bg-card flex flex-col min-w-0 shrink-0 select-none relative overflow-hidden',
+        'w-full md:w-[270px] lg:w-[290px] border-r-0 md:border-r border-border/60 bg-background md:bg-card flex flex-col min-w-0 shrink-0 select-none relative overflow-hidden',
         className
       )}
     >
@@ -289,7 +285,7 @@ export function ChatInboxSidebar({
                           : 'text-muted-foreground'
                       )}
                     >
-                      {formatConversationTime(c.lastMessageAt)}
+                      {formatConversationTime(c.lastMessageAt || c.createdAt)}
                     </span>
                   </div>
 

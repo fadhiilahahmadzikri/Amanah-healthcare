@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { Lock } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { Building2, HelpCircle, Lock, Megaphone } from 'lucide-react';
 import { Tabs, TabsContent } from '@/components/ui/tabs';
 import { SideTray, SideTrayLayout, type SideTrayItem } from '@/components/ui/side-tray';
 import { useAuthContext } from '@/lib/rbac/auth-context';
@@ -12,13 +13,21 @@ import { SearchEngineDialog, useStateSearchEngine } from '@/components/search-en
 import { cn } from '@/lib/utils';
 import { getEssentialFirstIcon, renderEssentialIcon } from '../utils/essential-icon-resolver';
 import type {
+  ClinicFacilityItem,
+  CreateClinicFacilityPayload,
+  CreateSupportFaqPayload,
   DemographicMasterItem,
   FacilityResource,
+  SupportFaqItem,
+  UpdateClinicFacilityPayload,
+  UpdateSupportFaqPayload,
 } from '../types/clinic-essentials.types';
 import type {
   ClinicEssentialEditItem,
   ClinicEssentialEntityType,
 } from '../model/useClinicEssentialFormModal';
+import { clinicEssentialsApi } from '../api/clinic-essentials.api';
+import { clinicEssentialsKeys } from '../api/query-keys';
 
 // Hooks
 import { useClinicEssentialsData } from '../hooks/useClinicEssentialsData';
@@ -31,6 +40,10 @@ import { ClinicEssentialsFloatingBulkBar } from './layout/clinic-essentials-floa
 import { ClinicEssentialsDeleteDialogs } from './layout/clinic-essentials-delete-dialogs';
 import { ClinicEssentialsModals } from './layout/clinic-essentials-modals';
 
+// Dialogs
+import { FacilityFormDialog } from './dialogs/facility-form-dialog';
+import { FaqFormDialog } from './dialogs/faq-form-dialog';
+
 // Atomic Tab Components
 import { UnitTypesTab } from './tabs/unit-types-tab';
 import { UnitsTab } from './tabs/units-tab';
@@ -39,6 +52,9 @@ import { CategoriesTab } from './tabs/categories-tab';
 import { ServicesTab } from './tabs/services-tab';
 import { RelationshipsTab } from './tabs/relationships-tab';
 import { DemographicMasterTab } from './tabs/demographic-master-tab';
+import { FacilitiesTab } from './tabs/facilities-tab';
+import { FaqsTab } from './tabs/faqs-tab';
+import { PromotionsManagementTab } from '@/features/promotions';
 
 export function ClinicEssentialsView() {
   const { can } = useAuthContext();
@@ -60,6 +76,26 @@ export function ClinicEssentialsView() {
     type: ClinicEssentialEntityType;
     editItem?: ClinicEssentialEditItem | null;
   } | null>(null);
+
+  const queryClient = useQueryClient();
+
+  // Facility Form Dialog state
+  const [facilityModal, setFacilityModal] = React.useState<{
+    open: boolean;
+    editItem?: ClinicFacilityItem | null;
+  }>({
+    open: false,
+    editItem: null,
+  });
+
+  // FAQ Form Dialog state
+  const [faqModal, setFaqModal] = React.useState<{
+    open: boolean;
+    editItem?: SupportFaqItem | null;
+  }>({
+    open: false,
+    editItem: null,
+  });
 
   // Selected IDs for detail modals
   const [viewingUnitId, setViewingUnitId] = React.useState<string | null>(null);
@@ -85,6 +121,9 @@ export function ClinicEssentialsView() {
     rooms,
     categories,
     services,
+    facilities,
+    faqs,
+    promotions,
     forms,
     relationships,
     bloodTypes,
@@ -96,6 +135,9 @@ export function ClinicEssentialsView() {
     isLoadingRooms,
     isLoadingCategories,
     isLoadingServices,
+    isLoadingFacilities,
+    isLoadingFaqs,
+    isLoadingPromotions,
     isLoadingRelationships,
     isLoadingBloodTypes,
     isLoadingEducationLevels,
@@ -106,6 +148,9 @@ export function ClinicEssentialsView() {
     filteredRooms,
     filteredCategories,
     filteredServices,
+    filteredFacilities,
+    filteredFaqs,
+    filteredPromotions,
     filteredRelationships,
     filteredBloodTypes,
     filteredEducationLevels,
@@ -140,6 +185,12 @@ export function ClinicEssentialsView() {
         return filteredCategories;
       case 'services':
         return filteredServices;
+      case 'facilities':
+        return filteredFacilities;
+      case 'faqs':
+        return filteredFaqs;
+      case 'promotions':
+        return filteredPromotions;
       case 'relationships':
         return filteredRelationships;
       case 'blood-types':
@@ -160,6 +211,9 @@ export function ClinicEssentialsView() {
     filteredRooms,
     filteredCategories,
     filteredServices,
+    filteredFacilities,
+    filteredFaqs,
+    filteredPromotions,
     filteredRelationships,
     filteredBloodTypes,
     filteredEducationLevels,
@@ -267,6 +321,27 @@ export function ClinicEssentialsView() {
         disabled: isServicesLocked,
       },
       {
+        key: 'facilities',
+        label: 'Fasilitas Unggulan',
+        icon: <Building2 className='size-4 text-blue-600' />,
+        count: filteredFacilities.length,
+        description: 'Carousel fasilitas & kenyamanan landing page',
+      },
+      {
+        key: 'faqs',
+        label: 'FAQ Landing Page',
+        icon: <HelpCircle className='size-4 text-purple-600' />,
+        count: filteredFaqs.length,
+        description: 'Pertanyaan umum & informasi landing page',
+      },
+      {
+        key: 'promotions',
+        label: 'Promo & Pengumuman',
+        icon: <Megaphone className='size-4 text-emerald-600' />,
+        count: filteredPromotions.length,
+        description: 'Banner pengumuman, popup modal & penawaran',
+      },
+      {
         key: 'relationships',
         label: 'Relasi Pasien',
         icon: renderEssentialIcon(getEssentialFirstIcon('relationships', { relationships })),
@@ -315,6 +390,9 @@ export function ClinicEssentialsView() {
       filteredRooms.length,
       filteredCategories.length,
       filteredServices.length,
+      filteredFacilities.length,
+      filteredFaqs.length,
+      filteredPromotions.length,
       filteredRelationships.length,
     ]
   );
@@ -359,6 +437,8 @@ export function ClinicEssentialsView() {
         onOpenDemographicModal={(type, label) =>
           setDemographicModal({ open: true, type, label, editItem: null })
         }
+        onOpenFacilityModal={() => setFacilityModal({ open: true, editItem: null })}
+        onOpenFaqModal={() => setFaqModal({ open: true, editItem: null })}
       />
 
       {/* Tabs Layout with Master SideTray Navigation */}
@@ -528,6 +608,85 @@ export function ClinicEssentialsView() {
               }
               onOpenCreate={() => setActiveModal({ type: 'service', editItem: null })}
               onResetFilter={handleResetAll}
+              cardGridClassName={cardGridClassName}
+            />
+          </TabsContent>
+
+          {/* 4.1. Tab Facilities (Carousel Unggulan) */}
+          <TabsContent value='facilities' className='mt-0'>
+            <FacilitiesTab
+              facilities={filteredFacilities}
+              totalCount={facilities.length}
+              isLoading={isLoadingFacilities}
+              canManage={canManage}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleActive={(id, newActive) =>
+                toggleActiveMutation.mutate({ resource: 'facilities', id, isActive: newActive })
+              }
+              isTogglingActiveId={
+                toggleActiveMutation.isPending &&
+                toggleActiveMutation.variables?.resource === 'facilities'
+                  ? toggleActiveMutation.variables.id
+                  : null
+              }
+              onEdit={(item) => setFacilityModal({ open: true, editItem: item })}
+              onDelete={(item) =>
+                setDeletingItem({ type: 'facilities', id: item.id, name: item.title })
+              }
+              onOpenCreate={() => setFacilityModal({ open: true, editItem: null })}
+              onResetFilter={handleResetAll}
+              cardGridClassName={cardGridClassName}
+            />
+          </TabsContent>
+
+          {/* 4.2. Tab FAQs (Akordeon FAQ Landing Page) */}
+          <TabsContent value='faqs' className='mt-0'>
+            <FaqsTab
+              faqs={filteredFaqs}
+              totalCount={faqs.length}
+              isLoading={isLoadingFaqs}
+              canManage={canManage}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleActive={(id, newActive) =>
+                toggleActiveMutation.mutate({ resource: 'faqs', id, isActive: newActive })
+              }
+              isTogglingActiveId={
+                toggleActiveMutation.isPending &&
+                toggleActiveMutation.variables?.resource === 'faqs'
+                  ? toggleActiveMutation.variables.id
+                  : null
+              }
+              onEdit={(item) => setFaqModal({ open: true, editItem: item })}
+              onDelete={(item) =>
+                setDeletingItem({ type: 'faqs', id: item.id, name: item.title })
+              }
+              onOpenCreate={() => setFaqModal({ open: true, editItem: null })}
+              onResetFilter={handleResetAll}
+              cardGridClassName={cardGridClassName}
+            />
+          </TabsContent>
+
+          {/* 4.5. Tab Promotions */}
+          <TabsContent value='promotions' className='mt-0'>
+            <PromotionsManagementTab
+              services={services}
+              canManage={canManage}
+              selectedIds={selectedIds}
+              onToggleSelect={handleToggleSelect}
+              onToggleActive={(id, newActive) =>
+                toggleActiveMutation.mutate({ resource: 'promotions', id, isActive: newActive })
+              }
+              isTogglingActiveId={
+                toggleActiveMutation.isPending &&
+                toggleActiveMutation.variables?.resource === 'promotions'
+                  ? toggleActiveMutation.variables.id
+                  : null
+              }
+              onDelete={(promo) =>
+                setDeletingItem({ type: 'promotions', id: promo.id, name: promo.title })
+              }
               cardGridClassName={cardGridClassName}
             />
           </TabsContent>
@@ -788,6 +947,39 @@ export function ClinicEssentialsView() {
         onCloseDemographicModal={() =>
           setDemographicModal((prev) => ({ ...prev, open: false, editItem: null }))
         }
+      />
+
+      {/* Facility Form Dialog */}
+      <FacilityFormDialog
+        open={facilityModal.open}
+        onOpenChange={(open) => !open && setFacilityModal({ open: false, editItem: null })}
+        editItem={facilityModal.editItem}
+        services={services}
+        onSubmit={async (payload, id) => {
+          if (id) {
+            await clinicEssentialsApi.updateFacility(id, payload as UpdateClinicFacilityPayload);
+          } else {
+            await clinicEssentialsApi.createFacility(payload as CreateClinicFacilityPayload);
+          }
+          queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
+        }}
+      />
+
+      {/* FAQ Form Dialog */}
+      <FaqFormDialog
+        open={faqModal.open}
+        onOpenChange={(open) => !open && setFaqModal({ open: false, editItem: null })}
+        editItem={faqModal.editItem}
+        services={services}
+        categories={categories}
+        onSubmit={async (payload, id) => {
+          if (id) {
+            await clinicEssentialsApi.updateFaq(id, payload as UpdateSupportFaqPayload);
+          } else {
+            await clinicEssentialsApi.createFaq(payload as CreateSupportFaqPayload);
+          }
+          queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
+        }}
       />
 
       {/* Deletion Confirmation Dialogs */}

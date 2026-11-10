@@ -97,10 +97,10 @@ export function PayrollAuditMutationModal({
         <div className='shrink-0 pb-3.5 border-b border-border/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
-              Audit Mutasi Komponen Penggajian
+              Rincian Mutasi Gaji
             </h3>
             <p className='text-xs text-muted-foreground mt-0.5 truncate'>
-              {period?.periodName ?? 'Periode Penggajian'} • {filteredMutations.length} total mutasi
+              {period?.periodName ?? 'Periode Penggajian'} • {filteredMutations.length} data
               tercatat
             </p>
           </div>
@@ -109,7 +109,7 @@ export function PayrollAuditMutationModal({
           <div className='w-full sm:w-52 shrink-0'>
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger className='h-8.5 text-xs bg-card'>
-                <SelectValue placeholder='Semua tipe mutasi' />
+                <SelectValue placeholder='Semua komponen' />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value='all' className='text-xs'>
@@ -136,7 +136,7 @@ export function PayrollAuditMutationModal({
         <div className='flex-1 min-h-0 overflow-y-auto py-3 relative'>
           {filteredMutations.length === 0 ? (
             <div className='p-12 text-center text-xs text-muted-foreground'>
-              Tidak ada data entri mutasi pada kriteria ini.
+              Tidak ada data mutasi gaji untuk filter ini.
             </div>
           ) : (
             <div className='border border-border/60 rounded-xl overflow-hidden'>
@@ -147,13 +147,13 @@ export function PayrollAuditMutationModal({
                       Karyawan / Staf
                     </TableHead>
                     <TableHead className='text-xs font-semibold text-foreground py-2.5'>
-                      Komponen Mutasi
+                      Komponen
                     </TableHead>
                     <TableHead className='text-xs font-semibold text-foreground py-2.5'>
                       Sumber
                     </TableHead>
                     <TableHead className='text-xs font-semibold text-foreground py-2.5 text-center'>
-                      Volume Jam
+                      Durasi Jam
                     </TableHead>
                     <TableHead className='text-xs font-semibold text-foreground py-2.5 text-right pr-4'>
                       Nominal
@@ -213,7 +213,7 @@ export function PayrollAuditMutationModal({
         {/* Pinned Footer */}
         <div className='shrink-0 pt-3.5 border-t border-border/50 flex items-center justify-between gap-3'>
           <div className='text-xs text-muted-foreground font-medium'>
-            Akumulasi Mutasi Terfilter:{' '}
+            Total Nominal Terpilih:{' '}
             <span className='font-bold text-foreground tabular-nums'>
               {formatCurrency(totalAmount)}
             </span>

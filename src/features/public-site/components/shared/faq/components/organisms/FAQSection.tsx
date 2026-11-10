@@ -1,12 +1,16 @@
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Accordion } from '@/features/public-site/components/ui/accordion';
 import { AppConfig } from '@/features/public-site/lib/app-config';
 import { SectionContainer } from '../../../SectionContainer';
 import { SectionHeader } from '../../../SectionHeader';
 import {
   createHealthcareFAQJsonLd,
-  getHealthcareFAQItems,
   healthcareFAQSectionCopy
 } from '../../data';
+import type { HealthcareFAQItem } from '../../types';
+import { publicContentService } from '@/features/public-site/api/public-content.service';
 import { FAQJsonLd } from '../atoms/FAQJsonLd';
 import { FAQAccordionItem } from '../molecules/FAQAccordionItem';
 
@@ -14,17 +18,49 @@ type FAQSectionProps = {
   activePath: string;
   className?: string;
   locale?: string;
+  initialItems?: HealthcareFAQItem[];
 };
 
 export function FAQSection({
   activePath,
   className,
-  locale = AppConfig.i18n.defaultLocale
+  locale = AppConfig.i18n.defaultLocale,
+  initialItems
 }: FAQSectionProps) {
-  const items = getHealthcareFAQItems(activePath);
+  const [items, setItems] = useState<HealthcareFAQItem[]>(initialItems || []);
+  const [isLoading, setIsLoading] = useState(!initialItems || initialItems.length === 0);
+
+  useEffect(() => {
+    if (initialItems && initialItems.length > 0) {
+      setItems(initialItems);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    publicContentService
+      .getFaqs(activePath)
+      .then((data) => {
+        if (isMounted) {
+          setItems(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch FAQs on client:', err);
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activePath, initialItems]);
+
   const schema = createHealthcareFAQJsonLd({ activePath, items, locale });
 
-  if (items.length === 0) {
+  if (items.length === 0 && !isLoading) {
     return null;
   }
 
@@ -54,11 +90,19 @@ export function FAQSection({
           />
 
           <div className='mx-auto mt-10 max-w-4xl border-y border-line'>
-            <Accordion type='single' collapsible defaultValue={items[0]?.id}>
-              {items.map((item) => (
-                <FAQAccordionItem key={item.id} item={item} />
-              ))}
-            </Accordion>
+            {isLoading && items.length === 0 ? (
+              <div className='space-y-4 py-8'>
+                <div className='h-12 w-full animate-pulse bg-muted/30' />
+                <div className='h-12 w-full animate-pulse bg-muted/30' />
+                <div className='h-12 w-full animate-pulse bg-muted/30' />
+              </div>
+            ) : (
+              <Accordion type='single' collapsible defaultValue={items[0]?.id}>
+                {items.map((item) => (
+                  <FAQAccordionItem key={item.id} item={item} />
+                ))}
+              </Accordion>
+            )}
           </div>
         </div>
       </SectionContainer>

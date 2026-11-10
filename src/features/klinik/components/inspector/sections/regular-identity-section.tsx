@@ -90,7 +90,7 @@ export function RegularIdentitySection({
   );
 
   return (
-    <div className='rounded-xl border border-border/60 p-4 bg-muted/10 space-y-4 shadow-2xs font-sans'>
+    <div className='rounded-2xl border border-border/70 p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 space-y-4 shadow-xs font-sans'>
       <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
         Identitas Pasien & Demografi
       </span>
@@ -410,8 +410,8 @@ export function RegularIdentitySection({
 
           <PatientLineInput id='read-email' label='Email Pasien' value={email} readOnly />
 
-          <div className='col-span-1 sm:col-span-2 space-y-3 pt-2 pb-1 border-t border-border/30'>
-            <div className='flex items-center justify-between pb-1'>
+          <div className='col-span-1 sm:col-span-2 space-y-3 p-3.5 rounded-xl bg-card border border-border/60 shadow-2xs'>
+            <div className='flex items-center justify-between pb-1 border-b border-border/30'>
               <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
                 Alamat Domisili Pasien
               </span>

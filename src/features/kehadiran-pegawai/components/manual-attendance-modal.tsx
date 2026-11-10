@@ -94,24 +94,22 @@ export function ManualAttendanceModal({ isOpen, onClose }: ManualAttendanceModal
         </div>
 
         {/* 3. Footer Actions */}
-        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
+        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-2.5'>
           <Button
             type='button'
             variant='outline'
-            shape='pill'
-            size='default'
+            size='sm'
             onClick={onClose}
-            className='px-6 font-medium text-xs sm:text-sm'
+            className='px-4 font-medium text-xs h-8.5 rounded-xl cursor-pointer'
           >
             Batal
           </Button>
           <Button
             type='submit'
             variant='default'
-            shape='pill'
-            size='default'
+            size='sm'
             disabled={mutation.isPending || !staffId.trim()}
-            className='px-7 font-semibold text-xs sm:text-sm'
+            className='px-4 font-semibold text-xs h-8.5 rounded-xl cursor-pointer'
           >
             {mutation.isPending ? (
               <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />

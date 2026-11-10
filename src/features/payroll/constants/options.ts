@@ -65,9 +65,11 @@ export const STATUS_FILTER_OPTIONS: Array<{
 }> = [{ label: 'Semua Status', value: 'all' }, ...STATUS_FACET_OPTIONS];
 
 export const SOURCE_TYPE_LABELS: Record<string, string> = {
-  roster: 'Jadwal dinas',
+  roster: 'Jadwal Dinas',
   leave_request: 'Izin / Cuti',
-  attendance: 'Presensi harian'
+  replacement_claim: 'Dinas Pengganti',
+  attendance: 'Presensi Harian',
+  manual: 'Penyesuaian Manual'
 };
 
 export const ENTRY_TYPE_CONFIG: Record<

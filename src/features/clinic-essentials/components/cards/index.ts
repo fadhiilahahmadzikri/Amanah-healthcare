@@ -5,3 +5,5 @@ export * from './service-category-card';
 export * from './clinic-service-card';
 export * from './patient-relationship-type-card';
 export * from './demographic-master-card';
+export * from './clinic-facility-card';
+export * from './support-faq-card';

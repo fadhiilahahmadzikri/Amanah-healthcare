@@ -21,11 +21,9 @@ export function useCheckoutAttendanceMutation() {
     }) => {
       return attendanceService.checkoutStaffAttendance(staffId, notes);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
-      toast.success(
-        `Presensi pulang dinas berhasil dicatat untuk ${variables.staffName || 'staf'}.`
-      );
+      toast.success('Presensi pulang berhasil dicatat.');
     },
     onError: (err: unknown) => {
       const errObj = err as

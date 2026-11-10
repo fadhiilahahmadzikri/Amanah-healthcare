@@ -47,8 +47,7 @@ export function ModalWrapper({
     if (backdropRef.current && modalBoxRef.current) {
       gsap.to(modalBoxRef.current, {
         opacity: 0,
-        scale: 0.96,
-        y: 8,
+        scale: 0.97,
         duration: 0.18,
         ease: 'power2.in'
       });
@@ -94,8 +93,8 @@ export function ModalWrapper({
 
       gsap.fromTo(
         modalBoxRef.current,
-        { opacity: 0, scale: 0.96, y: 12 },
-        { opacity: 1, scale: 1, y: 0, duration: 0.28, ease: 'power3.out' }
+        { opacity: 0, scale: 0.97 },
+        { opacity: 1, scale: 1, duration: 0.24, ease: 'power3.out' }
       );
     } else {
       document.body.style.overflow = '';
@@ -115,7 +114,7 @@ export function ModalWrapper({
       ref={backdropRef}
       data-slot='modal-wrapper'
       className={cn(
-        'pointer-events-auto fixed inset-0 z-50 flex h-screen w-screen items-center justify-center overflow-y-auto p-4 backdrop-blur-xs',
+        'pointer-events-auto fixed inset-0 z-50 flex h-[100dvh] w-full items-center justify-center p-4 sm:p-6 backdrop-blur-xs select-none',
         canvasMode
           ? 'bg-background/90 bg-[radial-gradient(color-mix(in_oklab,var(--foreground)_12%,transparent)_1px,transparent_1px)] [background-size:20px_20px]'
           : 'bg-gradient-to-b from-black/0 via-black/45 to-black/85',
@@ -134,7 +133,7 @@ export function ModalWrapper({
       {attachedAside ? (
         <div
           className={cn(
-            'pointer-events-none relative z-10 my-auto flex w-full justify-center gap-3',
+            'pointer-events-none relative z-10 m-0 flex w-full justify-center gap-3',
             canvasMode ? 'max-w-[1440px] items-stretch px-2 sm:px-4' : 'max-w-full items-center'
           )}
         >
@@ -170,7 +169,7 @@ export function ModalWrapper({
           role='dialog'
           aria-modal='true'
           className={cn(
-            'relative z-10 my-auto w-full rounded-2xl border border-border/50 bg-card p-6 font-sans text-card-foreground shadow-2xl transition-[max-width,width,max-height,height] duration-300 ease-out sm:p-7 overflow-hidden',
+            'relative z-10 m-0 w-full rounded-2xl border border-border/50 bg-card p-6 font-sans text-card-foreground shadow-2xl transition-[max-width,width,max-height,height] duration-300 ease-out sm:p-7 overflow-hidden',
             maxWidth,
             className
           )}

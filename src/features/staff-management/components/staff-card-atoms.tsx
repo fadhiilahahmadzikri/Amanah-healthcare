@@ -235,20 +235,20 @@ export function StaffIdentitySection({
 }) {
   return (
     <div className='flex items-start gap-3 min-w-0 relative z-20 mt-2.5'>
-      <Avatar className='size-10 sm:size-11 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden'>
+      <Avatar className='size-11 sm:size-12 rounded-xl sm:rounded-2xl ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden aspect-square'>
         <AvatarImage
           src={photoUrl || DEFAULT_AVATAR_PATH}
           alt={fullName}
-          className='object-cover size-full aspect-square'
+          className='object-cover size-full aspect-square rounded-xl sm:rounded-2xl'
         />
-        <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+        <AvatarFallback className='p-0 bg-transparent overflow-hidden rounded-xl sm:rounded-2xl'>
           <Image
             src={DEFAULT_AVATAR_PATH}
             alt={fullName}
-            width={44}
-            height={44}
+            width={48}
+            height={48}
             unoptimized
-            className='size-full object-cover rounded-full aspect-square'
+            className='size-full object-cover rounded-xl sm:rounded-2xl aspect-square'
           />
         </AvatarFallback>
       </Avatar>

@@ -56,7 +56,7 @@ export function ReplacementCard({
       name={formattedDate}
       subtitle={
         opportunity.leaveReason ? (
-          <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
+          <p className='text-[11.5px] sm:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 mt-0.5 truncate'>
             {opportunity.leaveReason}
           </p>
         ) : undefined

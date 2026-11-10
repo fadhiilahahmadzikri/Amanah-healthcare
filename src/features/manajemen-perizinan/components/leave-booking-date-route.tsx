@@ -29,11 +29,11 @@ function EndpointBlock({
 
   return (
     <div
-      className={`flex flex-col min-w-0 flex-1 max-w-[42%] ${
+      className={`flex flex-col min-w-0 flex-1 ${
         isRight ? 'items-end text-right' : 'items-start text-left'
       }`}
     >
-      <span className='text-[10px] font-semibold text-muted-foreground/80 leading-none mb-1 truncate max-w-full block whitespace-nowrap'>
+      <span className='text-[9px] sm:text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground/75 leading-none mb-1 truncate max-w-full block whitespace-nowrap'>
         {label}
       </span>
       <div
@@ -41,10 +41,10 @@ function EndpointBlock({
           isRight ? 'flex-row-reverse' : 'flex-row'
         }`}
       >
-        <span className='text-[19px] sm:text-[21px] xl:text-[23px] font-bold text-foreground leading-none tracking-tight font-sans shrink-0'>
+        <span className='text-[17px] sm:text-[18px] xl:text-[19px] font-extrabold text-foreground leading-none tracking-tight font-sans shrink-0'>
           {dayNumber}
         </span>
-        <span className='text-[11px] sm:text-[12px] font-bold text-primary tracking-wide leading-none truncate max-w-[50px] sm:max-w-[65px]'>
+        <span className='text-[10.5px] sm:text-[11px] font-bold text-primary tracking-wide leading-none truncate max-w-[55px]'>
           {monthCode}
         </span>
       </div>
@@ -81,7 +81,7 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
 
   return (
     <div
-      className={`flex flex-col w-full min-w-0 select-none my-2 sm:my-2.5 py-0.5 ${className || ''}`}
+      className={`flex flex-col w-full min-w-0 select-none my-2.5 sm:my-3 py-1 min-h-[58px] justify-center ${className || ''}`}
     >
       {/* Route Section: Left Endpoint -> Path Connector -> Right Endpoint */}
       <div className='flex items-center justify-between gap-1 sm:gap-1.5 w-full min-w-0'>
@@ -95,10 +95,10 @@ export function LeaveBookingDateRoute({ leave, className }: LeaveBookingDateRout
         />
 
         {/* Center Path Connector with Duration Badge */}
-        <div className='flex-shrink min-w-[32px] max-w-[90px] sm:max-w-[100px] flex items-center justify-center px-0.5 sm:px-1'>
+        <div className='flex-shrink-0 min-w-[36px] max-w-[80px] sm:max-w-[90px] flex items-center justify-center px-1'>
           <div className='flex items-center w-full justify-center gap-0.5 sm:gap-1 text-muted-foreground/60 min-w-0'>
             <div className='flex-1 min-w-[3px] h-[1.5px] border-t border-dashed border-border' />
-            <span className='inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-muted/60 border border-border/80 text-[9.5px] font-semibold text-foreground/80 whitespace-nowrap shadow-2xs shrink-0'>
+            <span className='inline-flex items-center px-1.5 sm:px-2 py-0.5 rounded-full bg-muted/60 border border-border/75 text-[9px] sm:text-[9.5px] font-semibold text-foreground/85 whitespace-nowrap shadow-2xs shrink-0'>
               {durationLabel}
             </span>
             <div className='flex-1 min-w-[3px] h-[1.5px] border-t border-dashed border-border' />

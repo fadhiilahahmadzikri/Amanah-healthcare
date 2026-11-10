@@ -4,12 +4,6 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import { AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
@@ -19,13 +13,12 @@ import type { DoctorDailySession, DoctorSchedule } from '../../api/types';
 import { sessionPatientsQueryOptions } from '../../api/queries';
 import type { BookedPatientItem } from '@/server/contracts/schedules/doctor-schedules.dto';
 import { DoctorSessionPatientCarousel } from './doctor-session-patient-carousel';
+import { DoctorSessionPatientButton } from './doctor-session-patient-button';
 
 export interface DoctorSessionAccordionItemProps {
   session: DoctorDailySession;
   doctor: DoctorSchedule;
   selectedDate?: string;
-  isPending: boolean;
-  onToggleStatus: (session: DoctorDailySession) => void;
   onSelectPatient: (patient: BookedPatientItem, session: DoctorDailySession) => void;
   onOpenPatientsModal?: (session: DoctorDailySession) => void;
   className?: string;
@@ -33,15 +26,13 @@ export interface DoctorSessionAccordionItemProps {
 
 /**
  * Clean Single Outer Container for a Session using AccordionItem
- * Header contains: session name, status, patient count, time & room (as tooltip), more options menu.
+ * Header contains: session name, status, patient count, time & room (as tooltip), direct patient list button.
  * Content displays: responsive horizontal patient carousel using BookedPatientOuterCard.
  */
 export function DoctorSessionAccordionItem({
   session,
   doctor,
   selectedDate,
-  isPending,
-  onToggleStatus,
   onSelectPatient,
   onOpenPatientsModal,
   className
@@ -142,58 +133,13 @@ export function DoctorSessionAccordionItem({
             </Tooltip>
           </div>
 
-          {/* Right: More Options Menu */}
-          <div className='flex items-center gap-1 shrink-0'>
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <span
-                  role='button'
-                  tabIndex={0}
-                  className='size-7 rounded-lg hover:bg-muted/80 text-muted-foreground hover:text-foreground flex items-center justify-center transition-colors cursor-pointer select-none'
-                  aria-label={`Opsi untuk sesi ${session.sessionName}`}
-                  onClick={(e) => e.stopPropagation()}
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      e.currentTarget.click();
-                    }
-                  }}
-                >
-                  <Icons.moreHorizontal className='size-4' />
-                </span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align='end' className='w-48 text-xs font-sans'>
-                {onOpenPatientsModal && (
-                  <DropdownMenuItem
-                    onClick={() => onOpenPatientsModal(session)}
-                    className='cursor-pointer gap-2 text-xs py-2'
-                  >
-                    <Icons.user className='size-3.5' />
-                    <span>Daftar Pasien ({bookedCount})</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuItem
-                  disabled={isPending}
-                  onClick={() => onToggleStatus(session)}
-                  className='cursor-pointer gap-2 text-xs py-2'
-                >
-                  {isClosed ? (
-                    <>
-                      <Icons.check className='size-3.5' />
-                      <span>Buka Sesi</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icons.close className='size-3.5' />
-                      <span>Tutup Sesi</span>
-                    </>
-                  )}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          {/* Right: Direct Icon-Based Patient List Button */}
+          {onOpenPatientsModal && (
+            <DoctorSessionPatientButton
+              bookedCount={bookedCount}
+              onClick={() => onOpenPatientsModal(session)}
+            />
+          )}
         </div>
       </AccordionTrigger>
 

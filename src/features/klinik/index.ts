@@ -10,6 +10,12 @@ export { PatientAppointmentActionDrawer } from './components/patient-appointment
 export type { PatientAppointmentActionDrawerProps } from './components/patient-appointment-action-drawer';
 export { PatientCheckInModal } from './components/patient-check-in-modal';
 export type { PatientCheckInModalProps } from './components/patient-check-in-modal';
+export { PatientCheckInResultDrawer } from './components/patient-check-in-result-drawer';
+export type {
+  PatientCheckInResultDrawerProps,
+  CheckInResultPayload,
+  CheckInOutcomeType
+} from './components/patient-check-in-result-drawer';
 export { AppointmentPagination } from './components/appointment-pagination';
 export { GuideView } from './components/guide-view';
 export { QueueView } from './components/queue-view';

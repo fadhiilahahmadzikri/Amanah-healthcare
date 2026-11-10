@@ -101,6 +101,8 @@ export function usePatientModalForm({
         : 'active') as PatientAccountStatus
     } as PatientFormValues,
     validators: {
+      onChange: patientSchema,
+      onBlur: patientSchema,
       onSubmit: patientSchema
     },
     onSubmit: async ({ value }) => {

@@ -60,13 +60,13 @@ export function PayrollSettingsButton({
       variant={variant}
       size='icon'
       disabled={disabled}
-      aria-label='Buka Pengaturan & Aksi Penggajian'
+      aria-label='Buka Pengaturan Gaji'
       onClick={shouldUseDrawer ? () => setIsDrawerOpen(true) : undefined}
       className={cn(
         'h-8 w-8 text-muted-foreground hover:text-foreground border-border/80 shrink-0 transition-colors',
         className
       )}
-      title='Pengaturan & Tata Kelola Penggajian'
+      title='Pengaturan Gaji'
     >
       <Icons.settings className='size-3.5' />
     </Button>
@@ -82,10 +82,10 @@ export function PayrollSettingsButton({
           <DrawerContent className='max-h-[85vh] font-sans'>
             <DrawerHeader className='text-left pb-2'>
               <DrawerTitle className='text-base font-bold text-foreground'>
-                Pengaturan & tata kelola penggajian
+                Pengaturan Gaji
               </DrawerTitle>
               <DrawerDescription className='text-xs text-muted-foreground'>
-                Konfigurasi tarif, audit mutasi akuntansi, dan siklus tutup buku
+                Atur tarif, jam kerja, sinkronisasi cuti, dan tutup buku periode
               </DrawerDescription>
             </DrawerHeader>
 
@@ -97,7 +97,7 @@ export function PayrollSettingsButton({
                   setIsDrawerOpen(false);
                   onOpenRates();
                 }}
-                aria-label='Standar tarif kompensasi'
+                aria-label='Tarif gaji per jabatan'
                 className='w-full text-left p-3 rounded-xl border border-border/60 hover:bg-muted/50 transition-colors flex items-center justify-between cursor-pointer group'
               >
                 <div className='flex items-center gap-3'>
@@ -106,10 +106,10 @@ export function PayrollSettingsButton({
                   </div>
                   <div>
                     <p className='text-xs font-semibold text-foreground group-hover:text-primary transition-colors'>
-                      Standar tarif kompensasi
+                      Tarif Gaji
                     </p>
                     <p className='text-[11px] text-muted-foreground'>
-                      Konfigurasi tarif dasar dan lembur dokter, bidan, dan staf
+                      Atur gaji pokok dan lembur per jam tiap jabatan staf
                     </p>
                   </div>
                 </div>
@@ -122,7 +122,7 @@ export function PayrollSettingsButton({
                   setIsDrawerOpen(false);
                   onOpenTiming();
                 }}
-                aria-label='Standar jam kerja dan pembulatan dinas'
+                aria-label='Aturan jam kerja dan pembulatan'
                 className='w-full text-left p-3 rounded-xl border border-border/60 hover:bg-muted/50 transition-colors flex items-center justify-between cursor-pointer group'
               >
                 <div className='flex items-center gap-3'>
@@ -131,16 +131,16 @@ export function PayrollSettingsButton({
                   </div>
                   <div>
                     <p className='text-xs font-semibold text-foreground group-hover:text-primary transition-colors'>
-                      Standar jam kerja & pembulatan dinas
+                      Aturan Jam Kerja
                     </p>
                     <p className='text-[11px] text-muted-foreground'>
-                      Batas minimum durasi berbayar dan interval pembulatan presensi
+                      Syarat minimal menit kerja dan kelipatan pembulatan dinas
                     </p>
                   </div>
                 </div>
               </button>
 
-              {/* 2. Rekonsiliasi Cuti Harian */}
+              {/* 3. Rekonsiliasi Cuti Harian */}
               <button
                 type='button'
                 onClick={() => {
@@ -148,7 +148,7 @@ export function PayrollSettingsButton({
                   onReconcileDailyLeave();
                 }}
                 disabled={isReconciling}
-                aria-label='Rekonsiliasi cuti harian'
+                aria-label='Sinkronkan potongan cuti'
                 className='w-full text-left p-3 rounded-xl border border-border/60 hover:bg-muted/50 transition-colors flex items-center justify-between cursor-pointer group'
               >
                 <div className='flex items-center gap-3'>
@@ -161,23 +161,23 @@ export function PayrollSettingsButton({
                   </div>
                   <div>
                     <p className='text-xs font-semibold text-foreground group-hover:text-primary transition-colors'>
-                      Rekonsiliasi cuti harian
+                      Sinkronkan Cuti
                     </p>
                     <p className='text-[11px] text-muted-foreground'>
-                      Sinkronkan jadwal dinas dan pemotongan cuti staf yang disetujui
+                      Sinkronkan pemotongan upah staf yang izin atau cuti
                     </p>
                   </div>
                 </div>
               </button>
 
-              {/* 3. Audit Mutasi */}
+              {/* 4. Audit Mutasi */}
               <button
                 type='button'
                 onClick={() => {
                   setIsDrawerOpen(false);
                   onOpenAudit();
                 }}
-                aria-label='Audit mutasi periode'
+                aria-label='Rincian mutasi gaji'
                 className='w-full text-left p-3 rounded-xl border border-border/60 hover:bg-muted/50 transition-colors flex items-center justify-between cursor-pointer group'
               >
                 <div className='flex items-center gap-3'>
@@ -186,16 +186,16 @@ export function PayrollSettingsButton({
                   </div>
                   <div>
                     <p className='text-xs font-semibold text-foreground group-hover:text-primary transition-colors'>
-                      Audit mutasi periode
+                      Rincian Mutasi Gaji
                     </p>
                     <p className='text-[11px] text-muted-foreground'>
-                      Periksa rincian mutasi jam dinas, denda, dan insentif
+                      Lihat riwayat penambahan atau potongan gaji staf
                     </p>
                   </div>
                 </div>
               </button>
 
-              {/* 4. Tutup Buku Periode */}
+              {/* 5. Tutup Buku Periode */}
               <button
                 type='button'
                 onClick={() => {
@@ -221,12 +221,12 @@ export function PayrollSettingsButton({
                   </div>
                   <div>
                     <p className='text-xs font-semibold text-foreground group-hover:text-primary transition-colors'>
-                      Tutup buku periode
+                      Tutup Buku Periode
                     </p>
                     <p className='text-[11px] text-muted-foreground'>
                       {canFinalize
                         ? 'Kunci nominal dan slip gaji periode ini permanen'
-                        : 'Periode harus dalam status terkalkulasi'}
+                        : 'Kalkulasi periode terlebih dahulu sebelum menutup buku'}
                     </p>
                   </div>
                 </div>
@@ -260,7 +260,7 @@ export function PayrollSettingsButton({
         >
           <div className='flex items-center gap-2'>
             <Icons.settings className='size-3.5 text-muted-foreground shrink-0' />
-            <span>Standar tarif</span>
+            <span>Tarif Gaji</span>
           </div>
         </DropdownMenuItem>
 
@@ -270,7 +270,7 @@ export function PayrollSettingsButton({
         >
           <div className='flex items-center gap-2'>
             <Icons.clock className='size-3.5 text-muted-foreground shrink-0' />
-            <span>Aturan kerja & pembulatan</span>
+            <span>Aturan Jam Kerja</span>
           </div>
         </DropdownMenuItem>
 
@@ -285,7 +285,7 @@ export function PayrollSettingsButton({
             ) : (
               <Icons.calendar className='size-3.5 text-muted-foreground shrink-0' />
             )}
-            <span>Rekonsiliasi cuti</span>
+            <span>Sinkronkan Cuti</span>
           </div>
         </DropdownMenuItem>
 
@@ -295,7 +295,7 @@ export function PayrollSettingsButton({
         >
           <div className='flex items-center gap-2'>
             <Icons.receipt className='size-3.5 text-muted-foreground shrink-0' />
-            <span>Audit mutasi</span>
+            <span>Rincian Mutasi Gaji</span>
           </div>
         </DropdownMenuItem>
 
@@ -315,7 +315,7 @@ export function PayrollSettingsButton({
             ) : (
               <Icons.lock className='size-3.5 text-muted-foreground shrink-0' />
             )}
-            <span>Tutup buku</span>
+            <span>Tutup Buku Periode</span>
           </div>
         </DropdownMenuItem>
       </DropdownMenuContent>

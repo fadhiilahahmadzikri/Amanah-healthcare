@@ -19,7 +19,7 @@ export function ReplacementDetailLeaveStaffSection({
   leaveReason
 }: ReplacementDetailLeaveStaffSectionProps) {
   return (
-    <div className='bg-muted/30 p-3 rounded-xl space-y-2 text-xs'>
+    <div className='bg-card border border-border/60 p-3.5 rounded-xl space-y-2 text-xs shadow-2xs'>
       <div className='text-xs font-semibold text-foreground'>Staf yang berhalangan cuti</div>
       <div className='flex items-center gap-2.5 text-foreground font-medium'>
         <Avatar className='size-8 rounded-lg border border-border/50 shrink-0'>

@@ -27,7 +27,7 @@ export default function ChatViewPage() {
   const { sendMessage, isClientTyping, sendTyping } = useAdminChat();
 
   return (
-    <PageContainer scrollable={false}>
+    <PageContainer scrollable={false} className='p-0 md:px-6 md:pt-4 md:pb-4'>
       <Suspense fallback={null}>
         <ChatParamSync />
       </Suspense>

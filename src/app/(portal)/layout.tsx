@@ -15,6 +15,8 @@ import { cookies, headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { requireSession } from '@/server/auth/session.dal';
 import { ROUTES, getRoleLandingPath, PORTAL_PREFIXES } from '@/core/routes';
+import { AUDIENCE } from '@/core/auth/permissions.constants';
+import { PromotionsProvider, PromoBanner, PromoModal } from '@/features/promotions';
 
 export const metadata: Metadata = {
   title: 'Amanah Healthcare Portal',
@@ -70,6 +72,26 @@ export default async function PortalLayout({ children }: { children: React.React
 
   const cookieStore = await cookies();
   const defaultOpen = cookieStore.get('sidebar_state')?.value !== 'false';
+  const isExternalAudience = audience === AUDIENCE.EXTERNAL;
+
+  const sidebarContent = (
+    <SidebarInset>
+      {isExternalAudience ? (
+        <div className='sticky top-0 z-50 w-full'>
+          <PromoBanner />
+          <Header />
+        </div>
+      ) : (
+        <Header />
+      )}
+      <InfobarProvider defaultOpen={false}>
+        {children}
+        <InfoSidebar side='right' />
+        <ChatwootWidget />
+        <AutoWebPushSync />
+      </InfobarProvider>
+    </SidebarInset>
+  );
 
   return (
     <AuthorizationProvider
@@ -81,15 +103,14 @@ export default async function PortalLayout({ children }: { children: React.React
       <KBar>
         <SidebarProvider defaultOpen={defaultOpen}>
           <AppSidebar />
-          <SidebarInset>
-            <Header />
-            <InfobarProvider defaultOpen={false}>
-              {children}
-              <InfoSidebar side='right' />
-              <ChatwootWidget />
-              <AutoWebPushSync />
-            </InfobarProvider>
-          </SidebarInset>
+          {isExternalAudience ? (
+            <PromotionsProvider>
+              {sidebarContent}
+              <PromoModal />
+            </PromotionsProvider>
+          ) : (
+            sidebarContent
+          )}
         </SidebarProvider>
       </KBar>
     </AuthorizationProvider>

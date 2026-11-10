@@ -110,7 +110,11 @@ export function PatientModal({
                 <PatientModalIdentityFields form={form} genders={genders} bloodTypes={bloodTypes} />
 
                 {/* Kolom 2: Pekerjaan, Domisili & Kontak */}
-                <PatientModalContactFields form={form} occupationOptions={occupationOptions} />
+                <PatientModalContactFields
+                  form={form}
+                  occupationOptions={occupationOptions}
+                  isEdit={isEdit}
+                />
               </div>
             </form.Form>
           </form.AppForm>

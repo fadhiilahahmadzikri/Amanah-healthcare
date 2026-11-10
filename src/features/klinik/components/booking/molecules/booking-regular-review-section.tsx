@@ -25,15 +25,16 @@ export function BookingRegularReviewSection({
   return (
     <div
       className={cn(
-        'space-y-0.5 text-xs border border-border/80 rounded-2xl p-2 bg-muted/20',
+        'space-y-1 text-xs border border-border/70 rounded-2xl p-3 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs',
         className
       )}
     >
-      {items.map((item, idx) => (
+      {items.map((item) => (
         <div
           key={item.label}
           role='button'
           tabIndex={0}
+          aria-label={`Ubah data ${item.label}`}
           onClick={() => onJumpToStep(item.step)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
@@ -42,24 +43,29 @@ export function BookingRegularReviewSection({
             }
           }}
           className={cn(
-            'group/item relative flex items-start justify-between py-2 px-2.5 rounded-xl transition-colors cursor-pointer select-none border border-transparent',
-            'hover:bg-card hover:border-border/60 hover:shadow-xs active:scale-[0.995]',
-            idx < items.length - 1 && 'border-b-border/40'
+            'group/item relative flex flex-col sm:flex-row sm:items-start sm:justify-between py-2.5 px-3 rounded-xl transition-all cursor-pointer select-none border border-border/50 bg-card shadow-2xs gap-1 sm:gap-2',
+            'hover:border-primary/40 hover:shadow-xs active:scale-[0.995]'
           )}
         >
-          <span className='text-muted-foreground text-[11px] sm:text-xs shrink-0 group-hover/item:text-foreground transition-colors pt-0.5'>
-            {item.label}
-          </span>
+          <div className='flex items-center justify-between w-full sm:w-auto gap-2'>
+            <span className='text-muted-foreground text-[11px] sm:text-xs shrink-0 group-hover/item:text-foreground transition-colors'>
+              {item.label}
+            </span>
+            <div className='flex items-center gap-1 text-[10.5px] font-medium text-primary sm:hidden'>
+              <span>Ubah</span>
+              <Icons.arrowRight className='size-2.5 stroke-[2.5]' />
+            </div>
+          </div>
 
-          <div className='flex items-start gap-2 shrink-0 ml-auto pl-2'>
-            <div className='flex items-center gap-1 text-[11px] font-semibold text-primary shrink-0 opacity-0 sm:group-hover/item:opacity-100 transition-opacity duration-150 pointer-events-none pt-0.5'>
+          <div className='flex items-start gap-2 sm:ml-auto w-full sm:w-auto justify-start sm:justify-end'>
+            <div className='hidden sm:flex items-center gap-1 text-[11px] font-semibold text-primary shrink-0 opacity-0 group-hover/item:opacity-100 transition-opacity duration-150 pointer-events-none pt-0.5'>
               <Icons.arrowRight className='size-3 stroke-[2.5]' />
               <span className='text-[10.5px] whitespace-nowrap'>Edit data ini</span>
             </div>
 
             <span
               className={cn(
-                'text-xs text-right max-w-[160px] sm:max-w-[210px] break-words leading-snug',
+                'text-xs text-left sm:text-right w-full sm:w-auto sm:max-w-[260px] break-words leading-snug',
                 item.valueClass
               )}
             >

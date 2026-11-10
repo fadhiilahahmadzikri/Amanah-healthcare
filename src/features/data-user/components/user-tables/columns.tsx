@@ -188,7 +188,7 @@ export function getUserColumns(): ColumnDef<UserItem>[] {
       header: '',
       cell: ({ row, table }) => <CellAction data={row.original} table={table} />,
       enableSorting: false,
-      size: 48
+      size: 56
     }
   ];
 }

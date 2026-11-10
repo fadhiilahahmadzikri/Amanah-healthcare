@@ -57,7 +57,7 @@ export function AssignReplacementModal({
       .filter((s) => {
         if (!query) return true;
         const name = s.fullName.toLowerCase();
-        const profession = s.profession.toLowerCase();
+        const profession = (s.profession || '').toLowerCase();
         return name.includes(query) || profession.includes(query);
       });
   }, [staffs, opportunity, searchStaff]);

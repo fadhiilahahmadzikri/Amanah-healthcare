@@ -11,15 +11,44 @@ export function getCommonPinningStyles<TData>({
   isHeader?: boolean;
 }): React.CSSProperties {
   const isPinned = column.getIsPinned();
+  const size = column.getSize();
 
   return {
     left: isPinned === 'left' ? `${column.getStart('left')}px` : undefined,
     right: isPinned === 'right' ? `${column.getAfter('right')}px` : undefined,
-    position: isPinned ? 'sticky' : 'relative',
-    background: isPinned ? 'var(--background)' : undefined,
-    width: column.getSize(),
-    zIndex: isPinned ? (isHeader ? 30 : 10) : 0
+    position: isPinned ? 'sticky' : undefined,
+    width: size !== 150 ? size : undefined,
+    minWidth: isPinned && size !== 150 ? size : undefined,
+    maxWidth: isPinned && size !== 150 ? size : undefined,
+    zIndex: isPinned ? (isHeader ? 30 : 10) : undefined
   };
+}
+
+export function getCommonPinningClasses<TData>({
+  column,
+  isHeader = false
+}: {
+  column: Column<TData>;
+  isHeader?: boolean;
+}): string {
+  const isPinned = column.getIsPinned();
+  if (!isPinned) return '';
+
+  if (isPinned === 'left') {
+    if (isHeader) {
+      return 'sticky left-0 bg-surface-subtle dark:bg-muted border-r border-border/60 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]';
+    }
+    return 'sticky left-0 bg-card group-hover/row:bg-surface-subtle/80 dark:group-hover/row:bg-muted/30 [tr[data-state=selected]_&]:bg-muted/50 border-r border-border/40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors';
+  }
+
+  if (isPinned === 'right') {
+    if (isHeader) {
+      return 'sticky right-0 bg-surface-subtle dark:bg-muted border-l border-border/60 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.08)]';
+    }
+    return 'sticky right-0 bg-card group-hover/row:bg-surface-subtle/80 dark:group-hover/row:bg-muted/30 [tr[data-state=selected]_&]:bg-muted/50 border-l border-border/40 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] transition-colors';
+  }
+
+  return '';
 }
 
 export function getFilterOperators(filterVariant: FilterVariant) {

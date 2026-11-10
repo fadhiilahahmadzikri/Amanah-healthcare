@@ -65,14 +65,14 @@ export function LeaveCard({
       subtitle={
         <div className='flex items-center gap-1.5 truncate mt-0.5'>
           {staff?.roleName && (
-            <span className='text-[11px] font-semibold text-primary/80 shrink-0'>
+            <span className='text-[10.5px] font-semibold text-primary/80 shrink-0'>
               {staff.roleName}
             </span>
           )}
           {staff?.roleName && staff?.profession && (
-            <span className='text-[10px] text-muted-foreground/60'>•</span>
+            <span className='text-[9px] text-muted-foreground/60'>•</span>
           )}
-          <p className='text-[12px] sm:text-[11.5px] xl:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 truncate'>
+          <p className='text-[11.5px] sm:text-[11px] font-medium text-muted-foreground tracking-tight line-clamp-1 truncate'>
             {staff?.profession || ''}
           </p>
         </div>

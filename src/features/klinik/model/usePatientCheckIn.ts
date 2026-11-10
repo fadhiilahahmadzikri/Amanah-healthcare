@@ -1,14 +1,26 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { AppError } from '@/core/errors/app-error';
 import { performCheckIn } from '@/features/appointment-pasien/api/service';
 import type { PerformCheckInSuccessData } from '@/features/appointment-pasien/api/types';
 import { klinikKeys } from '../api/query-keys';
 import { appointmentKeys } from '@/features/appointment-pasien/api/queries';
+import type { CheckInResultPayload, CheckInOutcomeType } from '../components/patient-check-in-result-drawer';
 
 export type CheckInTabMode = 'scan' | 'manual';
+
+const CHECK_IN_OUTCOMES: Record<string, { type: CheckInOutcomeType; title: string }> = {
+  INVALID_CHECK_IN_CODE: { type: 'invalid_code', title: 'Kode Check-In Tidak Valid' },
+  INVALID_CHECK_IN_QR: { type: 'invalid_qr', title: 'Kode QR Tidak Valid' },
+  CHECK_IN_ALREADY_USED: { type: 'already_checked_in', title: 'Sudah Pernah Digunakan' },
+  CHECK_IN_EXPIRED: { type: 'out_of_window', title: 'Kredensial Kedaluwarsa' },
+  CHECK_IN_WINDOW_TOO_EARLY: { type: 'out_of_window', title: 'Waktu Check-In Belum Dibuka' },
+  CHECK_IN_WINDOW_EXPIRED: { type: 'out_of_window', title: 'Waktu Check-In Telah Berakhir' },
+  CHECK_IN_NOT_TODAY: { type: 'out_of_window', title: 'Bukan Hari Layanan' },
+  CHECK_IN_FORBIDDEN: { type: 'forbidden', title: 'Akses Ditolak' }
+};
 
 export interface UsePatientCheckInParams {
   isOpen: boolean;
@@ -23,6 +35,9 @@ export interface UsePatientCheckInResult {
   cameraError: string | null;
   successResult: PerformCheckInSuccessData | null;
   isManualDrawerOpen: boolean;
+  isResultDrawerOpen: boolean;
+  isScannerPaused: boolean;
+  resultPayload: CheckInResultPayload | null;
   actions: {
     setActiveTab: (tab: CheckInTabMode) => void;
     setManualCode: (code: string) => void;
@@ -32,6 +47,9 @@ export interface UsePatientCheckInResult {
     handleScan: (rawDecoded: string) => Promise<void>;
     handleScannerError: (error: string) => void;
     clearCameraError: () => void;
+    resumeScanning: () => void;
+    openManualInput: () => void;
+    closeResultDrawer: () => void;
     handleClose: () => void;
   };
 }
@@ -43,52 +61,54 @@ export function usePatientCheckIn({
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<CheckInTabMode>('scan');
   const [isManualDrawerOpen, setIsManualDrawerOpen] = useState(false);
+  const [isResultDrawerOpen, setIsResultDrawerOpen] = useState(false);
+  const [resultPayload, setResultPayload] = useState<CheckInResultPayload | null>(null);
   const [manualCode, setManualCode] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [successResult, setSuccessResult] = useState<PerformCheckInSuccessData | null>(null);
 
+  const isCooldownRef = useRef(false);
+
   const handleCheckIn = useCallback(
     async (payload: { token?: string; manualCode?: string }) => {
       if (isSubmitting) return;
       setIsSubmitting(true);
+
       try {
-        const response = await performCheckIn(payload);
-        const rawData =
-          response && typeof response === 'object' && 'data' in response && response.data
-            ? response.data
-            : response && typeof response === 'object'
-              ? response
-              : null;
+        const appointment = await performCheckIn(payload);
 
-        const appointmentId = (rawData as { appointmentId?: string })?.appointmentId;
+        setSuccessResult(appointment);
+        setResultPayload({
+          type: 'success',
+          title: 'Check-In Berhasil!',
+          message: 'Nomor antrean Anda telah aktif. Silakan menunggu panggilan di ruang tunggu.',
+          queueNumber: appointment.queueNumber ? String(appointment.queueNumber) : undefined,
+          actionLabel: 'Lihat Antrean Saya'
+        });
+        setIsResultDrawerOpen(true);
 
-        if (rawData && appointmentId) {
-          const successData: PerformCheckInSuccessData = {
-            appointmentId,
-            status: (rawData as { status: any }).status,
-            checkedInAt:
-              (rawData as { checkedInAt?: string }).checkedInAt || new Date().toISOString(),
-            queueNumber: (rawData as { queueNumber?: string | number }).queueNumber
-              ? String((rawData as { queueNumber?: string | number }).queueNumber)
-              : undefined
-          };
-          setSuccessResult(successData);
-          toast.success(
-            (response as { message?: string })?.message ||
-              'Check-in berhasil! Anda telah masuk antrean.'
-          );
-          await Promise.allSettled([
-            queryClient.invalidateQueries({ queryKey: klinikKeys.all }),
-            queryClient.invalidateQueries({ queryKey: appointmentKeys.all })
-          ]);
-          onCheckInSuccess?.(successData);
-        } else {
-          toast.error((response as { message?: string })?.message || 'Check-in gagal diproses');
-        }
+        await Promise.allSettled([
+          queryClient.invalidateQueries({ queryKey: klinikKeys.all }),
+          queryClient.invalidateQueries({ queryKey: appointmentKeys.all })
+        ]);
+        onCheckInSuccess?.(appointment);
       } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : String(err);
-        toast.error(`Check-in gagal: ${msg}`);
+        const rawMsg = err instanceof Error ? err.message : String(err);
+        const errorCode = err instanceof AppError ? String(err.code) : '';
+        const isManual = Boolean(payload.manualCode);
+
+        const outcome = CHECK_IN_OUTCOMES[errorCode] ?? {
+          type: isManual ? 'invalid_code' : 'invalid_qr',
+          title: isManual ? 'Kode Check-In Tidak Valid' : 'Kode QR Tidak Valid'
+        };
+
+        setResultPayload({
+          type: outcome.type,
+          title: outcome.title,
+          message: rawMsg
+        });
+        setIsResultDrawerOpen(true);
       } finally {
         setIsSubmitting(false);
       }
@@ -98,22 +118,61 @@ export function usePatientCheckIn({
 
   const handleScan = useCallback(
     async (rawDecoded: string) => {
-      let token = rawDecoded.trim();
-      let parsedManualCode: string | undefined;
+      // Deterministic gate: Do not scan if submitting, drawer open, or in cooldown
+      if (isSubmitting || isResultDrawerOpen || isManualDrawerOpen || isCooldownRef.current) {
+        return;
+      }
 
-      try {
-        if (token.startsWith('{') && token.endsWith('}')) {
-          const parsed = JSON.parse(token);
-          if (parsed.token) token = parsed.token;
-          if (parsed.code) parsedManualCode = parsed.code;
-          if (parsed.manualCode) parsedManualCode = parsed.manualCode;
+      const trimmed = rawDecoded.trim();
+
+      if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+        try {
+          const parsed = JSON.parse(trimmed) as { token?: string; code?: string };
+          await handleCheckIn({ token: parsed.token, manualCode: parsed.code });
+          return;
+        } catch {
+          // If JSON parsing fails, continue to raw payload below
         }
-      } catch {}
+      }
 
-      await handleCheckIn({ token, manualCode: parsedManualCode });
+      // Raw token or manual code scan
+      if (trimmed.length === 6 && /^[A-Z0-9]+$/i.test(trimmed)) {
+        await handleCheckIn({ manualCode: trimmed.toUpperCase() });
+      } else {
+        await handleCheckIn({ token: trimmed });
+      }
     },
-    [handleCheckIn]
+    [isSubmitting, isResultDrawerOpen, isManualDrawerOpen, handleCheckIn]
   );
+
+  const resumeScanning = useCallback(() => {
+    setIsResultDrawerOpen(false);
+    setResultPayload(null);
+
+    // Apply brief cooldown (350ms) to prevent instantaneous re-trigger before camera repositions
+    isCooldownRef.current = true;
+    setTimeout(() => {
+      isCooldownRef.current = false;
+    }, 350);
+  }, []);
+
+  const openManualInput = useCallback(() => {
+    setIsResultDrawerOpen(false);
+    setResultPayload(null);
+    setIsManualDrawerOpen(true);
+  }, []);
+
+  const closeResultDrawer = useCallback(() => {
+    if (resultPayload?.type === 'success') {
+      setIsResultDrawerOpen(false);
+      setResultPayload(null);
+      setManualCode('');
+      setSuccessResult(null);
+      onClose();
+    } else {
+      resumeScanning();
+    }
+  }, [resultPayload?.type, onClose, resumeScanning]);
 
   const handleScannerError = useCallback((error: string) => {
     setCameraError(
@@ -131,21 +190,32 @@ export function usePatientCheckIn({
       .trim()
       .toUpperCase()
       .replace(/[^A-Z0-9]/g, '');
+
     if (!clean) {
-      toast.error('Masukkan kode manual check-in');
+      setResultPayload({
+        type: 'invalid_code',
+        title: 'Kode Tidak Lengkap',
+        message: 'Silakan masukkan 6 digit kode check-in yang tertera pada layar admin klinik.',
+        actionLabel: 'Masukkan Ulang Kode',
+        secondaryActionLabel: 'Pindai Kode QR'
+      });
+      setIsResultDrawerOpen(true);
       return;
     }
-    await handleCheckIn({ manualCode: clean });
+
     setIsManualDrawerOpen(false);
+    await handleCheckIn({ manualCode: clean });
   };
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setManualCode('');
     setSuccessResult(null);
     setCameraError(null);
     setIsManualDrawerOpen(false);
+    setIsResultDrawerOpen(false);
+    setResultPayload(null);
     onClose();
-  };
+  }, [onClose]);
 
   return {
     activeTab,
@@ -154,6 +224,9 @@ export function usePatientCheckIn({
     cameraError,
     successResult,
     isManualDrawerOpen,
+    isResultDrawerOpen,
+    isScannerPaused: isResultDrawerOpen || isSubmitting || isManualDrawerOpen,
+    resultPayload,
     actions: {
       setActiveTab,
       setManualCode,
@@ -163,6 +236,9 @@ export function usePatientCheckIn({
       handleScan,
       handleScannerError,
       clearCameraError,
+      resumeScanning,
+      openManualInput,
+      closeResultDrawer,
       handleClose
     }
   };

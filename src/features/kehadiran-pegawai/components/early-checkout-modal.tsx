@@ -64,13 +64,12 @@ export function EarlyCheckoutModal({
           <div className='flex items-center gap-2 text-amber-600 dark:text-amber-500 mb-1'>
             <Icons.alertCircle className='size-5' />
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              Presensi Pulang Lebih Awal
+              Presensi Pulang Staf
             </h3>
           </div>
           <p className='text-xs text-muted-foreground'>
             Staf <span className='font-semibold text-foreground'>{staffName}</span> melakukan
-            presensi pulang sebelum jam dinas normal berakhir. Mohon sertakan alasan resmi
-            kepulangan.
+            presensi pulang sebelum jam dinas berakhir. Masukkan alasan kepulangan.
           </p>
         </div>
 
@@ -80,12 +79,12 @@ export function EarlyCheckoutModal({
             htmlFor='early-checkout-reason'
             className='text-xs font-semibold text-foreground flex items-center justify-between'
           >
-            <span>Alasan Kepulangan Lebih Awal</span>
+            <span>Alasan Kepulangan</span>
             <span className='text-[10px] text-destructive'>Wajib diisi</span>
           </label>
           <textarea
             id='early-checkout-reason'
-            aria-label='Alasan Kepulangan Lebih Awal'
+            aria-label='Alasan Kepulangan'
             ref={reasonInputRef}
             rows={3}
             value={reason}
@@ -96,32 +95,30 @@ export function EarlyCheckoutModal({
         </div>
 
         {/* Footer Actions */}
-        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-3'>
+        <div className='pt-3 border-t border-border/40 flex items-center justify-end gap-2.5'>
           <Button
             type='button'
             variant='outline'
-            shape='pill'
-            size='default'
+            size='sm'
             onClick={onClose}
             disabled={isLoading}
-            className='px-6 font-medium text-xs sm:text-sm'
+            className='px-4 font-medium text-xs h-8.5 rounded-xl cursor-pointer'
           >
             Batal
           </Button>
           <Button
             type='submit'
             variant='default'
-            shape='pill'
-            size='default'
+            size='sm'
             disabled={isLoading || !reason.trim()}
-            className='px-7 font-semibold text-xs sm:text-sm bg-amber-600 hover:bg-amber-700 text-white'
+            className='px-4 font-semibold text-xs h-8.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white cursor-pointer'
           >
             {isLoading ? (
               <Icons.spinner className='mr-1.5 size-3.5 animate-spin' />
             ) : (
               <Icons.check className='mr-1.5 size-3.5' />
             )}
-            Simpan Kepulangan
+            Konfirmasi Pulang
           </Button>
         </div>
       </form>

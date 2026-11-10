@@ -12,7 +12,7 @@ import {
   DrawerFooter
 } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { Label } from '@/components/ui/label';
 import { Icons } from '@/components/icons';
 import { useMediaQuery } from '@/hooks/use-media-query';
@@ -74,67 +74,58 @@ export function PayrollReconcileLeaveModal({
       {!result ? (
         <>
           {/* Policy Banner */}
-          <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl text-xs space-y-1.5 leading-relaxed'>
-            <div className='font-semibold text-foreground flex items-center gap-1.5'>
-              <Icons.info className='size-3.5 text-primary shrink-0' />
-              <span>Ketentuan Rekonsiliasi Cuti</span>
-            </div>
-            <p className='text-muted-foreground text-[11px] max-w-lg'>
-              Sistem akan mengevaluasi seluruh pengajuan izin dan cuti yang telah disetujui pada
-              tanggal yang dipilih. Jika staf memiliki jadwal dinas pada tanggal tersebut, sistem
-              akan memotong nominal upah pokok secara proporsional sesuai kebijakan kompensasi.
-            </p>
+          <div className='p-3 bg-muted/40 border border-border/50 rounded-xl flex items-center gap-2 text-xs text-muted-foreground'>
+            <Icons.info className='size-3.5 text-primary shrink-0' />
+            <span>Sistem otomatis memotong upah staf yang izin atau cuti pada jadwal dinasnya.</span>
           </div>
 
-          {/* Date Input */}
-          <div className='space-y-1.5 bg-card border border-border/60 rounded-xl p-4'>
-            <Label
-              htmlFor='reconcile-target-date'
-              className='text-xs font-semibold text-foreground'
-            >
-              Tanggal Target Rekonsiliasi
+          {/* Date Input using CustomDatePicker */}
+          <div className='space-y-2 bg-card border border-border/70 rounded-xl p-4'>
+            <Label className='text-xs font-semibold text-foreground'>
+              Pilih Tanggal Presensi
             </Label>
-            <div className='flex items-center gap-3 pt-1'>
-              <Input
-                id='reconcile-target-date'
-                type='date'
-                value={targetDate}
-                onChange={(e) => setTargetDate(e.target.value)}
-                className='text-xs h-8.5 rounded-lg max-w-xs'
-                disabled={isReconciling}
-              />
+            <div className='flex items-center gap-2.5 pt-1'>
+              <div className='flex-1 max-w-xs'>
+                <CustomDatePicker
+                  value={targetDate}
+                  onChange={(val) => setTargetDate(val)}
+                  placeholder='Pilih tanggal'
+                  ariaLabel='Pilih Tanggal Presensi'
+                />
+              </div>
               <Button
                 type='button'
                 variant='outline'
                 size='sm'
                 onClick={() => setTargetDate(today)}
                 disabled={isReconciling || targetDate === today}
-                className='text-xs h-8.5 px-3'
+                className='text-xs h-9 px-3 cursor-pointer'
               >
                 Hari Ini
               </Button>
             </div>
-            <p className='text-[10px] text-muted-foreground pt-1'>
-              Pilih tanggal presensi yang ingin dihitung pemotongan cutinya ke periode ini.
+            <p className='text-[11px] text-muted-foreground'>
+              Pilih tanggal jadwal kerja staf yang ingin disinkronkan potongannya.
             </p>
           </div>
         </>
       ) : (
         /* Result View */
         <div className='space-y-4'>
-          <div className='p-4 bg-muted/30 border border-border/50 rounded-xl space-y-2'>
-            <div className='text-foreground font-bold text-sm'>
-              <span>Rekonsiliasi Cuti Selesai</span>
+          <div className='p-4 bg-muted/30 border border-border/50 rounded-xl space-y-1 text-xs'>
+            <div className='text-foreground font-bold text-sm flex items-center gap-2'>
+              <Icons.check className='size-4 text-emerald-600' />
+              <span>Sinkronisasi Cuti Selesai</span>
             </div>
-            <p className='text-xs text-muted-foreground'>
-              Target Tanggal: <strong className='text-foreground'>{result.targetDate}</strong>
+            <p className='text-muted-foreground'>
+              Tanggal yang diproses: <strong className='text-foreground'>{result.targetDate}</strong>
             </p>
           </div>
 
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
             <div className='bg-card border border-border/60 rounded-xl p-3.5'>
               <span className='text-[11px] text-muted-foreground block font-medium'>
-                Staf Terdampak
+                Staf Terkena Potongan
               </span>
               <span className='text-xl font-bold text-foreground mt-1 block tabular-nums'>
                 {result.processedCount} orang
@@ -143,28 +134,13 @@ export function PayrollReconcileLeaveModal({
 
             <div className='bg-card border border-border/60 rounded-xl p-3.5'>
               <span className='text-[11px] text-muted-foreground block font-medium'>
-                Total Potongan Cuti
+                Total Potongan Upah
               </span>
               <span className='text-xl font-bold text-destructive mt-1 block tabular-nums'>
                 {formatCurrency(result.totalDeductionsAmount)}
               </span>
             </div>
           </div>
-
-          {result.staffProcessed.length > 0 && (
-            <div className='space-y-2 pt-1'>
-              <h4 className='text-xs font-bold text-foreground'>
-                Daftar ID Staf yang Diproses ({result.staffProcessed.length})
-              </h4>
-              <div className='max-h-36 overflow-y-auto border border-border/50 rounded-xl p-3 bg-card text-xs font-mono space-y-1'>
-                {result.staffProcessed.map((id, idx) => (
-                  <div key={idx} className='text-muted-foreground truncate'>
-                    {id}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -196,7 +172,7 @@ export function PayrollReconcileLeaveModal({
             <span>Memproses...</span>
           </>
         ) : (
-          <span>Jalankan Rekonsiliasi</span>
+          <span>Sinkronkan Sekarang</span>
         )}
       </Button>
     </>
@@ -229,11 +205,11 @@ export function PayrollReconcileLeaveModal({
         <DrawerContent className='max-h-[85vh] font-sans flex flex-col p-0 overflow-hidden'>
           <DrawerHeader className='shrink-0 text-left pb-3 border-b border-border/50 px-4 pt-3'>
             <DrawerTitle className='text-base font-bold text-foreground tracking-tight'>
-              Rekonsiliasi Cuti Harian Staf
+              Sinkronkan Potongan Cuti
             </DrawerTitle>
             <DrawerDescription className='text-xs text-muted-foreground max-w-md leading-normal'>
-              {period?.periodName ?? 'Periode Penggajian'} • Sinkronisasi pemotongan izin dan cuti
-              yang disetujui.
+              {period?.periodName ?? 'Periode Penggajian'} • Sinkronkan data potongan izin dan cuti
+              staf ke slip gaji.
             </DrawerDescription>
           </DrawerHeader>
 
@@ -251,7 +227,7 @@ export function PayrollReconcileLeaveModal({
     <ModalWrapper
       isOpen={isOpen}
       onClose={handleModalClose}
-      maxWidth='w-full sm:max-w-2xl lg:max-w-3xl'
+      maxWidth='w-full sm:max-w-xl'
       className='max-h-[85vh] flex flex-col p-4 sm:p-5 overflow-hidden'
       showCloseButton={false}
       dismissible={!isReconciling}
@@ -261,11 +237,11 @@ export function PayrollReconcileLeaveModal({
         <div className='shrink-0 pb-3 border-b border-border/50 flex items-start justify-between gap-3'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
-              Rekonsiliasi Cuti Harian Staf
+              Sinkronkan Potongan Cuti
             </h3>
             <p className='text-xs text-muted-foreground max-w-md leading-normal'>
-              {period?.periodName ?? 'Periode Penggajian'} • Sinkronisasi pemotongan izin dan cuti
-              yang disetujui.
+              {period?.periodName ?? 'Periode Penggajian'} • Sinkronkan data potongan izin dan cuti
+              staf ke slip gaji.
             </p>
           </div>
         </div>

@@ -98,6 +98,7 @@ export function StaffScheduleCard({
         </div>
       }
       avatarUrl={staff.photoUrl}
+      avatarShape='rounded'
       contentSlot={
         <div className='flex items-center gap-1.5 flex-wrap min-w-0'>
           <StaffRoleBadge

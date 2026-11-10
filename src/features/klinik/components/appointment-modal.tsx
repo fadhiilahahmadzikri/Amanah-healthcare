@@ -118,13 +118,13 @@ export function AppointmentModal({
 
   if (!isOpen) return null;
 
+  const isConfirmationStep = step === 'confirmation';
   const isCompactStep =
     step === 'date' ||
     step === 'session' ||
     step === 'visit_type' ||
     step === 'complaint' ||
     step === 'create_profile' ||
-    step === 'confirmation' ||
     step === 'ticket_conflict';
 
   return (
@@ -142,22 +142,26 @@ export function AppointmentModal({
         maxWidth={
           step === 'poli' || step === 'category' || step === 'service'
             ? 'max-w-3xl'
-            : isCompactStep
-              ? 'max-w-[500px]'
-              : 'max-w-xl'
+            : isConfirmationStep
+              ? 'max-w-2xl'
+              : isCompactStep
+                ? 'max-w-[500px]'
+                : 'max-w-xl'
         }
         backdropClassName='overflow-hidden'
         className={cn(
           'flex flex-col',
-          isCompactStep
-            ? 'h-auto max-h-none overflow-visible rounded-2xl border border-border bg-card p-5 sm:p-6 w-full max-w-[500px] my-auto shadow-2xl'
-            : 'max-h-[92vh] max-h-[92dvh] w-full p-5 sm:p-6 overflow-hidden'
+          isConfirmationStep
+            ? 'h-auto max-h-[88dvh] overflow-y-auto rounded-2xl border border-border bg-card p-5 sm:p-7 w-full max-w-2xl my-auto shadow-2xl'
+            : isCompactStep
+              ? 'h-auto max-h-none overflow-visible rounded-2xl border border-border bg-card p-5 sm:p-6 w-full max-w-[500px] my-auto shadow-2xl'
+              : 'max-h-[86dvh] sm:max-h-[90dvh] w-full p-4 sm:p-6 overflow-hidden'
         )}
       >
         <div
           className={cn(
             'flex flex-col font-sans select-none',
-            isCompactStep
+            isCompactStep || isConfirmationStep
               ? 'h-auto min-h-0 gap-4 justify-start'
               : 'flex-auto min-h-0 justify-between gap-3'
           )}
@@ -166,7 +170,7 @@ export function AppointmentModal({
             ref={stepContainerRef}
             className={cn(
               'pr-1',
-              isCompactStep ? 'h-auto overflow-visible' : 'flex-auto min-h-0 overflow-y-auto'
+              isCompactStep || isConfirmationStep ? 'h-auto overflow-visible' : 'flex-auto min-h-0 overflow-y-auto'
             )}
           >
             {step === 'poli' && (

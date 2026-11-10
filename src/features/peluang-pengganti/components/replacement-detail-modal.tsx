@@ -97,7 +97,7 @@ export function ReplacementDetailModal({
         </div>
 
         {/* 2. Modal Body / Content */}
-        <div className='space-y-3.5'>
+        <div className='space-y-3.5 p-4 rounded-2xl bg-surface-subtle/80 dark:bg-muted/20 border border-border/70 shadow-xs'>
           {/* Waktu & Sesi Pelayanan */}
           <ReplacementDetailTimeSection sessionName={sessionName} timeDisplay={timeDisplay} />
 

@@ -23,7 +23,6 @@ import { adminAppointmentToAppointment } from '@/features/appointment-pasien/api
 import { appointmentDetailQueryOptions } from '@/features/appointment-pasien/api/queries';
 import { formatClinicDate } from '@/lib/date-format';
 import { INDONESIAN_MONTH_NAMES } from '@/components/ui/custom-month-picker';
-import { MaskedNik } from '@/components/ui/masked-nik';
 import { cn } from '@/lib/utils';
 import type { Patient } from '@/features/data-pasien/api/types';
 import { PatientModal } from '@/features/data-pasien/components/patient-modal';
@@ -108,7 +107,7 @@ export function PatientHistoryGridModal({
           .map((a) => a.poliklinikName)
           .filter((name): name is string => Boolean(name && name.trim()))
       )
-    ).sort();
+    ).toSorted();
   }, [appointments]);
 
   // 2. Filter visits by month and/or service
@@ -150,14 +149,6 @@ export function PatientHistoryGridModal({
   if (!patient) return null;
 
   const fullName = patient.name || 'Pasien';
-  const rmNumber = patient.patient_id || patient.medical_record_number || '-';
-  const nik = patient.nik || patient.masked_nik || '-';
-  const gender =
-    patient.gender === 'female' || (patient.gender as string) === 'Perempuan'
-      ? 'Perempuan'
-      : patient.gender === 'male' || (patient.gender as string) === 'Laki-laki'
-        ? 'Laki-laki'
-        : null;
 
   return (
     <>
@@ -213,25 +204,22 @@ export function PatientHistoryGridModal({
             </Button>
           </div>
 
-          {/* Toolbar: Pemilih Bulan Kalender Mengambang (Floating Popover - No Push Down) & Filter Periode */}
-          <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 border-b border-border/40 shrink-0'>
-            <div className='flex items-center gap-2'>
-              <span className='inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-primary/10 text-primary border border-primary/20'>
-                <Icons.history className='size-3.5' />
-                <span>
-                  {filteredAppointments.length} Kunjungan {isAllMonths ? 'Tercatat' : 'Bulan Ini'}
-                </span>
+          {/* Toolbar: Pemilih Bulan Kalender Mengambang & Filter Periode */}
+          <div className='flex items-center justify-between gap-2.5 py-3 border-b border-border/40 shrink-0 select-none'>
+            <div className='flex items-center gap-2 min-w-0'>
+              <span className='text-xs font-semibold text-muted-foreground truncate'>
+                {filteredAppointments.length} kunjungan {isAllMonths ? 'tercatat' : 'bulan ini'}
               </span>
-              <span className='text-xs text-muted-foreground hidden sm:inline'>
-                Total riwayat keseluruhan: {appointments.length}
+              <span className='text-xs text-muted-foreground/60 hidden sm:inline shrink-0'>
+                • total {appointments.length}
               </span>
             </div>
 
-            {/* Filter Layanan & Filter Bulan dengan Floating Popover */}
-            <div className='flex items-center gap-2 self-end sm:self-auto flex-wrap'>
+            {/* Filter Layanan & Filter Bulan (Icon-Based Compact di Mobile, Toolbar Sejajar) */}
+            <div className='flex items-center gap-1.5 sm:gap-2 shrink-0'>
               {availableServices.length > 0 && (
                 <Select value={selectedService} onValueChange={setSelectedService}>
-                  <SelectTrigger className='h-9 w-[160px] border border-border/70 bg-card text-xs font-medium rounded-xl cursor-pointer shadow-2xs'>
+                  <SelectTrigger className='h-8 sm:h-9 w-auto max-w-[130px] sm:w-[160px] border border-border/70 bg-card text-xs font-medium rounded-xl cursor-pointer shadow-2xs px-2.5 sm:px-3'>
                     <SelectValue placeholder='Semua Layanan' />
                   </SelectTrigger>
                   <SelectContent className='z-[90]'>
@@ -254,27 +242,31 @@ export function PatientHistoryGridModal({
                 type='button'
                 variant={isAllMonths ? 'default' : 'outline'}
                 size='sm'
-                shape='pill'
                 onClick={() => setIsAllMonths((prev) => !prev)}
-                className='text-xs font-semibold h-9 px-3 cursor-pointer shrink-0'
+                className='text-xs font-semibold h-8 sm:h-9 px-2.5 sm:px-3 rounded-xl cursor-pointer shrink-0'
+                title={isAllMonths ? 'Tampilkan Per Bulan' : 'Tampilkan Semua Bulan'}
               >
-                {isAllMonths ? 'Tampilkan Per Bulan' : 'Semua Bulan'}
+                <Icons.layers className='size-3.5 sm:mr-1.5' />
+                <span className='hidden sm:inline'>{isAllMonths ? 'Per Bulan' : 'Semua Bulan'}</span>
               </Button>
 
               <Popover open={isMonthPopoverOpen} onOpenChange={setIsMonthPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <button
+                  <Button
                     type='button'
+                    variant='outline'
+                    size='sm'
                     disabled={isAllMonths}
                     aria-label='Pilih bulan kalender'
+                    title={displayMonthLabel}
                     className={cn(
-                      'h-9 px-3.5 flex items-center justify-between gap-2.5 rounded-xl border border-border/70 bg-card text-foreground transition-all duration-200 cursor-pointer shadow-2xs hover:border-primary/50 text-xs font-medium shrink-0',
+                      'h-8 sm:h-9 px-2.5 sm:px-3.5 flex items-center justify-between gap-1.5 sm:gap-2.5 rounded-xl border border-border/70 bg-card text-foreground transition-all duration-200 cursor-pointer shadow-2xs hover:border-primary/50 text-xs font-medium shrink-0',
                       isAllMonths && 'opacity-40 pointer-events-none'
                     )}
                   >
-                    <span className='truncate'>{displayMonthLabel}</span>
                     <Icons.calendar className='size-3.5 text-muted-foreground shrink-0' />
-                  </button>
+                    <span className='truncate hidden sm:inline'>{displayMonthLabel}</span>
+                  </Button>
                 </PopoverTrigger>
 
                 <PopoverContent
@@ -440,16 +432,11 @@ export function PatientHistoryGridModal({
             )}
           </div>
 
-          {/* Footer Modal */}
-          <div className='pt-3.5 border-t border-border/40 flex items-center justify-between shrink-0'>
-            <span className='text-xs text-muted-foreground'>
-              Klik salah satu kartu kunjungan untuk membuka detail janji temu dan formulir intake
-              medis lengkap.
-            </span>
-
+          {/* Footer Modal: Clean & Minimalist */}
+          <div className='pt-3.5 border-t border-border/40 flex items-center justify-end shrink-0'>
             <Button
               type='button'
-              variant='default'
+              variant='outline'
               shape='pill'
               size='card-action'
               onClick={onClose}

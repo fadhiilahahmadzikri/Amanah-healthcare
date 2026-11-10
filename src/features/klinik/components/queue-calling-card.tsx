@@ -123,10 +123,11 @@ export function QueueCallingCard({
     <div
       className={cn('relative h-full flex flex-col pb-3 min-h-0 [perspective:1400px]', className)}
     >
+      {/* Background Layers of 3D Card Stack (Desktop Only, Unwrapped on Mobile) */}
       <div
         id='stack-layer-2'
         className={cn(
-          'absolute inset-x-7 top-4 bottom-0 rounded-[22px] border border-border/30 bg-muted/40 pointer-events-none z-0 shadow-xs flex flex-col justify-between p-4 opacity-70 will-change-transform transition-opacity',
+          'hidden lg:flex absolute inset-x-7 top-4 bottom-0 rounded-[22px] border border-border/30 bg-muted/40 pointer-events-none z-0 shadow-xs flex-col justify-between p-4 opacity-70 will-change-transform transition-opacity',
           !afterNextItem && 'opacity-0'
         )}
       >
@@ -139,7 +140,7 @@ export function QueueCallingCard({
       <div
         id='stack-layer-1'
         className={cn(
-          'absolute inset-x-3.5 top-2 bottom-1.5 rounded-[22px] border border-border/50 bg-card/90 text-card-foreground pointer-events-none z-[1] shadow-xs flex flex-col justify-between p-5 opacity-90 will-change-transform transition-opacity',
+          'hidden lg:flex absolute inset-x-3.5 top-2 bottom-1.5 rounded-[22px] border border-border/50 bg-card/90 text-card-foreground pointer-events-none z-[1] shadow-xs flex-col justify-between p-5 opacity-90 will-change-transform transition-opacity',
           !nextItem && 'opacity-0'
         )}
       >
@@ -154,7 +155,7 @@ export function QueueCallingCard({
 
       <div
         id='hero-front-card'
-        className='relative z-10 rounded-[22px] border border-border/50 bg-card text-card-foreground p-5 sm:p-7 shadow-none font-sans select-none flex flex-col justify-between flex-1 h-full min-h-0 overflow-hidden space-y-4 transition-all origin-center will-change-transform'
+        className='relative z-10 rounded-2xl sm:rounded-[22px] border border-border/50 bg-card text-card-foreground p-4 sm:p-7 shadow-none font-sans select-none flex flex-col justify-between flex-1 h-full min-h-0 overflow-hidden space-y-4 transition-all origin-center will-change-transform'
       >
         <div className='absolute inset-0 pointer-events-none overflow-hidden [perspective:1000px] -z-0 select-none'>
           <div
@@ -173,38 +174,24 @@ export function QueueCallingCard({
           />
         </div>
 
-        <div className='relative z-10 flex items-center justify-between gap-3 shrink-0'>
-          <div className='flex items-center gap-2'>
-            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
+        {/* Clean Header: Sedang Dipanggil 1-Line with Plain Subtitle (No Pulsing, No Badges) */}
+        <div className='relative z-10 flex items-start justify-between gap-3 shrink-0'>
+          <div className='flex flex-col min-w-0'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight truncate'>
               {isFinished
                 ? 'Pemeriksaan Selesai'
                 : isInService
                   ? 'Sedang Diperiksa'
                   : 'Sedang Dipanggil'}
             </h3>
-            <span
-              className={cn(
-                'size-2 rounded-full',
-                isFinished
-                  ? 'bg-muted-foreground'
-                  : isInService
-                    ? 'bg-emerald-500 animate-pulse'
-                    : 'bg-primary animate-pulse'
-              )}
-            />
+            {!isFinished && !isInService && calledTime && calledTime !== '-' && (
+              <span className='text-xs text-muted-foreground font-medium pt-0.5'>
+                Dipanggil {calledTime}
+              </span>
+            )}
           </div>
 
-          <div className='flex items-center gap-1.5'>
-            {!isFinished && !isInService && calledTime && calledTime !== '-' && (
-              <Badge
-                variant='secondary'
-                className='text-xs font-medium px-2.5 py-0.5 gap-1.5 border border-border/40'
-              >
-                <Icons.clock className='size-3 stroke-[2]' />
-                <span>Dipanggil {calledTime}</span>
-              </Badge>
-            )}
-
+          <div className='flex items-center gap-1.5 shrink-0'>
             {isFiltered && onResetFilter && (
               <Button
                 type='button'

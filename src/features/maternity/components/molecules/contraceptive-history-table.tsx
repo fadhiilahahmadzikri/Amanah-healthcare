@@ -90,7 +90,7 @@ export function ContraceptiveHistoryTable({
       </div>
 
       <div className='flex-1 min-h-[220px] overflow-x-auto border-y border-border/50'>
-        <Table className='min-w-[760px] w-full'>
+        <Table className='min-w-[760px] w-full' containerClassName='border-0 rounded-none shadow-none bg-transparent overflow-visible'>
           <TableHeader className='bg-muted/30 border-b border-border/60'>
             <TableRow className='hover:bg-transparent'>
               <TableHead className='w-12 text-center text-xs font-semibold text-foreground h-9 px-2'>
@@ -115,7 +115,7 @@ export function ContraceptiveHistoryTable({
                 Efek Samping
               </TableHead>
               {isEditing && (
-                <TableHead className='w-20 text-center text-xs font-semibold text-foreground h-9 px-2'>
+                <TableHead className='w-20 text-center text-xs font-semibold text-foreground h-9 px-2 sticky right-0 bg-muted/90 backdrop-blur-xs z-20 border-l border-border/40 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]'>
                   Aksi
                 </TableHead>
               )}
@@ -146,7 +146,7 @@ export function ContraceptiveHistoryTable({
                   {item.sideEffects || '-'}
                 </TableCell>
                 {isEditing && (
-                  <TableCell className='text-center px-2 py-2.5'>
+                  <TableCell className='text-center px-2 py-2.5 sticky right-0 bg-card z-10 border-l border-border/40 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.05)] [tr:hover_&]:bg-muted/30 transition-colors'>
                     <div className='flex items-center justify-center gap-1'>
                       <Button
                         type='button'

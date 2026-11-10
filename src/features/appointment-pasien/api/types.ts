@@ -410,29 +410,19 @@ export interface PerformCheckInPayload {
 export type PerformCheckInRequestDto = PerformCheckInPayload;
 
 export interface PerformCheckInSuccessData {
-  appointmentId: string;
+  id: string;
   status: AppointmentStatus;
-  checkedInAt: string;
-  queueNumber?: string;
+  queueNumber?: string | null;
+  checkedInAt?: string | null;
+  updatedAt?: string;
+  patientName?: string;
+  poliklinikName?: string;
+  appointmentDate?: string;
 }
 
 export type PerformCheckInSuccessDataDto = PerformCheckInSuccessData;
 
-export type PerformCheckInResponse =
-  | PerformCheckInSuccessData
-  | {
-      id?: string;
-      appointmentId?: string;
-      status: AppointmentStatus;
-      checkedInAt?: string | null;
-      queueNumber?: string | number;
-      [key: string]: unknown;
-    }
-  | {
-      success?: boolean;
-      message?: string;
-      data: PerformCheckInSuccessData;
-    };
+export type PerformCheckInResponse = PerformCheckInSuccessData;
 
 export type PerformCheckInResponseDto = PerformCheckInResponse;
 

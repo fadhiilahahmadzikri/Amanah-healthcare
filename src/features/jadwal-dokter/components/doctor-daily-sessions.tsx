@@ -14,7 +14,6 @@ import {
   DoctorSessionAccordionItem
 } from './sessions';
 import { DoctorSessionPatientsModal } from './doctor-session-patients-modal';
-import { DoctorCloseSessionModal } from './doctor-close-session-modal';
 import { BookedPatientDetailModal } from './booked-patient-detail-modal';
 import { DoctorCutiNotice } from './doctor-card-atoms';
 
@@ -62,8 +61,6 @@ export function DoctorDailySessions({
     handleNextDay,
     handleToday,
     handleSelectDate,
-    handleToggleSessionStatus,
-    handleConfirmCloseSession,
     isPatientsModalOpen,
     selectedSessionForPatients,
     handleOpenPatients,
@@ -71,13 +68,7 @@ export function DoctorDailySessions({
     selectedPatientForDetail,
     isPatientDetailOpen,
     handleOpenPatientDetail,
-    handleClosePatientDetail,
-    isCloseModalOpen,
-    setIsCloseModalOpen,
-    closingSession,
-    setClosingSession,
-    pendingSessionId,
-    updateSessionMutation
+    handleClosePatientDetail
   } = useDoctorDailySessions({
     doctor,
     selectedDay,
@@ -183,8 +174,6 @@ export function DoctorDailySessions({
                   session={session}
                   doctor={doctor}
                   selectedDate={formattedTargetDate}
-                  isPending={updateSessionMutation.isPending && pendingSessionId === session.id}
-                  onToggleStatus={handleToggleSessionStatus}
                   onOpenPatientsModal={handleOpenPatients}
                   onSelectPatient={(patient, sess) => {
                     setSelectedDetailSessionId(sess.id);
@@ -226,19 +215,6 @@ export function DoctorDailySessions({
           }}
         />
       )}
-
-      {/* Close Session Confirmation Modal */}
-      <DoctorCloseSessionModal
-        isOpen={isCloseModalOpen}
-        closingSession={closingSession}
-        isPending={updateSessionMutation.isPending}
-        onClose={() => {
-          setIsCloseModalOpen(false);
-          setClosingSession(null);
-        }}
-        onConfirm={handleConfirmCloseSession}
-        portalContainerRef={modalContainerRef}
-      />
     </>
   );
 }

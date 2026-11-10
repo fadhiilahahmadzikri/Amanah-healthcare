@@ -83,19 +83,28 @@ export function useDoctorAssignmentModal({
     }
   }, [isOpen]);
 
-  const toggleSession = useCallback((dow: number, sessionId: string) => {
-    const key = `${dow}_${sessionId}`;
-    setSelectedAssignments((prev) => ({
-      ...prev,
-      [key]: !prev[key]
-    }));
-  }, []);
+  const toggleSession = useCallback(
+    (dow: number, sessionId: string) => {
+      if (!rosterData?.days) return;
+      const targetDay = rosterData.days.find((d) => d.dow === dow);
+      if (!targetDay || !targetDay.isOperatingDay) return;
+      const targetSession = targetDay.sessions.find((s) => s.sessionId === sessionId);
+      if (!targetSession || !targetSession.isTemplateActive) return;
+
+      const key = `${dow}_${sessionId}`;
+      setSelectedAssignments((prev) => ({
+        ...prev,
+        [key]: !prev[key]
+      }));
+    },
+    [rosterData]
+  );
 
   const toggleDay = useCallback(
     (dow: number) => {
       if (!rosterData?.days) return;
       const targetDay = rosterData.days.find((d) => d.dow === dow);
-      if (!targetDay) return;
+      if (!targetDay || !targetDay.isOperatingDay) return;
 
       const isCurrentlyActiveOnDay = targetDay.sessions.some((s) =>
         Boolean(selectedAssignments[`${dow}_${s.sessionId}`])
@@ -105,7 +114,12 @@ export function useDoctorAssignmentModal({
         const updated = { ...prev };
         for (const s of targetDay.sessions) {
           const key = `${dow}_${s.sessionId}`;
-          updated[key] = !isCurrentlyActiveOnDay;
+          // Hanya aktifkan jika session template mingguan memang aktif
+          if (!isCurrentlyActiveOnDay) {
+            updated[key] = Boolean(s.isTemplateActive);
+          } else {
+            updated[key] = false;
+          }
         }
         return updated;
       });

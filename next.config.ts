@@ -44,6 +44,16 @@ const baseConfig: NextConfig = {
         protocol: 'https',
         hostname: 'i.ytimg.com',
         port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: 'cdn.discordapp.com',
+        port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: 'media.discordapp.net',
+        port: ''
       }
     ]
   },

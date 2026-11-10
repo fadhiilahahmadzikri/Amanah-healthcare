@@ -16,6 +16,7 @@ import {
 export interface PatientModalContactFieldsProps {
   form: any;
   occupationOptions: PatientSearchableSelectOption[];
+  isEdit?: boolean;
 }
 
 function getErrorMessage(errors: unknown[]): string | undefined {
@@ -30,7 +31,8 @@ function getErrorMessage(errors: unknown[]): string | undefined {
 
 export function PatientModalContactFields({
   form,
-  occupationOptions
+  occupationOptions,
+  isEdit = false
 }: PatientModalContactFieldsProps) {
   return (
     <div className='space-y-4'>
@@ -114,9 +116,10 @@ export function PatientModalContactFields({
       <div className='grid grid-cols-2 gap-4'>
         <form.AppField name='phone'>
           {(field: any) => {
-            const error = field.state.meta.isTouched
-              ? getErrorMessage(field.state.meta.errors)
-              : undefined;
+            const error =
+              field.state.meta.isTouched || field.state.meta.isDirty
+                ? getErrorMessage(field.state.meta.errors)
+                : undefined;
             return (
               <PatientLineInput
                 id='phone'
@@ -135,21 +138,34 @@ export function PatientModalContactFields({
 
         <form.AppField name='email'>
           {(field: any) => {
-            const error = field.state.meta.isTouched
-              ? getErrorMessage(field.state.meta.errors)
-              : undefined;
+            const error =
+              field.state.meta.isTouched || field.state.meta.isDirty
+                ? getErrorMessage(field.state.meta.errors)
+                : undefined;
             return (
-              <PatientLineInput
-                id='email'
-                label='Email Pasien'
-                type='email'
-                placeholder='pasien@email.com'
-                value={field.state.value ?? ''}
-                onChange={(val: string) => field.handleChange(val)}
-                onBlur={field.handleBlur}
-                error={error}
-                autoComplete='email'
-              />
+              <div className='space-y-1'>
+                <PatientLineInput
+                  id='email'
+                  label={
+                    isEdit
+                      ? 'Email Pasien (Dikelola Pemilik Akun)'
+                      : 'Email Pasien'
+                  }
+                  type='email'
+                  placeholder='pasien@email.com'
+                  value={field.state.value ?? ''}
+                  onChange={(val: string) => field.handleChange(val)}
+                  onBlur={field.handleBlur}
+                  disabled={isEdit}
+                  error={error}
+                  autoComplete='email'
+                />
+                {isEdit && (
+                  <span className='text-[10px] text-muted-foreground block px-1'>
+                    Alamat email akun pasien hanya dapat diubah secara mandiri oleh pemilik akun.
+                  </span>
+                )}
+              </div>
             );
           }}
         </form.AppField>

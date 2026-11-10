@@ -71,10 +71,10 @@ export function LeaveDetailModal({
 
         {/* Scrollable Body - 2 Columns Layout Matching StaffDetailEditModal */}
         <div className='flex-1 min-h-0 overflow-y-auto py-4 pr-1'>
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-1'>
+          <div className='grid grid-cols-1 md:grid-cols-2 gap-6 pt-1'>
             {/* Kolom 1: Jadwal & Lingkup Izin */}
-            <div className='space-y-4'>
-              <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+            <div className='rounded-2xl border border-border/70 bg-surface-subtle/80 dark:bg-muted/20 p-4 sm:p-5 shadow-xs space-y-4'>
+              <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
                 Jadwal &amp; Lingkup Izin
               </span>
 
@@ -155,8 +155,8 @@ export function LeaveDetailModal({
             </div>
 
             {/* Kolom 2: Alasan Pengajuan & Peninjauan */}
-            <div className='space-y-4'>
-              <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+            <div className='rounded-2xl border border-border/70 bg-surface-subtle/80 dark:bg-muted/20 p-4 sm:p-5 shadow-xs space-y-4'>
+              <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
                 Alasan Pengajuan &amp; Peninjauan
               </span>
 
@@ -164,7 +164,7 @@ export function LeaveDetailModal({
                 <label htmlFor='leave_reason' className='text-xs font-medium text-foreground block'>
                   Alasan Pengajuan
                 </label>
-                <div className='p-3.5 rounded-xl bg-muted/30 border border-border/50 text-xs text-foreground italic leading-relaxed'>
+                <div className='p-3.5 rounded-xl bg-card border border-border/60 text-xs text-foreground italic leading-relaxed shadow-2xs'>
                   &ldquo;{leave.reason}&rdquo;
                 </div>
               </div>

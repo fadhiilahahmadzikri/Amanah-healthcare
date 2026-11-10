@@ -10,6 +10,7 @@
     "dev": "node scripts/postinstall.js 2>/dev/null; next dev",
     "build": "next build",
     "typecheck": "tsc --noEmit",
+    "manifest:promo": "bun scripts/tools/gen-promo-manifest.ts",
     "images:webp": "bun scripts/tools/image-pipeline.ts",
     "start": "next start",
     "lint": "oxlint",

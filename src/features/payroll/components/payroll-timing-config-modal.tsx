@@ -65,18 +65,6 @@ export function PayrollTimingConfigModal({ isOpen, onClose }: PayrollTimingConfi
 
   const contentBody = (
     <div ref={contentContainerRef} className='space-y-4'>
-      {/* Information Banner */}
-      <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl space-y-1.5 text-xs'>
-        <div className='font-semibold text-foreground flex items-center gap-1.5'>
-          <Icons.info className='size-3.5 text-primary shrink-0' />
-          <span>Integritas Kalkulasi Jam Dinas</span>
-        </div>
-        <p className='text-muted-foreground leading-relaxed text-[11px] max-w-lg'>
-          Parameter ini mengontrol ambang kelayakan durasi shift dan faktor konversi desimal jam
-          kerja pada seluruh kalkulasi slip gaji staf klinik.
-        </p>
-      </div>
-
       <div className='flex flex-col gap-3.5'>
         {/* 1. Min Billable Shift Minutes */}
         <div className='p-3.5 sm:p-4 rounded-xl border border-border/80 bg-card flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs hover:border-border transition-colors'>
@@ -85,11 +73,10 @@ export function PayrollTimingConfigModal({ isOpen, onClose }: PayrollTimingConfi
               htmlFor='min-billable-minutes'
               className='text-xs sm:text-sm font-semibold text-foreground'
             >
-              Batas Minimum Durasi Berbayar
+              Minimal Menit Kerja
             </Label>
             <p className='text-[11px] text-muted-foreground leading-relaxed max-w-md'>
-              Durasi kerja di bawah ambang ini dianggap 0 jam berbayar (mencegah kalkulasi upah 1
-              menit).
+              Durasi kerja di bawah menit ini belum dihitung gaji.
             </p>
           </div>
           <div className='flex items-center shrink-0 self-end sm:self-center'>
@@ -97,7 +84,7 @@ export function PayrollTimingConfigModal({ isOpen, onClose }: PayrollTimingConfi
               <input
                 id='min-billable-minutes'
                 type='number'
-                aria-label='Batas Minimum Durasi Berbayar'
+                aria-label='Minimal Menit Kerja'
                 value={minBillableShiftMinutes}
                 min={0}
                 max={120}
@@ -120,11 +107,10 @@ export function PayrollTimingConfigModal({ isOpen, onClose }: PayrollTimingConfi
               htmlFor='rounding-increment-minutes'
               className='text-xs sm:text-sm font-semibold text-foreground'
             >
-              Interval Pembulatan Jam Kerja
+              Pembulatan Menit Kerja
             </Label>
             <p className='text-[11px] text-muted-foreground leading-relaxed max-w-md'>
-              Faktor pembulatan durasi kerja ke kelipatan interval menit terdekat (contoh 15 menit =
-              0.25 jam).
+              Dibulatkan ke kelipatan terdekat (misal: tiap 15 menit).
             </p>
           </div>
           <div className='flex items-center shrink-0 self-end sm:self-center'>
@@ -132,7 +118,7 @@ export function PayrollTimingConfigModal({ isOpen, onClose }: PayrollTimingConfi
               <input
                 id='rounding-increment-minutes'
                 type='number'
-                aria-label='Interval Pembulatan Jam Kerja'
+                aria-label='Pembulatan Menit Kerja'
                 value={roundingIncrementMinutes}
                 min={1}
                 max={60}
@@ -189,14 +175,13 @@ export function PayrollTimingConfigModal({ isOpen, onClose }: PayrollTimingConfi
         <DrawerContent className='max-h-[85vh] font-sans flex flex-col p-0 overflow-hidden'>
           <DrawerHeader className='shrink-0 text-left pb-3 border-b border-border/50 px-4 pt-3'>
             <DrawerTitle className='text-base font-bold text-foreground tracking-tight flex items-center gap-2'>
-              <span>Standar Kerja Berbayar & Pembulatan</span>
+              <span>Aturan Jam Kerja</span>
               {isLoading && (
                 <Icons.spinner className='size-3.5 animate-spin text-primary shrink-0' />
               )}
             </DrawerTitle>
             <DrawerDescription className='text-xs text-muted-foreground max-w-md leading-normal'>
-              Konfigurasi batas minimal dan interval pembulatan menit presensi untuk kalkulasi upah
-              harian.
+              Syarat minimal kerja dan pembulatan menit agar hitungan gaji rapi.
             </DrawerDescription>
           </DrawerHeader>
 
@@ -224,14 +209,13 @@ export function PayrollTimingConfigModal({ isOpen, onClose }: PayrollTimingConfi
         <div className='shrink-0 pb-3 border-b border-border/50 flex items-start justify-between gap-3'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
-              <span>Standar Kerja Berbayar & Pembulatan Jam Dinas</span>
+              <span>Aturan Jam Kerja</span>
               {isLoading && (
                 <Icons.spinner className='size-3.5 animate-spin text-primary shrink-0' />
               )}
             </h3>
             <p className='text-xs text-muted-foreground max-w-md leading-normal'>
-              Konfigurasi batas minimal dan interval pembulatan menit presensi untuk kalkulasi upah
-              harian.
+              Syarat minimal kerja dan pembulatan menit agar hitungan gaji rapi.
             </p>
           </div>
         </div>

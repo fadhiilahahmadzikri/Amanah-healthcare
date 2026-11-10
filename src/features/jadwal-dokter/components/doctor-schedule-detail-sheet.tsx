@@ -94,27 +94,27 @@ export function DoctorScheduleDetailSheet(props: DoctorScheduleDetailSheetProps)
 
           <SheetHeader className='px-6 pb-3.5 pt-0 space-y-0 text-left'>
             <div className='flex items-end gap-3.5 sm:gap-4 -mt-10 sm:-mt-11'>
-              <div className='relative shrink-0 size-20 sm:size-22'>
-                <Avatar className='size-20 sm:size-22 rounded-full ring-4 ring-card shadow-lg bg-card overflow-hidden shrink-0 aspect-square'>
+              <div className='relative shrink-0 size-22 sm:size-24'>
+                <Avatar className='size-22 sm:size-24 rounded-2xl sm:rounded-3xl ring-4 ring-card shadow-lg bg-card overflow-hidden shrink-0 aspect-square'>
                   <AvatarImage
                     src={doctor.avatar || DEFAULT_AVATAR_PATH}
                     alt={doctor.fullName}
-                    className='size-full object-cover object-top aspect-square'
+                    className='size-full object-cover object-top aspect-square rounded-2xl sm:rounded-3xl'
                   />
-                  <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                  <AvatarFallback className='p-0 bg-transparent overflow-hidden rounded-2xl sm:rounded-3xl'>
                     <Image
                       src={DEFAULT_AVATAR_PATH}
                       alt={doctor.fullName}
-                      width={88}
-                      height={88}
+                      width={96}
+                      height={96}
                       unoptimized
-                      className='size-full object-cover object-top aspect-square'
+                      className='size-full object-cover object-top aspect-square rounded-2xl sm:rounded-3xl'
                     />
                   </AvatarFallback>
                 </Avatar>
                 <span
                   className={cn(
-                    'absolute bottom-1 right-1 size-4 rounded-full ring-2 ring-card shadow-xs',
+                    'absolute -bottom-0.5 -right-0.5 size-4 rounded-full ring-2 ring-card shadow-xs',
                     doctorStatus === DOCTOR_CARD_STATUS.OPEN ? 'bg-emerald-500' : 'bg-slate-400'
                   )}
                 />

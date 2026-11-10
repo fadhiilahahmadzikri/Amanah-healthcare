@@ -12,19 +12,32 @@ export function EntityCardIdentity({
   subtitle,
   avatarUrl,
   showAvatar = true,
+  avatarShape = 'circle',
   initials: _initials,
   onNameClick,
   isPending,
   className
 }: EntityCardIdentityProps) {
+  const isRounded = avatarShape === 'rounded';
+
   return (
     <div className={cn('flex items-center gap-3 sm:gap-2.5 relative z-20 min-w-0', className)}>
       {showAvatar && (
-        <Avatar className='size-11 sm:size-10 xl:size-9 rounded-full ring-2 ring-primary/20 shrink-0 shadow-2xs overflow-hidden'>
+        <Avatar
+          className={cn(
+            'shrink-0 ring-2 ring-primary/20 shadow-2xs overflow-hidden aspect-square',
+            isRounded
+              ? 'size-12 sm:size-11 xl:size-10.5 rounded-xl sm:rounded-2xl'
+              : 'size-11 sm:size-10 xl:size-9 rounded-full'
+          )}
+        >
           <AvatarImage
             src={avatarUrl || DEFAULT_AVATAR_PATH}
             alt={name}
-            className='size-full object-cover aspect-square rounded-full'
+            className={cn(
+              'size-full object-cover aspect-square',
+              isRounded ? 'rounded-xl sm:rounded-2xl' : 'rounded-full'
+            )}
           />
           <AvatarFallback className='p-0 bg-transparent'>
             <Image
@@ -33,7 +46,10 @@ export function EntityCardIdentity({
               width={64}
               height={64}
               unoptimized
-              className='size-full object-cover aspect-square rounded-full'
+              className={cn(
+                'size-full object-cover aspect-square',
+                isRounded ? 'rounded-xl sm:rounded-2xl' : 'rounded-full'
+              )}
             />
           </AvatarFallback>
         </Avatar>

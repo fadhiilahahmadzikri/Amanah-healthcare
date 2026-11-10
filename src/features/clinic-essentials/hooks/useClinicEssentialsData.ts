@@ -3,21 +3,29 @@
 import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import {
-  Building2,
-  ClipboardList,
-  DoorOpen,
-  Folder,
-  Layers,
-  Stethoscope,
-  Users,
-} from 'lucide-react';
+import { Building2 } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import type { FacetGroupDefinition } from '@/shared/ui/responsive-facet-toolbox';
 import type { SearchEngineResultItem } from '@/components/search-engine';
 import { clinicEssentialsApi } from '../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../api/query-keys';
 import type { FacilityResource } from '../types/clinic-essentials.types';
+import { buildClinicEssentialsSearchIndex } from '../utils/clinic-essentials-search-index';
+import { promotionsApi } from '@/features/promotions';
+
+function filterDemographicMaster<
+  T extends { name: string; description?: string | null; isActive: boolean }
+>(items: T[], statusFilter: 'all' | 'active' | 'inactive', query: string): T[] {
+  return (Array.isArray(items) ? items : []).filter((item) => {
+    if (statusFilter === 'active' && !item.isActive) return false;
+    if (statusFilter === 'inactive' && item.isActive) return false;
+    if (!query) return true;
+    return (
+      item.name.toLowerCase().includes(query) ||
+      Boolean(item.description?.toLowerCase().includes(query))
+    );
+  });
+}
 
 export function useClinicEssentialsData(
   activeTab: FacilityResource,
@@ -26,128 +34,70 @@ export function useClinicEssentialsData(
 ) {
   const queryClient = useQueryClient();
 
-  // 0. Fetch Unit Types
-  const {
-    data: unitTypes = [],
-    isLoading: isLoadingUnitTypes,
-    isRefetching: isRefetchingUnitTypes,
-  } = useQuery({
+  // Master & Entity Queries
+  const { data: unitTypes = [], isLoading: isLoadingUnitTypes, isRefetching: isRefetchingUnitTypes } = useQuery({
     queryKey: clinicEssentialsKeys.unitTypes(),
     queryFn: () => clinicEssentialsApi.getUnitTypes(),
   });
-
-  // 1. Fetch Units
-  const {
-    data: units = [],
-    isLoading: isLoadingUnits,
-    isRefetching: isRefetchingUnits,
-  } = useQuery({
+  const { data: units = [], isLoading: isLoadingUnits, isRefetching: isRefetchingUnits } = useQuery({
     queryKey: clinicEssentialsKeys.units(),
     queryFn: () => clinicEssentialsApi.getUnits(),
   });
-
-  // 2. Fetch Rooms
-  const {
-    data: rooms = [],
-    isLoading: isLoadingRooms,
-    isRefetching: isRefetchingRooms,
-  } = useQuery({
+  const { data: rooms = [], isLoading: isLoadingRooms, isRefetching: isRefetchingRooms } = useQuery({
     queryKey: clinicEssentialsKeys.rooms(),
     queryFn: () => clinicEssentialsApi.getRooms(),
   });
-
-  // 3. Fetch Categories
-  const {
-    data: categories = [],
-    isLoading: isLoadingCategories,
-    isRefetching: isRefetchingCategories,
-  } = useQuery({
+  const { data: categories = [], isLoading: isLoadingCategories, isRefetching: isRefetchingCategories } = useQuery({
     queryKey: clinicEssentialsKeys.categories(),
     queryFn: () => clinicEssentialsApi.getCategories(),
   });
-
-  // 4. Fetch Services
-  const {
-    data: services = [],
-    isLoading: isLoadingServices,
-    isRefetching: isRefetchingServices,
-  } = useQuery({
+  const { data: services = [], isLoading: isLoadingServices, isRefetching: isRefetchingServices } = useQuery({
     queryKey: clinicEssentialsKeys.services(),
     queryFn: () => clinicEssentialsApi.getServices(),
   });
-
-  // 5. Fetch Forms
-  const {
-    data: forms = [],
-    isLoading: isLoadingForms,
-    isRefetching: isRefetchingForms,
-  } = useQuery({
+  const { data: facilities = [], isLoading: isLoadingFacilities, isRefetching: isRefetchingFacilities } = useQuery({
+    queryKey: clinicEssentialsKeys.facilities(),
+    queryFn: () => clinicEssentialsApi.getFacilities(),
+  });
+  const { data: faqs = [], isLoading: isLoadingFaqs, isRefetching: isRefetchingFaqs } = useQuery({
+    queryKey: clinicEssentialsKeys.faqs(),
+    queryFn: () => clinicEssentialsApi.getFaqs(),
+  });
+  const { data: forms = [], isLoading: isLoadingForms, isRefetching: isRefetchingForms } = useQuery({
     queryKey: clinicEssentialsKeys.forms(),
     queryFn: () => clinicEssentialsApi.getForms(),
   });
-
-  // 6. Fetch Relationships
-  const {
-    data: relationships = [],
-    isLoading: isLoadingRelationships,
-    isRefetching: isRefetchingRelationships,
-  } = useQuery({
+  const { data: relationships = [], isLoading: isLoadingRelationships, isRefetching: isRefetchingRelationships } = useQuery({
     queryKey: clinicEssentialsKeys.relationships(),
     queryFn: () => clinicEssentialsApi.getRelationships(),
   });
-
-  // 7. Fetch Blood Types
-  const {
-    data: bloodTypes = [],
-    isLoading: isLoadingBloodTypes,
-    isRefetching: isRefetchingBloodTypes,
-  } = useQuery({
+  const { data: bloodTypes = [], isLoading: isLoadingBloodTypes, isRefetching: isRefetchingBloodTypes } = useQuery({
     queryKey: clinicEssentialsKeys.bloodTypes(),
     queryFn: () => clinicEssentialsApi.getBloodTypes(),
   });
-
-  // 8. Fetch Education Levels
-  const {
-    data: educationLevels = [],
-    isLoading: isLoadingEducationLevels,
-    isRefetching: isRefetchingEducationLevels,
-  } = useQuery({
+  const { data: educationLevels = [], isLoading: isLoadingEducationLevels, isRefetching: isRefetchingEducationLevels } = useQuery({
     queryKey: clinicEssentialsKeys.educationLevels(),
     queryFn: () => clinicEssentialsApi.getEducationLevels(),
   });
-
-  // 9. Fetch Religions
-  const {
-    data: religions = [],
-    isLoading: isLoadingReligions,
-    isRefetching: isRefetchingReligions,
-  } = useQuery({
+  const { data: religions = [], isLoading: isLoadingReligions, isRefetching: isRefetchingReligions } = useQuery({
     queryKey: clinicEssentialsKeys.religions(),
     queryFn: () => clinicEssentialsApi.getReligions(),
   });
-
-  // 10. Fetch Occupations
-  const {
-    data: occupations = [],
-    isLoading: isLoadingOccupations,
-    isRefetching: isRefetchingOccupations,
-  } = useQuery({
+  const { data: occupations = [], isLoading: isLoadingOccupations, isRefetching: isRefetchingOccupations } = useQuery({
     queryKey: clinicEssentialsKeys.occupations(),
     queryFn: () => clinicEssentialsApi.getOccupations(),
   });
+  const { data: promotions = [], isLoading: isLoadingPromotions, isRefetching: isRefetchingPromotions } = useQuery({
+    queryKey: ['admin', 'promotions'],
+    queryFn: () => promotionsApi.getAdminPromotions(),
+  });
 
-  const isAnyRefetching =
-    isRefetchingUnitTypes ||
-    isRefetchingUnits ||
-    isRefetchingRooms ||
-    isRefetchingCategories ||
-    isRefetchingServices ||
-    isRefetchingForms ||
-    isRefetchingRelationships ||
-    isRefetchingBloodTypes ||
-    isRefetchingEducationLevels ||
-    isRefetchingReligions ||
-    isRefetchingOccupations;
+  const isAnyRefetching = [
+    isRefetchingUnitTypes, isRefetchingUnits, isRefetchingRooms, isRefetchingCategories,
+    isRefetchingServices, isRefetchingFacilities, isRefetchingFaqs, isRefetchingPromotions,
+    isRefetchingForms, isRefetchingRelationships, isRefetchingBloodTypes, isRefetchingEducationLevels,
+    isRefetchingReligions, isRefetchingOccupations
+  ].some(Boolean);
 
   const handleRefreshAll = React.useCallback(() => {
     queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
@@ -162,7 +112,7 @@ export function useClinicEssentialsData(
   const query = searchQuery.trim().toLowerCase();
 
   const filteredUnitTypes = React.useMemo(() => {
-    return unitTypes.filter((ut) => {
+    return (Array.isArray(unitTypes) ? unitTypes : []).filter((ut) => {
       if (statusFilter === 'active' && !ut.isActive) return false;
       if (statusFilter === 'inactive' && ut.isActive) return false;
       if (!query) return true;
@@ -175,7 +125,7 @@ export function useClinicEssentialsData(
   }, [unitTypes, statusFilter, query]);
 
   const filteredUnits = React.useMemo(() => {
-    return units.filter((u) => {
+    return (Array.isArray(units) ? units : []).filter((u) => {
       if (unitFilter !== 'all' && u.id !== unitFilter) return false;
       if (statusFilter === 'active' && !u.isActive) return false;
       if (statusFilter === 'inactive' && u.isActive) return false;
@@ -191,7 +141,7 @@ export function useClinicEssentialsData(
   }, [units, unitFilter, statusFilter, query]);
 
   const filteredRooms = React.useMemo(() => {
-    return rooms.filter((r) => {
+    return (Array.isArray(rooms) ? rooms : []).filter((r) => {
       if (unitFilter !== 'all' && r.unitId !== unitFilter) return false;
       if (statusFilter === 'active' && !r.isActive) return false;
       if (statusFilter === 'inactive' && r.isActive) return false;
@@ -206,7 +156,7 @@ export function useClinicEssentialsData(
   }, [rooms, unitFilter, statusFilter, query]);
 
   const filteredCategories = React.useMemo(() => {
-    return categories.filter((c) => {
+    return (Array.isArray(categories) ? categories : []).filter((c) => {
       if (unitFilter !== 'all' && c.unitId && c.unitId !== unitFilter) return false;
       if (statusFilter === 'active' && !c.isActive) return false;
       if (statusFilter === 'inactive' && c.isActive) return false;
@@ -221,7 +171,7 @@ export function useClinicEssentialsData(
   }, [categories, unitFilter, statusFilter, query]);
 
   const filteredServices = React.useMemo(() => {
-    return services.filter((s) => {
+    return (Array.isArray(services) ? services : []).filter((s) => {
       const parentCat = categories.find((c) => c.id === s.serviceCategoryId);
       if (unitFilter !== 'all' && parentCat?.unitId && parentCat.unitId !== unitFilter) {
         return false;
@@ -239,8 +189,49 @@ export function useClinicEssentialsData(
     });
   }, [services, categories, unitFilter, statusFilter, query]);
 
+  const filteredFacilities = React.useMemo(() => {
+    return (Array.isArray(facilities) ? facilities : []).filter((f) => {
+      if (statusFilter === 'active' && !f.isPublished) return false;
+      if (statusFilter === 'inactive' && f.isPublished) return false;
+      if (!query) return true;
+      return (
+        f.title.toLowerCase().includes(query) ||
+        f.slug.toLowerCase().includes(query) ||
+        Boolean(f.summary?.toLowerCase().includes(query)) ||
+        Boolean(f.serviceName?.toLowerCase().includes(query))
+      );
+    });
+  }, [facilities, statusFilter, query]);
+
+  const filteredFaqs = React.useMemo(() => {
+    return (Array.isArray(faqs) ? faqs : []).filter((f) => {
+      if (statusFilter === 'active' && !f.isPublished) return false;
+      if (statusFilter === 'inactive' && f.isPublished) return false;
+      if (!query) return true;
+      const matchTitle = f.title.toLowerCase().includes(query);
+      const matchCategory = f.category.toLowerCase().includes(query);
+      const matchSteps = Array.isArray(f.solutionSteps)
+        ? f.solutionSteps.some((s) => s.toLowerCase().includes(query))
+        : String(f.solutionSteps).toLowerCase().includes(query);
+      return matchTitle || matchCategory || matchSteps;
+    });
+  }, [faqs, statusFilter, query]);
+
+  const filteredPromotions = React.useMemo(() => {
+    return (Array.isArray(promotions) ? promotions : []).filter((p) => {
+      if (statusFilter === 'active' && !p.isPublished) return false;
+      if (statusFilter === 'inactive' && p.isPublished) return false;
+      if (!query) return true;
+      return (
+        p.title.toLowerCase().includes(query) ||
+        p.summary.toLowerCase().includes(query) ||
+        Boolean(p.serviceName?.toLowerCase().includes(query))
+      );
+    });
+  }, [promotions, statusFilter, query]);
+
   const filteredRelationships = React.useMemo(() => {
-    return relationships.filter((r) => {
+    return (Array.isArray(relationships) ? relationships : []).filter((r) => {
       if (statusFilter === 'active' && !r.isActive) return false;
       if (statusFilter === 'inactive' && r.isActive) return false;
       if (!query) return true;
@@ -252,53 +243,25 @@ export function useClinicEssentialsData(
     });
   }, [relationships, statusFilter, query]);
 
-  const filteredBloodTypes = React.useMemo(() => {
-    return bloodTypes.filter((b) => {
-      if (statusFilter === 'active' && !b.isActive) return false;
-      if (statusFilter === 'inactive' && b.isActive) return false;
-      if (!query) return true;
-      return (
-        b.name.toLowerCase().includes(query) ||
-        Boolean(b.description?.toLowerCase().includes(query))
-      );
-    });
-  }, [bloodTypes, statusFilter, query]);
+  const filteredBloodTypes = React.useMemo(
+    () => filterDemographicMaster(bloodTypes, statusFilter, query),
+    [bloodTypes, statusFilter, query]
+  );
 
-  const filteredEducationLevels = React.useMemo(() => {
-    return educationLevels.filter((e) => {
-      if (statusFilter === 'active' && !e.isActive) return false;
-      if (statusFilter === 'inactive' && e.isActive) return false;
-      if (!query) return true;
-      return (
-        e.name.toLowerCase().includes(query) ||
-        Boolean(e.description?.toLowerCase().includes(query))
-      );
-    });
-  }, [educationLevels, statusFilter, query]);
+  const filteredEducationLevels = React.useMemo(
+    () => filterDemographicMaster(educationLevels, statusFilter, query),
+    [educationLevels, statusFilter, query]
+  );
 
-  const filteredReligions = React.useMemo(() => {
-    return religions.filter((r) => {
-      if (statusFilter === 'active' && !r.isActive) return false;
-      if (statusFilter === 'inactive' && r.isActive) return false;
-      if (!query) return true;
-      return (
-        r.name.toLowerCase().includes(query) ||
-        Boolean(r.description?.toLowerCase().includes(query))
-      );
-    });
-  }, [religions, statusFilter, query]);
+  const filteredReligions = React.useMemo(
+    () => filterDemographicMaster(religions, statusFilter, query),
+    [religions, statusFilter, query]
+  );
 
-  const filteredOccupations = React.useMemo(() => {
-    return occupations.filter((o) => {
-      if (statusFilter === 'active' && !o.isActive) return false;
-      if (statusFilter === 'inactive' && o.isActive) return false;
-      if (!query) return true;
-      return (
-        o.name.toLowerCase().includes(query) ||
-        Boolean(o.description?.toLowerCase().includes(query))
-      );
-    });
-  }, [occupations, statusFilter, query]);
+  const filteredOccupations = React.useMemo(
+    () => filterDemographicMaster(occupations, statusFilter, query),
+    [occupations, statusFilter, query]
+  );
 
   // Hierarchical Lock Logic
   const isUnitsLocked = unitTypes.length === 0;
@@ -367,106 +330,19 @@ export function useClinicEssentialsData(
   }, []);
 
   const indexItems = React.useMemo<SearchEngineResultItem[]>(() => {
-    const items: SearchEngineResultItem[] = [];
-
-    unitTypes.forEach((ut) => {
-      items.push({
-        id: `unit-type-${ut.id}`,
-        title: ut.name,
-        subtitle: 'Klasifikasi Tipe Unit',
-        category: 'Tipe Unit',
-        icon: Layers,
-        queryValue: ut.name,
-        onSelect: () => {
-          setActiveTab('unit-types');
-          setSearchQuery(ut.name);
-        },
-      });
+    return buildClinicEssentialsSearchIndex({
+      unitTypes,
+      units,
+      rooms,
+      categories,
+      services,
+      relationships,
+      facilities,
+      faqs,
+      setActiveTab,
+      setSearchQuery,
     });
-
-    units.forEach((u) => {
-      items.push({
-        id: `unit-${u.id}`,
-        title: u.name,
-        subtitle: u.location ? `Unit Poliklinik • ${u.location}` : 'Unit Poliklinik',
-        category: 'Unit Poliklinik',
-        icon: Building2,
-        queryValue: u.name,
-        onSelect: () => {
-          setActiveTab('units');
-          setSearchQuery(u.name);
-        },
-      });
-    });
-
-    rooms.forEach((r) => {
-      const parentUnit = units.find((u) => u.id === r.unitId);
-      const parentName = r.unitName || parentUnit?.name;
-      items.push({
-        id: `room-${r.id}`,
-        title: r.name,
-        subtitle: parentName ? `Ruang Periksa • ${parentName}` : 'Ruang Periksa',
-        category: 'Ruang Periksa',
-        icon: DoorOpen,
-        queryValue: r.name,
-        onSelect: () => {
-          setActiveTab('rooms');
-          setSearchQuery(r.name);
-        },
-      });
-    });
-
-    categories.forEach((c) => {
-      const parentUnit = units.find((u) => u.id === c.unitId);
-      const parentName = c.unitName || parentUnit?.name;
-      items.push({
-        id: `cat-${c.id}`,
-        title: c.name,
-        subtitle: parentName ? `Kelompok Layanan • ${parentName}` : 'Kelompok Layanan',
-        category: 'Kategori Layanan',
-        icon: Folder,
-        queryValue: c.name,
-        onSelect: () => {
-          setActiveTab('categories');
-          setSearchQuery(c.name);
-        },
-      });
-    });
-
-    services.forEach((s) => {
-      const parentCat = categories.find((c) => c.id === s.serviceCategoryId);
-      const parentName = s.categoryName || parentCat?.name;
-      items.push({
-        id: `svc-${s.id}`,
-        title: s.name,
-        subtitle: parentName ? `Layanan Medis • ${parentName}` : 'Layanan Medis',
-        category: 'Layanan Medis',
-        icon: Stethoscope,
-        queryValue: `${s.name} ${s.shortName || ''}`,
-        onSelect: () => {
-          setActiveTab('services');
-          setSearchQuery(s.name);
-        },
-      });
-    });
-
-    relationships.forEach((rel) => {
-      items.push({
-        id: `rel-${rel.id}`,
-        title: rel.name,
-        subtitle: `Relasi Pasien • ${rel.code}`,
-        category: 'Relasi Pasien',
-        icon: Users,
-        queryValue: `${rel.name} ${rel.code}`,
-        onSelect: () => {
-          setActiveTab('relationships');
-          setSearchQuery(rel.name);
-        },
-      });
-    });
-
-    return items;
-  }, [unitTypes, units, rooms, categories, services, relationships, setActiveTab]);
+  }, [unitTypes, units, rooms, categories, services, relationships, facilities, faqs, setActiveTab]);
 
   const effectiveFacetGroups = React.useMemo<FacetGroupDefinition[]>(() => {
     if (!isCompact) return facetGroups;
@@ -482,6 +358,8 @@ export function useClinicEssentialsData(
         { label: 'Ruang Periksa', value: 'rooms', count: filteredRooms.length },
         { label: 'Kelompok Layanan', value: 'categories', count: filteredCategories.length },
         { label: 'Service Medis', value: 'services', count: filteredServices.length },
+        { label: 'Fasilitas Unggulan', value: 'facilities', count: filteredFacilities.length },
+        { label: 'FAQ Landing Page', value: 'faqs', count: filteredFaqs.length },
         { label: 'Relasi Pasien', value: 'relationships', count: filteredRelationships.length },
       ],
       selectedValues: [activeTab],
@@ -507,6 +385,8 @@ export function useClinicEssentialsData(
     filteredRooms.length,
     filteredCategories.length,
     filteredServices.length,
+    filteredFacilities.length,
+    filteredFaqs.length,
     filteredRelationships.length,
     setActiveTab,
   ]);
@@ -517,6 +397,9 @@ export function useClinicEssentialsData(
     rooms,
     categories,
     services,
+    facilities,
+    faqs,
+    promotions,
     forms,
     relationships,
     bloodTypes,
@@ -528,6 +411,9 @@ export function useClinicEssentialsData(
     isLoadingRooms,
     isLoadingCategories,
     isLoadingServices,
+    isLoadingFacilities,
+    isLoadingFaqs,
+    isLoadingPromotions,
     isLoadingRelationships,
     isLoadingBloodTypes,
     isLoadingEducationLevels,
@@ -538,6 +424,9 @@ export function useClinicEssentialsData(
     filteredRooms,
     filteredCategories,
     filteredServices,
+    filteredFacilities,
+    filteredFaqs,
+    filteredPromotions,
     filteredRelationships,
     filteredBloodTypes,
     filteredEducationLevels,

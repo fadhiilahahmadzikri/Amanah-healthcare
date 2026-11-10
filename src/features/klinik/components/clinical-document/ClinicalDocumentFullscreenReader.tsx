@@ -198,12 +198,9 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
       className='fixed inset-0 z-[99999] overflow-hidden bg-slate-950 flex flex-col font-sans select-none animate-in fade-in duration-200'
     >
       {/* Top Floating Control Bar (Hidden when printing) */}
-      <header className='no-print relative h-14 bg-slate-900 border-b border-slate-800 px-4 sm:px-6 flex items-center justify-between text-slate-100 shadow-xl shrink-0 select-none z-10'>
-        {/* Left: Polosan (Clean & Plain) */}
-        <div className='flex items-center min-w-0' />
-
-        {/* Middle: PDF Reader Zoom Controls Dead-Center (Tengah Atas di Header) */}
-        <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5 bg-slate-800/90 px-2 py-1 rounded-xl border border-slate-700/60 shadow-xs z-20'>
+      <header className='no-print relative h-14 bg-slate-900 border-b border-slate-800 px-3 sm:px-6 flex items-center justify-between text-slate-100 shadow-xl shrink-0 select-none z-10'>
+        {/* Left / Center Responsive Zoom Controls: On Mobile anchored left, on Desktop dead-center */}
+        <div className='flex items-center gap-1 bg-slate-800/90 px-1.5 sm:px-2 py-1 rounded-xl border border-slate-700/60 shadow-xs z-20 md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2'>
           <Button
             type='button'
             variant='ghost'
@@ -215,10 +212,10 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
             title='Perkecil (-)'
             aria-label='Perkecil Zoom'
           >
-            <Icons.zoomOut className='size-4' />
+            <Icons.zoomOut className='size-3.5 sm:size-4' />
           </Button>
 
-          <span className='text-xs font-mono font-medium text-slate-200 min-w-[44px] text-center select-none'>
+          <span className='text-[11px] sm:text-xs font-mono font-medium text-slate-200 min-w-[36px] sm:min-w-[44px] text-center select-none'>
             {Math.round(zoom * 100)}%
           </span>
 
@@ -233,10 +230,10 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
             title='Perbesar (+)'
             aria-label='Perbesar Zoom'
           >
-            <Icons.zoomIn className='size-4' />
+            <Icons.zoomIn className='size-3.5 sm:size-4' />
           </Button>
 
-          <div className='w-[1px] h-4 bg-slate-700 mx-0.5' />
+          <div className='hidden sm:block w-[1px] h-4 bg-slate-700 mx-0.5' />
 
           <Button
             type='button'
@@ -244,7 +241,7 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
             size='sm'
             shape='rounded'
             onClick={handleResetZoom}
-            className='h-7 px-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700/70'
+            className='hidden sm:inline-flex h-7 px-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-700/70'
             title='Reset ke 100%'
             aria-label='Reset Zoom 100%'
           >
@@ -257,7 +254,7 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
             size='icon-sm'
             shape='rounded'
             onClick={handleFitWidth}
-            className='text-slate-300 hover:text-white hover:bg-slate-700/70 size-7'
+            className='hidden sm:inline-flex text-slate-300 hover:text-white hover:bg-slate-700/70 size-7'
             title='Sesuaikan Lebar Layar (Fit Width)'
             aria-label='Sesuaikan Lebar Layar'
           >
@@ -266,7 +263,7 @@ export const ClinicalDocumentFullscreenReader: React.FC<ClinicalDocumentFullscre
         </div>
 
         {/* Right: Actions (Icon-only buttons with project's own Icons) */}
-        <div className='flex items-center gap-1.5 ml-auto z-10'>
+        <div className='flex items-center gap-1 sm:gap-1.5 ml-auto z-10'>
           {/* Hardware Fullscreen Toggle */}
           <Button
             type='button'

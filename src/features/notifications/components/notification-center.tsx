@@ -25,10 +25,10 @@ export function NotificationCenter() {
     <Button
       variant='ghost'
       size='icon'
-      className='relative cursor-pointer'
+      className='relative size-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer shrink-0'
       aria-label='Notifikasi Klinik'
     >
-      <Icons.notification className='size-5' />
+      <Icons.notification className='size-4' />
       {presenter.unreadBadgeText && (
         <Badge
           variant='destructive'

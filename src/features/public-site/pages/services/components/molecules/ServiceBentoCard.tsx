@@ -12,6 +12,7 @@ type ServiceBentoCardProps = ComponentPropsWithoutRef<'article'> & {
   iconSlot?: ReactNode;
   affordanceSlot?: ReactNode;
   contentSlot?: ReactNode;
+  isCenterActive?: boolean;
 };
 
 export function ServiceBentoCard({
@@ -21,6 +22,7 @@ export function ServiceBentoCard({
   iconSlot,
   affordanceSlot,
   contentSlot,
+  isCenterActive = false,
   ...articleProps
 }: ServiceBentoCardProps) {
   const isInteractive = Boolean(articleProps.onClick) || articleProps.role === 'button';
@@ -31,6 +33,7 @@ export function ServiceBentoCard({
       <article
         {...articleProps}
         data-service-card
+        data-card-id={item.id}
         className={cn(
           `
             group relative flex flex-col justify-end overflow-hidden border
@@ -68,10 +71,10 @@ export function ServiceBentoCard({
           <div
             aria-hidden='true'
             className='
-              pointer-events-none absolute inset-x-0 bottom-0 h-[52%]
-              backdrop-blur-md
-              [mask-image:linear-gradient(to_top,black_0%,black_65%,rgba(0,0,0,0.5)_85%,transparent_100%)]
-              [-webkit-mask-image:linear-gradient(to_top,black_0%,black_65%,rgba(0,0,0,0.5)_85%,transparent_100%)]
+              pointer-events-none absolute inset-x-0 bottom-0 h-[75%]
+              backdrop-blur-[2px]
+              [mask-image:linear-gradient(to_top,black_0%,black_40%,rgba(0,0,0,0.4)_75%,transparent_100%)]
+              [-webkit-mask-image:linear-gradient(to_top,black_0%,black_40%,rgba(0,0,0,0.4)_75%,transparent_100%)]
               md:hidden
             '
           />
@@ -79,10 +82,8 @@ export function ServiceBentoCard({
           <div
             aria-hidden='true'
             className='
-              pointer-events-none absolute inset-x-0 bottom-0 h-[52%]
-              bg-linear-to-t from-white/95 via-white/75 via-50% to-transparent
-              dark:from-[#090d24]/95 dark:via-[#090d24]/75 dark:via-50%
-              dark:to-transparent
+              pointer-events-none absolute inset-x-0 bottom-0 h-[80%]
+              bg-gradient-to-t from-background/95 via-background/70 via-35% to-transparent
               md:hidden
             '
           />
@@ -111,14 +112,14 @@ export function ServiceBentoCard({
           {affordanceSlot ?? <ServiceCardAffordance ariaLabel={`Buka detail ${item.title}`} />}
         </div>
 
-        <div className='relative z-10 p-3.5 sm:p-4 md:p-4.5'>
+        <div className='relative z-10 p-3 sm:p-4 md:p-4.5'>
           {contentSlot ?? (
-            <div className='flex flex-col gap-1'>
+            <div className='flex flex-col gap-0.5 sm:gap-1'>
               <HealthcareHeading
                 as='h3'
                 size='compact'
                 className='
-                  text-foreground
+                  text-foreground text-xs sm:text-sm md:text-base font-semibold leading-snug
                   max-md:transform-none max-md:transition-none
                   md:transition-transform md:duration-300
                   md:group-hover:-translate-y-0.5
@@ -128,16 +129,19 @@ export function ServiceBentoCard({
               </HealthcareHeading>
 
               <div
-                className='
-                  max-md:max-h-28 max-md:opacity-100 max-md:overflow-hidden max-md:transition-none
-                  md:max-h-0 md:overflow-hidden md:opacity-0 md:transition-all md:duration-300 md:ease-out
-                  md:group-hover:max-h-24 md:group-hover:opacity-100
-                  md:group-focus-visible:max-h-24 md:group-focus-visible:opacity-100
-                '
+                className={cn(
+                  'transition-all duration-300 ease-out',
+                  isCenterActive
+                    ? 'max-md:max-h-24 max-md:opacity-100 max-md:translate-y-0'
+                    : 'max-md:max-h-0 max-md:opacity-0 max-md:overflow-hidden max-md:translate-y-1',
+                  'md:max-h-0 md:overflow-hidden md:opacity-0 md:transition-all md:duration-300 md:ease-out',
+                  'md:group-hover:max-h-24 md:group-hover:opacity-100 md:group-hover:translate-y-0',
+                  'md:group-focus-visible:max-h-24 md:group-focus-visible:opacity-100'
+                )}
               >
                 <HealthcareText
                   size='caption'
-                  className='text-muted-foreground dark:text-slate-300'
+                  className='text-muted-foreground dark:text-slate-300 text-[10.5px] sm:text-xs leading-relaxed'
                 >
                   {item.description}
                 </HealthcareText>
@@ -154,10 +158,11 @@ export function ServiceBentoCard({
     <article
       {...articleProps}
       data-service-card
+      data-card-id={item.id}
       className={cn(
         `
           group relative flex flex-col justify-between overflow-hidden rounded-2xl border
-          border-line/70 bg-card p-4 text-foreground transition-all duration-300
+          border-line/70 bg-card p-3 sm:p-4 text-foreground transition-all duration-300
           hover:border-primary/50 hover:shadow-md select-none
           focus-visible:ring-2 focus-visible:ring-primary
           focus-visible:ring-offset-2 focus-visible:outline-none
@@ -175,7 +180,7 @@ export function ServiceBentoCard({
               icon={item.iconName || 'stethoscope'}
               fallback={item.title.substring(0, 3)}
               size='lg'
-              className='size-11 rounded-xl bg-primary/10 text-primary'
+              className='size-9 sm:size-11 rounded-xl bg-primary/10 text-primary'
             />
           )}
         </div>
@@ -185,14 +190,14 @@ export function ServiceBentoCard({
         </div>
       </div>
 
-      <div className='mt-3 flex flex-col gap-1'>
+      <div className='mt-2.5 sm:mt-3 flex flex-col gap-0.5 sm:gap-1'>
         {contentSlot ?? (
           <>
             <HealthcareHeading
               as='h3'
               size='compact'
               className='
-                text-foreground font-semibold text-base leading-tight
+                text-foreground font-semibold text-xs sm:text-sm md:text-base leading-tight
                 transition-transform duration-300
                 group-hover:translate-x-0.5
               '
@@ -201,12 +206,22 @@ export function ServiceBentoCard({
             </HealthcareHeading>
 
             {item.description && (
-              <HealthcareText
-                size='caption'
-                className='text-muted-foreground line-clamp-2 text-xs pt-0.5'
+              <div
+                className={cn(
+                  'transition-all duration-300 ease-out',
+                  isCenterActive
+                    ? 'max-md:max-h-24 max-md:opacity-100 max-md:translate-y-0'
+                    : 'max-md:max-h-0 max-md:opacity-0 max-md:overflow-hidden max-md:translate-y-1',
+                  'md:max-h-none md:opacity-100 md:translate-y-0'
+                )}
               >
-                {item.description}
-              </HealthcareText>
+                <HealthcareText
+                  size='caption'
+                  className='text-muted-foreground line-clamp-2 text-[10.5px] sm:text-xs pt-0.5 leading-relaxed'
+                >
+                  {item.description}
+                </HealthcareText>
+              </div>
             )}
           </>
         )}

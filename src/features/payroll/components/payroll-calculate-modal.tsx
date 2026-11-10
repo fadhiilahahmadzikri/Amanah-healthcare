@@ -14,6 +14,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { Icons } from '@/components/icons';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useCalculatePayrollMutation } from '../api/mutations';
@@ -87,13 +88,13 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
           <Label htmlFor='calc-period-start' className='text-xs font-semibold text-foreground'>
             Tanggal Mulai
           </Label>
-          <Input
-            id='calc-period-start'
-            type='date'
+          <CustomDatePicker
             value={periodStart}
-            onChange={(e) => setPeriodStart(e.target.value)}
-            className='text-xs h-8.5 rounded-lg'
-            disabled={calculateMutation.isPending}
+            onChange={(val) => {
+              if (val) setPeriodStart(val);
+            }}
+            placeholder='Pilih tanggal mulai'
+            ariaLabel='Tanggal Mulai'
           />
         </div>
 
@@ -101,13 +102,13 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
           <Label htmlFor='calc-period-end' className='text-xs font-semibold text-foreground'>
             Tanggal Selesai
           </Label>
-          <Input
-            id='calc-period-end'
-            type='date'
+          <CustomDatePicker
             value={periodEnd}
-            onChange={(e) => setPeriodEnd(e.target.value)}
-            className='text-xs h-8.5 rounded-lg'
-            disabled={calculateMutation.isPending}
+            onChange={(val) => {
+              if (val) setPeriodEnd(val);
+            }}
+            placeholder='Pilih tanggal selesai'
+            ariaLabel='Tanggal Selesai'
           />
         </div>
       </div>
@@ -118,8 +119,7 @@ export function PayrollCalculateModal({ isOpen, onClose, onSuccess }: PayrollCal
           <span>Ketentuan Kalkulasi</span>
         </div>
         <p className='max-w-md'>
-          Engine akan mengevaluasi seluruh roster dinas dokter, bidan, dan staf operasional serta
-          memproses pemotongan izin yang telah disetujui admin secara otomatis.
+          Sistem akan menghitung jam kerja dinas staf dan memproses pemotongan izin atau cuti yang telah disetujui secara otomatis.
         </p>
       </div>
     </div>

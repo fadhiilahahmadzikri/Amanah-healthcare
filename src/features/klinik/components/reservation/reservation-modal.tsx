@@ -5,6 +5,9 @@ import { isUUID } from 'class-validator';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
+import { cn } from '@/lib/utils';
+import { AppError } from '@/core/errors/app-error';
+import { ErrorCodes } from '@/core/errors/error-codes';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { catalogService, type ServiceCatalogItem } from '../../api/catalog.service';
@@ -365,19 +368,14 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       onSuccess?.(uiApt);
       toast.success('Janji temu berhasil dibuat beserta tiket antrean resmi');
     } catch (err: unknown) {
-      const isOvercapacityConsentRequired =
-        (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
-        (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
-        (typeof (err as any)?.message === 'string' &&
-          (err as any).message.includes('OVERCAPACITY_CONSENT_REQUIRED'));
-
-      if (isOvercapacityConsentRequired && !isConsent) {
+      if (
+        err instanceof AppError &&
+        err.code === ErrorCodes.OVERCAPACITY_CONSENT_REQUIRED &&
+        !isConsent
+      ) {
         setOvercapacityDialog({
           isOpen: true,
-          message:
-            (err as any)?.problemDetails?.detail ||
-            (err as any)?.message ||
-            'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
+          message: err.message
         });
         return;
       }
@@ -399,9 +397,12 @@ export function ReservationModal({ isOpen, context, onClose, onSuccess }: Reserv
       <ModalWrapper
         isOpen={isOpen && !isQueueSuccessOpen}
         onClose={onClose}
-        maxWidth='max-w-[500px]'
+        maxWidth={step === 'confirmation' ? 'max-w-2xl' : 'max-w-[500px]'}
         backdropClassName='overflow-hidden'
-        className='flex flex-col h-auto max-h-none overflow-visible rounded-2xl border border-border bg-card p-5 sm:p-6 w-full max-w-[500px] my-auto shadow-2xl'
+        className={cn(
+          'flex flex-col h-auto max-h-none overflow-visible rounded-2xl border border-border bg-card p-5 sm:p-6 w-full my-auto shadow-2xl',
+          step === 'confirmation' ? 'max-w-2xl sm:p-7' : 'max-w-[500px]'
+        )}
       >
         <div className='flex flex-col font-sans select-none h-auto min-h-0 gap-4 justify-start'>
           <div className='pr-1 h-auto overflow-visible'>

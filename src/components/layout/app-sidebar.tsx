@@ -39,7 +39,6 @@ import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
 import { resolveLucideIcon } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
 import { ChatUnreadBadge } from '@/features/chat/components/atoms/chat-unread-badge';
-import { cn } from '@/lib/utils';
 
 const EMOJI_REGEX = /\p{Extended_Pictographic}/u;
 
@@ -79,7 +78,7 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, navGroups, status, isReady, can } = useAuthContext();
-  const { isMobile, openMobile, setOpenMobile } = useSidebar();
+  const { isMobile, setOpenMobile } = useSidebar();
 
   // Idempotent state management: close mobile sidebar when navigating or clicking active link
   const handleNavClick = React.useCallback(() => {
@@ -88,12 +87,16 @@ export default function AppSidebar() {
     }
   }, [isMobile, setOpenMobile]);
 
-  // Ensure mobile sidebar is closed when route changes
+  // Ensure mobile sidebar is closed ONLY when route actually changes
+  const prevPathnameRef = React.useRef(pathname);
   React.useEffect(() => {
-    if (isMobile && openMobile) {
-      setOpenMobile(false);
+    if (prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname;
+      if (isMobile) {
+        setOpenMobile(false);
+      }
     }
-  }, [pathname, isMobile, openMobile, setOpenMobile]);
+  }, [pathname, isMobile, setOpenMobile]);
 
   return (
     <Sidebar collapsible='icon'>

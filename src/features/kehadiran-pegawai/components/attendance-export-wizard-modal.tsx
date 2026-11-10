@@ -652,10 +652,10 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                 <Button
                   type='button'
                   variant='ghost'
-                  size='md'
-                  shape='pill'
+                  size='sm'
                   onClick={onClose}
                   disabled={isBusy}
+                  className='rounded-xl text-xs'
                 >
                   Batal
                 </Button>
@@ -663,11 +663,11 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                 <Button
                   type='button'
                   variant='ghost'
-                  size='md'
-                  shape='pill'
+                  size='sm'
                   leadingIcon={<Icons.arrowLeft className='size-3.5' />}
                   onClick={() => setStep('month')}
                   disabled={isBusy}
+                  className='rounded-xl text-xs'
                 >
                   Kembali
                 </Button>
@@ -675,11 +675,11 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                 <Button
                   type='button'
                   variant='ghost'
-                  size='md'
-                  shape='pill'
+                  size='sm'
                   leadingIcon={<Icons.arrowLeft className='size-3.5' />}
                   onClick={() => setStep('scope')}
                   disabled={isBusy}
+                  className='rounded-xl text-xs'
                 >
                   Kembali
                 </Button>
@@ -687,11 +687,11 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                 <Button
                   type='button'
                   variant='ghost'
-                  size='md'
-                  shape='pill'
+                  size='sm'
                   leadingIcon={<Icons.arrowLeft className='size-3.5' />}
                   onClick={() => setStep(exportMode === 'all' ? 'scope' : 'staff')}
                   disabled={isBusy}
+                  className='rounded-xl text-xs'
                 >
                   Kembali
                 </Button>
@@ -702,26 +702,21 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
               {step === 'month' && (
                 <Button
                   type='button'
-                  variant='primary'
-                  size='md'
-                  shape='pill'
-                  withTrailingCircleIcon
-                  trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  variant='default'
+                  size='sm'
                   onClick={() => setStep('scope')}
-                  className='min-w-[130px]'
+                  className='min-w-[110px] rounded-xl text-xs h-8.5 gap-1.5'
                 >
-                  Lanjut
+                  <span>Lanjut</span>
+                  <Icons.arrowRight className='size-3.5' />
                 </Button>
               )}
 
               {step === 'scope' && (
                 <Button
                   type='button'
-                  variant='primary'
-                  size='md'
-                  shape='pill'
-                  withTrailingCircleIcon
-                  trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  variant='default'
+                  size='sm'
                   onClick={() => {
                     if (exportMode === 'all') {
                       setStep('format');
@@ -729,25 +724,24 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
                       setStep('staff');
                     }
                   }}
-                  className='min-w-[130px]'
+                  className='min-w-[110px] rounded-xl text-xs h-8.5 gap-1.5'
                 >
-                  Lanjut
+                  <span>Lanjut</span>
+                  <Icons.arrowRight className='size-3.5' />
                 </Button>
               )}
 
               {step === 'staff' && (
                 <Button
                   type='button'
-                  variant='primary'
-                  size='md'
-                  shape='pill'
-                  withTrailingCircleIcon
-                  trailingIcon={<Icons.arrowRight className='size-3 stroke-[2.5]' />}
+                  variant='default'
+                  size='sm'
                   disabled={!selectedStaff}
                   onClick={() => setStep('format')}
-                  className='min-w-[130px]'
+                  className='min-w-[110px] rounded-xl text-xs h-8.5 gap-1.5'
                 >
-                  Lanjut
+                  <span>Lanjut</span>
+                  <Icons.arrowRight className='size-3.5' />
                 </Button>
               )}
             </div>

@@ -29,6 +29,7 @@ export function MasterEntityCard({
   subtitle,
   avatarUrl,
   showAvatar,
+  avatarShape,
   initials,
   trailingImage,
   headerSlot,
@@ -124,6 +125,7 @@ export function MasterEntityCard({
                 subtitle={subtitle}
                 avatarUrl={avatarUrl}
                 showAvatar={showAvatar}
+                avatarShape={avatarShape}
                 initials={effectiveInitials}
                 onNameClick={handleTitleClick}
                 isPending={isPending}

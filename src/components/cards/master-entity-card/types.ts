@@ -34,6 +34,7 @@ export interface EntityCardIdentityProps {
   subtitle?: React.ReactNode;
   avatarUrl?: string | null;
   showAvatar?: boolean;
+  avatarShape?: 'circle' | 'rounded';
   initials: string;
   onNameClick?: (e: React.MouseEvent) => void;
   isPending?: boolean;
@@ -79,6 +80,8 @@ export interface MasterEntityCardProps {
   avatarUrl?: string | null;
   /** Whether to show the avatar icon/image (defaults to true) */
   showAvatar?: boolean;
+  /** Shape style of avatar ('circle' | 'rounded', defaults to 'circle') */
+  avatarShape?: 'circle' | 'rounded';
   /** Fallback initials when avatar URL is unavailable */
   initials?: string;
   /** Optional background trailing watermark or illustration */

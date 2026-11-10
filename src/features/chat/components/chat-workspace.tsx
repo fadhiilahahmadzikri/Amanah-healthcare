@@ -77,7 +77,7 @@ export function UnifiedChatWorkspace({
   }, [showMobileProfile]);
 
   return (
-    <div className='w-full h-full flex-1 min-h-0 bg-card border border-border/80 rounded-[8px] overflow-hidden shadow-xs flex select-none'>
+    <div className='w-full h-full flex-1 min-h-0 bg-background md:bg-card border-0 md:border md:border-border/80 rounded-none md:rounded-[8px] overflow-hidden shadow-none md:shadow-xs flex select-none'>
       {/* Column 1: Slim Activity Tool Rail (Hidden on mobile, preserved on desktop) */}
       <ChatRailNav activeTool={activeTool} onSelectTool={(tool) => setActiveTool(tool)} />
 

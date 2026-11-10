@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Icons } from '@/components/icons';
 import {
@@ -29,6 +29,7 @@ import { PayrollTable } from './payroll-tables';
 import { PayrollMobileCards } from './payroll-mobile-cards';
 import { PayrollOverviewStats } from './payroll-overview-stats';
 import { PayrollSlipDetailModal } from './payroll-slip-detail-modal';
+import { ExportDialog } from '@/features/export';
 import { PayrollCalculateModal } from './payroll-calculate-modal';
 import { PayrollRatesConfigModal } from './payroll-rates-config-modal';
 import { PayrollTimingConfigModal } from './payroll-timing-config-modal';
@@ -38,6 +39,7 @@ import { PayrollReconcileLeaveModal } from './payroll-reconcile-leave-modal';
 export function PayrollManagementView() {
   const presenter = usePayrollPresenter();
   const { payrollView, modals, mutations, actions, report } = presenter;
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const isCalculated = payrollView.currentPeriod?.status === PAYROLL_PERIOD_STATUS.CALCULATED;
   const isCalculatedOrFinalized = isPayrollCalculatedOrFinalized(payrollView.currentPeriod?.status);
@@ -129,13 +131,10 @@ export function PayrollManagementView() {
             </AlertDialogTitle>
             <AlertDialogDescription className='text-xs text-muted-foreground mt-2 leading-relaxed'>
               Setelah periode <strong>&quot;{payrollView.currentPeriod?.periodName}&quot;</strong>{' '}
-              resmi ditutup buku (<strong>FINALIZED</strong>), seluruh nominal mutasi, jam kerja,
-              dan slip gaji staf akan dikunci permanen.
+              resmi ditutup buku, seluruh nominal dan slip gaji staf akan dikunci permanen.
               <br />
               <br />
-              <span className='font-semibold text-foreground'>Integritas Akuntansi:</span> Periode
-              ini tidak akan dapat dikalkulasi ulang dan tidak akan terpengaruh jika tarif
-              kompensasi diubah di masa mendatang.
+              Periode yang telah ditutup tidak dapat dihitung ulang dan perubahan tarif gaji di kemudian hari tidak akan memengaruhi periode ini.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className='gap-2 mt-2'>
@@ -152,6 +151,15 @@ export function PayrollManagementView() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* 7. Modal Unduh Dokumen Rekapitulasi Penggajian Resmi (PDF, Excel, CSV) */}
+      <ExportDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+        exportType='payroll'
+        availablePeriods={payrollView.periods}
+        selectedPeriodId={payrollView.currentPeriod?.id}
+      />
 
       {/* Main View Shell */}
       <div className='flex h-full min-h-0 flex-1 flex-col gap-3.5 select-none'>
@@ -208,6 +216,7 @@ export function PayrollManagementView() {
                 periodName={payrollView.currentPeriod?.periodName}
                 variant={isCompact ? 'icon' : 'full'}
                 className={isCompact ? 'size-8 rounded-md' : undefined}
+                onClick={() => setIsExportDialogOpen(true)}
               />
             </div>
           }

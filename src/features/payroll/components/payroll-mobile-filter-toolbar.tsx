@@ -10,11 +10,13 @@ import type { UsePayrollPresenterResult } from '../model/usePayrollPresenter';
 
 export interface PayrollMobileFilterToolbarProps {
   presenter: UsePayrollPresenterResult;
+  onOpenExport?: () => void;
   className?: string;
 }
 
 export function PayrollMobileFilterToolbar({
   presenter,
+  onOpenExport,
   className
 }: PayrollMobileFilterToolbarProps) {
   const { payrollView, mutations, actions } = presenter;
@@ -66,6 +68,7 @@ export function PayrollMobileFilterToolbar({
               periodName={payrollView.currentPeriod?.periodName}
               variant='icon'
               className='size-8 rounded-md'
+              onClick={onOpenExport}
             />
           </div>
         }

@@ -16,7 +16,6 @@ import {
   TableRow,
   TableCell
 } from '@/components/ui/table';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { DataTableBulkActions } from '@/components/ui/table/data-table-bulk-actions';
 import { Icons } from '@/components/icons';
 import { cn } from '@/lib/utils';
@@ -157,12 +156,12 @@ export function AttendanceTableCard({
 
       {/* 4. Desktop View: Data Table with Sticky Right Action Column */}
       <div className='hidden md:flex relative flex-1 min-h-0'>
-        <div className='absolute inset-0 flex overflow-hidden rounded-[var(--radius)] border border-border/40 bg-card shadow-xs'>
-          <ScrollArea className='h-full w-full'>
-            <Table>
+        <div className='absolute inset-0 overflow-auto rounded-[var(--radius)] border border-border/40 bg-card shadow-xs'>
+          <div className='min-w-full inline-block align-top'>
+            <Table containerClassName='border-0 rounded-none shadow-none bg-transparent overflow-visible'>
               <TableHeader className='bg-muted sticky top-0 z-20 border-b border-border/40'>
                 <TableRow className='hover:bg-transparent border-b border-border/40'>
-                  <TableHead className='h-10 w-10 px-2.5 text-center'>
+                  <TableHead className='sticky left-0 top-0 z-30 bg-muted h-10 w-10 px-2.5 text-center border-r border-border/40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.08)]'>
                     <Checkbox
                       checked={isAllSelected || (isSomeSelected && 'indeterminate')}
                       onCheckedChange={toggleSelectAll}
@@ -191,7 +190,7 @@ export function AttendanceTableCard({
                     Shift
                   </TableHead>
                   {/* Sticky Right Action Header (100% Solid Opacity dengan Pill Total Staf) */}
-                  <TableHead className='sticky right-0 bg-muted z-30 shadow-[-6px_0_10px_-2px_rgba(0,0,0,0.1)] h-10 min-w-[105px] px-2.5 text-right'>
+                  <TableHead className='sticky right-0 top-0 bg-muted z-30 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.08)] border-l border-border/40 h-10 min-w-[105px] px-2.5 text-right'>
                     <div className='flex items-center justify-end'>
                       <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold font-mono bg-background/80 border border-border/70 text-muted-foreground shadow-2xs whitespace-nowrap'>
                         {filterState.isFiltered
@@ -251,7 +250,10 @@ export function AttendanceTableCard({
                       >
                         {/* Checkbox */}
                         <TableCell
-                          className='px-2.5 text-center'
+                          className={cn(
+                            'sticky left-0 z-10 px-2.5 text-center transition-colors border-r border-border/40 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.06)]',
+                            isSelected ? 'bg-muted' : 'bg-card group-hover:bg-muted'
+                          )}
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleSelectRow(row.id);
@@ -407,7 +409,7 @@ export function AttendanceTableCard({
                         {/* Sticky Right Action Column (100% Solid Opacity - Zero See-Through) */}
                         <TableCell
                           className={cn(
-                            'sticky right-0 z-10 shadow-[-6px_0_10px_-2px_rgba(0,0,0,0.1)] px-2.5 text-right transition-colors',
+                            'sticky right-0 z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.06)] border-l border-border/40 px-2.5 text-right transition-colors',
                             isSelected ? 'bg-muted' : 'bg-card group-hover:bg-muted'
                           )}
                           onClick={(e) => e.stopPropagation()}
@@ -453,8 +455,7 @@ export function AttendanceTableCard({
                 )}
               </TableBody>
             </Table>
-            <ScrollBar orientation='horizontal' />
-          </ScrollArea>
+          </div>
         </div>
       </div>
 

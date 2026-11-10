@@ -11,7 +11,8 @@ import { OtpVerificationForm } from './otp-verification-form';
 import { ResetPasswordForm } from './reset-password-form';
 import { SignInForm } from './sign-in-form';
 import { SignUpForm } from './sign-up-form-custom';
-import { safeRedirect, getRoleLandingPath, ROUTES } from '@/lib/safe-redirect';
+import { MultilingualGreeting } from './greeting';
+import { safeRedirect, getRoleLandingPath } from '@/lib/safe-redirect';
 import { authClient, useSession } from '@/lib/auth-client';
 import {
   loginAction,
@@ -53,13 +54,13 @@ const SCREEN_PATHS: Record<AuthScreen, string> = {
 const SCREEN_COPY: Record<
   AuthScreen,
   {
-    title: string;
+    title: React.ReactNode;
     description: string;
     footer?: React.ReactNode;
   }
 > = {
   'sign-in': {
-    title: 'Masuk ke Amanah',
+    title: <MultilingualGreeting />,
     description: 'Masukkan email dan password atau akun Google Anda untuk melanjutkan.',
     footer: <AuthLegalCopy />
   },

@@ -238,11 +238,71 @@ export type FacilityResource =
   | 'rooms'
   | 'categories'
   | 'services'
+  | 'facilities'
+  | 'faqs'
+  | 'promotions'
   | 'relationships'
   | 'blood-types'
   | 'education-levels'
   | 'religions'
   | 'occupations';
+
+export interface ClinicFacilityItem {
+  id: string;
+  slug: string;
+  title: string;
+  summary?: string | null;
+  imageUrl?: string | null;
+  ctaUrl: string;
+  displayOrder: number;
+  isPublished: boolean;
+  serviceId?: string | null;
+  serviceName?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateClinicFacilityPayload {
+  title: string;
+  slug?: string;
+  summary?: string | null;
+  imageUrl?: string | null;
+  ctaUrl?: string;
+  displayOrder?: number;
+  isPublished?: boolean;
+  serviceId?: string | null;
+}
+
+export type UpdateClinicFacilityPayload = Partial<CreateClinicFacilityPayload>;
+
+export interface SupportFaqItem {
+  id: string;
+  category: string;
+  title: string;
+  solutionSteps: string[];
+  paths: string[];
+  displayOrder: number;
+  isPublished: boolean;
+  serviceId?: string | null;
+  serviceName?: string | null;
+  categoryId?: string | null;
+  categoryName?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CreateSupportFaqPayload {
+  category: string;
+  title: string;
+  solutionSteps: string[];
+  paths?: string[];
+  displayOrder?: number;
+  isPublished?: boolean;
+  serviceId?: string | null;
+  categoryId?: string | null;
+}
+
+export type UpdateSupportFaqPayload = Partial<CreateSupportFaqPayload>;
 
 export type FacilityBulkAction = 'activate' | 'deactivate' | 'delete';
 

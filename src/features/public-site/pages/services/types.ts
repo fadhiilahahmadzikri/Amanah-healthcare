@@ -28,7 +28,7 @@ export type ServiceCardItem = {
   complaints?: string[];
 };
 
-export type ServiceCategoryContext = 'general-practitioner' | 'midwifery';
+export type ServiceCategoryContext = string;
 
 export type ServiceCategorySection = {
   id: string;
@@ -47,6 +47,8 @@ export type FacilityCarouselItem = {
   summary: string;
   url: string;
   image: string;
+  serviceId?: string | null;
+  serviceName?: string | null;
 };
 
 export type FacilitySectionData = {

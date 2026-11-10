@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
 import { ExportDialog } from '@/features/export';
@@ -49,7 +48,6 @@ export function AttendanceDetailSheet({
 
   const isLate = record.status === CANONICAL_ATTENDANCE_STATUS.LATE;
   const isPresent = record.status === CANONICAL_ATTENDANCE_STATUS.PRESENT;
-  const isClinical = Boolean(record.isClinical);
   const roleName = record.roleName || '-';
   const statusLabel = ATTENDANCE_STATUS_LABELS[record.status] || record.status;
   const shiftLabel = record.shiftLabel || '-';
@@ -109,20 +107,10 @@ export function AttendanceDetailSheet({
                 </Avatar>
 
                 <div className='min-w-0 flex-1 pb-0.5'>
-                  <div className='flex items-center gap-1.5'>
-                    <Badge
-                      variant='outline'
-                      className={cn(
-                        'text-[10px] font-semibold px-2 py-0.2 border',
-                        isClinical
-                          ? 'bg-teal-500/10 text-teal-700 dark:text-teal-300 border-teal-500/20'
-                          : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20'
-                      )}
-                    >
-                      {roleName}
-                    </Badge>
-                  </div>
-                  <SheetTitle className='text-base font-bold text-foreground truncate mt-1'>
+                  <span className='text-[10px] font-semibold text-muted-foreground uppercase tracking-wider block'>
+                    {roleName}
+                  </span>
+                  <SheetTitle className='text-base font-bold text-foreground truncate mt-0.5'>
                     {record.nama_staf}
                   </SheetTitle>
                   <SheetDescription className='text-xs text-muted-foreground font-mono'>
@@ -136,49 +124,28 @@ export function AttendanceDetailSheet({
           {/* Details Body */}
           <div className='flex-1 overflow-y-auto p-5 space-y-4'>
             {/* Status Section */}
-            <div className='p-3.5 rounded-xl bg-muted/30 border border-border/50 space-y-2'>
-              <span className='text-[10.5px] font-semibold text-muted-foreground uppercase tracking-wider block'>
-                Status Presensi Hari Ini
-              </span>
-              <div className='flex items-center gap-2 flex-wrap'>
+            <div className='p-3.5 rounded-xl bg-muted/30 border border-border/50 flex items-center justify-between gap-3'>
+              <div className='flex items-center gap-2 min-w-0'>
                 <span
                   className={cn(
-                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border',
-                    isLate
-                      ? 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border-amber-500/20'
-                      : isPresent
-                        ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/20'
-                        : 'bg-muted text-muted-foreground border-border/50'
+                    'size-2.5 rounded-full shrink-0',
+                    isLate ? 'bg-amber-500' : isPresent ? 'bg-emerald-500' : 'bg-muted-foreground'
                   )}
-                >
-                  <span
-                    className={cn(
-                      'size-2 rounded-full',
-                      isLate ? 'bg-amber-500' : isPresent ? 'bg-emerald-500' : 'bg-muted-foreground'
-                    )}
-                  />
-                  <span>{statusLabel}</span>
+                />
+                <span className='font-bold text-xs text-foreground'>
+                  {statusLabel}
                 </span>
-
-                <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20'>
-                  <Icons.clock className='size-3' />
-                  <span>Shift {shiftLabel}</span>
+                <span className='text-muted-foreground text-xs'>•</span>
+                <span className='text-xs text-muted-foreground'>
+                  Shift {shiftLabel}
                 </span>
-
-                {isLate && lateLabel && (
-                  <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'>
-                    <Icons.alertCircle className='size-3 text-amber-600 dark:text-amber-400' />
-                    <span>{lateLabel}</span>
-                  </span>
-                )}
-
-                {record.isEarlyDeparture && (
-                  <span className='inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30'>
-                    <Icons.alertCircle className='size-3 text-amber-600 dark:text-amber-400' />
-                    <span>Pulang Lebih Awal</span>
-                  </span>
-                )}
               </div>
+
+              {(isLate && lateLabel) || record.isEarlyDeparture ? (
+                <span className='text-[11px] font-medium text-amber-600 dark:text-amber-400 shrink-0'>
+                  {isLate && lateLabel ? lateLabel : 'Pulang Lebih Awal'}
+                </span>
+              ) : null}
             </div>
 
             {/* Replacement Banner (if any) */}

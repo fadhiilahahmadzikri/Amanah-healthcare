@@ -43,11 +43,11 @@ export interface StaffTodayAttendance {
 export interface StaffMember {
   id: string;
   userId: string;
-  poliklinikId: string;
+  poliklinikId?: string | null;
   poliklinikName?: string | null;
   fullName: string;
-  profession: string;
-  roleId?: string;
+  profession?: string | null;
+  roleId?: string | null;
   roleCode?: string | null;
   roleName?: string | null;
   isClinical?: boolean;
@@ -63,6 +63,8 @@ export interface StaffMember {
   isActive: boolean;
   status: 'active' | 'inactive' | 'on_leave' | 'pending';
   isPendingVerification?: boolean;
+  hasGoogle?: boolean;
+  hasPassword?: boolean;
   invitationId?: string | null;
   address?: StaffAddressData | null;
   leaveInfo?: StaffLeaveInfo | null;

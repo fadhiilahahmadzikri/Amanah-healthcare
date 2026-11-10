@@ -11,7 +11,7 @@ export default async function PatientChatPage() {
   await requireRouteAccess('/klinik/chat');
 
   return (
-    <PageContainer scrollable={false}>
+    <PageContainer scrollable={false} className='p-0 md:px-6 md:pt-4 md:pb-4'>
       <div className='flex-1 h-full min-h-0 flex flex-col'>
         <Suspense fallback={null}>
           <PatientChatView />

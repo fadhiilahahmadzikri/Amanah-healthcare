@@ -98,7 +98,7 @@ export function ChatMainArea({
     return (
       <main
         className={cn(
-          'flex-1 flex flex-col bg-background/50 border-r border-border/60 p-6',
+          'flex-1 flex flex-col bg-background md:bg-background/50 border-r-0 md:border-r border-border/60 p-4 md:p-6',
           className
         )}
       >
@@ -115,7 +115,7 @@ export function ChatMainArea({
   return (
     <main
       className={cn(
-        'flex-1 flex flex-col bg-background/50 min-w-0 border-r border-border/60 select-none',
+        'flex-1 flex flex-col bg-background/50 min-w-0 border-r-0 md:border-r border-border/60 select-none',
         className
       )}
     >
@@ -245,7 +245,7 @@ export function ChatMainArea({
       </div>
 
       {/* 3. Text Composer (Standardized height & touch targets) */}
-      <div className='relative z-20 p-3 border-t border-border/60 bg-card/95 backdrop-blur-md'>
+      <div className='relative z-20 p-2.5 sm:p-3 border-t border-border/60 bg-background md:bg-card/95 backdrop-blur-md'>
         {/* Floating Bare 3-Dot Bouncing Indicator (Unwrapped, strictly above message stream) */}
         {isClientTyping && (
           <div className='absolute -top-6 left-4 sm:left-5 z-30 flex items-center gap-1.5 pointer-events-none animate-in fade-in duration-200'>

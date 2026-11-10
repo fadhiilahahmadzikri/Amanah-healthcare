@@ -117,13 +117,13 @@ export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistory
         </div>
 
         {/* 3. Timeline Body */}
-        <div className='max-h-[58vh] overflow-y-auto pr-1.5 space-y-4'>
+        <div className='max-h-[58vh] overflow-y-auto p-4 rounded-2xl bg-surface-subtle/80 dark:bg-muted/20 border border-border/70 shadow-xs space-y-4'>
           {isLoading ? (
             <div className='space-y-3 py-2'>
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className='flex gap-3 items-start p-3 rounded-xl border border-border/40 bg-muted/20'
+                  className='flex gap-3 items-start p-3 rounded-xl border border-border/40 bg-card'
                 >
                   <Skeleton className='size-8 rounded-full shrink-0' />
                   <div className='flex-1 space-y-2'>
@@ -138,7 +138,7 @@ export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistory
             <EmptyState
               title='Belum Ada Riwayat Kunjungan'
               description='Pasien ini belum memiliki riwayat janji temu atau kunjungan pada database klinik.'
-              className='py-8 border border-dashed rounded-xl'
+              className='py-8 border border-dashed rounded-xl bg-card'
             />
           ) : (
             <div className='relative pl-6 space-y-4 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-border/60'>
@@ -152,7 +152,7 @@ export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistory
                     {/* Node Dot */}
                     <div
                       className={cn(
-                        'absolute -left-6 top-1 size-4 rounded-full ring-2 ring-background border flex items-center justify-center transition-colors',
+                        'absolute -left-6 top-1 size-4 rounded-full ring-2 ring-card border flex items-center justify-center transition-colors shadow-2xs',
                         isCompleted && 'bg-emerald-500 border-emerald-600 text-white',
                         isCancelled && 'bg-rose-500 border-rose-600 text-white',
                         item.status === 'in_service' &&
@@ -173,7 +173,7 @@ export function PatientHistoryModal({ isOpen, patient, onClose }: PatientHistory
                     </div>
 
                     {/* Timeline Card */}
-                    <div className='p-3.5 rounded-xl border border-border/50 bg-card hover:border-border transition-colors space-y-2'>
+                    <div className='p-4 rounded-xl border border-border/60 bg-card shadow-2xs hover:border-border transition-colors space-y-2.5'>
                       {/* Top Row: Service & Status */}
                       <div className='flex items-start justify-between gap-2'>
                         <div className='space-y-0.5 min-w-0 flex-1'>

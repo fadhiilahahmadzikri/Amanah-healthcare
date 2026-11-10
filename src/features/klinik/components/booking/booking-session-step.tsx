@@ -137,7 +137,7 @@ interface SessionListProps {
 
 function SessionList({ sessions, session, onSelectSession }: SessionListProps) {
   return (
-    <div className='pt-0.5'>
+    <div className='p-3 sm:p-3.5 rounded-2xl bg-surface-subtle/80 dark:bg-muted/20 border border-border/70 shadow-xs'>
       <RadioGroup
         value={session}
         onValueChange={(val) => {

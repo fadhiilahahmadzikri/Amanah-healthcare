@@ -12,17 +12,24 @@ export interface PayrollExportButtonProps {
   periodName?: string;
   variant?: 'full' | 'icon';
   className?: string;
+  onClick?: () => void;
 }
 
 export function PayrollExportButton({
   data,
   periodName,
   variant = 'full',
-  className
+  className,
+  onClick
 }: PayrollExportButtonProps) {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExport = () => {
+    if (onClick) {
+      onClick();
+      return;
+    }
+
     try {
       setIsExporting(true);
 
@@ -77,8 +84,8 @@ export function PayrollExportButton({
         size='icon'
         onClick={handleExport}
         disabled={isExporting || data.length === 0}
-        aria-label='Ekspor Rekap Penggajian CSV'
-        title='Ekspor Rekap Penggajian CSV'
+        aria-label='Ekspor Rekap Penggajian'
+        title='Ekspor Rekap Penggajian'
         className={cn(
           'size-8.5 rounded-xl cursor-pointer text-muted-foreground hover:text-foreground',
           className

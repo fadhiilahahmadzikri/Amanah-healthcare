@@ -68,19 +68,21 @@ export function BookingConfirmationStep({
         </p>
       </div>
 
-      <div className='space-y-1 text-xs pt-1'>
+      <div className='p-3 sm:p-4 rounded-2xl bg-surface-subtle/80 dark:bg-muted/20 border border-border/70 shadow-xs space-y-2.5 text-xs'>
         {displayServiceName && (
-          <div className='flex items-center justify-between py-2 border-b border-border'>
-            <span className='text-muted-foreground font-normal'>Poliklinik & Layanan</span>
-            <span className='font-semibold text-foreground'>{displayServiceName}</span>
+          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-2.5 sm:p-3 rounded-xl bg-card border border-border/50 shadow-2xs gap-1 sm:gap-4'>
+            <span className='text-muted-foreground font-normal shrink-0'>Poliklinik & Layanan</span>
+            <span className='font-semibold text-foreground sm:text-right break-words leading-snug'>
+              {displayServiceName}
+            </span>
           </div>
         )}
 
-        <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-2.5 sm:p-3 rounded-xl bg-card border border-border/50 shadow-2xs gap-1 sm:gap-4'>
+          <span className='text-muted-foreground font-normal shrink-0'>
             {isBulk ? 'Jumlah Pasien' : 'Pasien'}
           </span>
-          <span className='font-semibold text-foreground'>
+          <span className='font-semibold text-foreground sm:text-right break-words leading-snug'>
             {isBulk ? (
               `${appointmentCount} Antrean Terpilih`
             ) : (
@@ -92,28 +94,33 @@ export function BookingConfirmationStep({
           </span>
         </div>
 
-        <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-2.5 sm:p-3 rounded-xl bg-card border border-border/50 shadow-2xs gap-1 sm:gap-4'>
+          <span className='text-muted-foreground font-normal shrink-0'>
             {isReschedule ? 'Tanggal Baru' : 'Tanggal Reservasi'}
           </span>
-          <span className='font-semibold text-primary'>{formatClinicDate(dateStr)}</span>
+          <span className='font-semibold text-primary sm:text-right break-words leading-snug'>
+            {formatClinicDate(dateStr)}
+          </span>
         </div>
 
-        <div className='flex items-center justify-between py-2 border-b border-border'>
-          <span className='text-muted-foreground font-normal'>
+        <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-2.5 sm:p-3 rounded-xl bg-card border border-border/50 shadow-2xs gap-1 sm:gap-4'>
+          <span className='text-muted-foreground font-normal shrink-0'>
             {isReschedule ? 'Sesi Baru' : 'Sesi Konsultasi'}
           </span>
-          <span className='font-bold text-primary'>{displaySession}</span>
+          <span className='font-bold text-primary sm:text-right break-words leading-snug'>
+            {displaySession}
+          </span>
         </div>
 
         {isInternalProposal && (
-          <div className='py-2.5 space-y-1.5 border-b border-border'>
-            <label htmlFor='reschedule-reason' className='text-muted-foreground font-normal block'>
+          <div className='p-2.5 sm:p-3 rounded-xl bg-card border border-border/50 shadow-2xs space-y-1.5'>
+            <label htmlFor='reschedule-reason' className='text-muted-foreground font-normal block text-xs'>
               Alasan Pengajuan Jadwal Ulang
             </label>
             <input
               id='reschedule-reason'
               type='text'
+              aria-label='Alasan Pengajuan Jadwal Ulang'
               value={reason || ''}
               onChange={(e) => onReasonChange?.(e.target.value)}
               placeholder='Misal: Dokter penanggung jawab berhalangan hadir'
@@ -123,18 +130,18 @@ export function BookingConfirmationStep({
         )}
 
         {!isReschedule && (
-          <div className='flex items-center justify-between py-2 border-b border-border'>
-            <span className='text-muted-foreground font-normal'>Tipe Kunjungan</span>
-            <span className='font-medium text-foreground'>
+          <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between p-2.5 sm:p-3 rounded-xl bg-card border border-border/50 shadow-2xs gap-1 sm:gap-4'>
+            <span className='text-muted-foreground font-normal shrink-0'>Tipe Kunjungan</span>
+            <span className='font-medium text-foreground sm:text-right break-words leading-snug'>
               {formatFriendlyVisitType(visitType as CanonicalVisitType)}
             </span>
           </div>
         )}
 
         {!isReschedule && (
-          <div className='py-2 space-y-1'>
-            <span className='text-muted-foreground font-normal block'>Keluhan Medis</span>
-            <p className='text-foreground font-normal'>{complaint || ''}</p>
+          <div className='p-2.5 sm:p-3 rounded-xl bg-card border border-border/50 shadow-2xs space-y-1'>
+            <span className='text-muted-foreground font-normal block text-xs'>Keluhan Medis</span>
+            <p className='text-foreground font-normal break-words leading-relaxed'>{complaint || ''}</p>
           </div>
         )}
       </div>

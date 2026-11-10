@@ -27,7 +27,8 @@ export default function PageContainer({
   pageDescription,
   infoContent,
   pageHeaderAction,
-  scrollable = false
+  scrollable = false,
+  className
 }: {
   children: React.ReactNode;
   isLoading?: boolean;
@@ -38,6 +39,7 @@ export default function PageContainer({
   infoContent?: InfobarContent;
   pageHeaderAction?: React.ReactNode;
   scrollable?: boolean;
+  className?: string;
 }) {
   if (!access) {
     return (
@@ -61,7 +63,8 @@ export default function PageContainer({
         'flex h-full min-h-0 flex-1 flex-col px-4 pt-2 pb-4 md:px-6 md:pt-4',
         scrollable
           ? 'overflow-y-auto'
-          : 'max-h-[calc(100svh-4.25rem)] overflow-hidden md:max-h-[calc(100svh-3.75rem)]'
+          : 'max-h-[calc(100svh-4.25rem)] overflow-hidden md:max-h-[calc(100svh-3.75rem)]',
+        className
       )}
     >
       {hasHeader && (

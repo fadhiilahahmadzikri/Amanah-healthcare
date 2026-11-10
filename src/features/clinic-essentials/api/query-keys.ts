@@ -8,6 +8,8 @@ export const clinicEssentialsKeys = {
     [...clinicEssentialsKeys.all, 'services', categoryId, unitId] as const,
   forms: () => [...clinicEssentialsKeys.all, 'forms'] as const,
   relationships: () => [...clinicEssentialsKeys.all, 'relationships'] as const,
+  facilities: () => [...clinicEssentialsKeys.all, 'facilities-items'] as const,
+  faqs: () => [...clinicEssentialsKeys.all, 'faqs'] as const,
   bloodTypes: (params?: { search?: string; status?: string }) =>
     params ? ([...clinicEssentialsKeys.all, 'blood-types', params] as const) : ([...clinicEssentialsKeys.all, 'blood-types'] as const),
   educationLevels: (params?: { search?: string; status?: string }) =>

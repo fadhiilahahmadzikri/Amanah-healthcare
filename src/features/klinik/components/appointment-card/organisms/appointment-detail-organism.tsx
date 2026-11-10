@@ -336,8 +336,8 @@ export function AppointmentDetailOrganism({
                   </div>
                 </div>
 
-                <div className='flex-1 min-h-0 overflow-y-auto pr-1 py-1'>
-                  <div className='py-2.5 border-b border-border/40 flex items-center justify-between gap-3 text-sm min-w-0'>
+                <div className='flex-1 min-h-0 overflow-y-auto pr-1 py-1 space-y-3'>
+                  <div className='p-3 rounded-xl bg-surface-subtle/80 dark:bg-muted/20 border border-border/60 flex items-center justify-between gap-3 text-sm min-w-0 shadow-2xs'>
                     <div className='flex items-center gap-2 text-foreground font-semibold min-w-0 shrink-0'>
                       <Icons.calendar className='size-4 text-primary shrink-0' strokeWidth={1.8} />
                       <span className='truncate'>
@@ -360,78 +360,81 @@ export function AppointmentDetailOrganism({
                     endLabel={isBeforeCall || isWaiting ? 'Est. Selesai' : 'Selesai'}
                   />
 
-                  <div className='pt-2 pb-1 grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-5 min-w-0'>
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Nama Pasien
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {patientName}
-                      </span>
-                    </div>
+                  {/* Material Design 3 Minimalist Surface (Unwrapped, No Nested Card Borders) */}
+                  <div className='p-3.5 sm:p-4 rounded-2xl bg-surface-subtle/70 dark:bg-muted/25 space-y-2.5'>
+                    <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 min-w-0'>
+                      <div className='p-2 sm:p-2.5 rounded-xl min-w-0'>
+                        <span className='text-[11px] font-medium text-muted-foreground block mb-0.5'>
+                          Nama Pasien
+                        </span>
+                        <span className='text-sm font-semibold text-foreground block truncate'>
+                          {patientName}
+                        </span>
+                      </div>
 
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Status Janji Temu
-                      </span>
-                      <div className='pt-0.5'>
-                        <AppointmentStatusPill status={appointment.status} size='sm' />
+                      <div className='p-2 sm:p-2.5 rounded-xl flex flex-col justify-between min-w-0'>
+                        <span className='text-[11px] font-medium text-muted-foreground block mb-0.5'>
+                          Status Janji Temu
+                        </span>
+                        <div className='pt-0.5'>
+                          <AppointmentStatusPill status={appointment.status} size='sm' />
+                        </div>
+                      </div>
+
+                      <div className='p-2 sm:p-2.5 rounded-xl min-w-0'>
+                        <span className='text-[11px] font-medium text-muted-foreground block mb-0.5'>
+                          Nomor Antrean
+                        </span>
+                        <span className='text-sm font-bold font-mono text-primary block truncate'>
+                          {appointment.queue_number || '-'}
+                        </span>
+                      </div>
+
+                      <div className='p-2 sm:p-2.5 rounded-xl min-w-0'>
+                        <span className='text-[11px] font-medium text-muted-foreground block mb-0.5'>
+                          Poliklinik Tujuan
+                        </span>
+                        <span className='text-sm font-semibold text-foreground block truncate'>
+                          {appointment.poliklinik_name || '-'}
+                        </span>
+                      </div>
+
+                      <div className='p-2 sm:p-2.5 rounded-xl min-w-0'>
+                        <span className='text-[11px] font-medium text-muted-foreground block mb-0.5'>
+                          Layanan Medis
+                        </span>
+                        <span className='text-sm font-semibold text-foreground block truncate'>
+                          {serviceName}
+                        </span>
+                      </div>
+
+                      <div className='p-2 sm:p-2.5 rounded-xl min-w-0'>
+                        <span className='text-[11px] font-medium text-muted-foreground block mb-0.5'>
+                          Ruang & Lokasi
+                        </span>
+                        <span className='text-sm font-semibold text-foreground block truncate'>
+                          {displayLocation}
+                        </span>
+                      </div>
+
+                      <div className='p-2 sm:p-2.5 rounded-xl col-span-1 sm:col-span-2 min-w-0'>
+                        <span className='text-[11px] font-medium text-muted-foreground block mb-0.5'>
+                          Tipe Kunjungan
+                        </span>
+                        <span className='text-sm font-semibold text-foreground block truncate'>
+                          {visitType}
+                        </span>
                       </div>
                     </div>
 
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Nomor Antrean
+                    <div className='pt-2.5 border-t border-border/30 px-2 sm:px-2.5 space-y-1 min-w-0'>
+                      <span className='text-[11px] font-medium text-muted-foreground block'>
+                        Keluhan Medis
                       </span>
-                      <span className='text-sm font-bold font-mono text-primary block truncate'>
-                        {appointment.queue_number || '-'}
-                      </span>
+                      <p className='text-xs sm:text-sm font-medium text-foreground leading-relaxed break-words'>
+                        {complaintText}
+                      </p>
                     </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Poliklinik Tujuan
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {appointment.poliklinik_name || '-'}
-                      </span>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Layanan Medis
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {serviceName}
-                      </span>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Ruang & Lokasi
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {displayLocation}
-                      </span>
-                    </div>
-
-                    <div className='border-b border-border/40 pb-2'>
-                      <span className='text-xs font-normal text-muted-foreground block mb-0.5'>
-                        Tipe Kunjungan
-                      </span>
-                      <span className='text-sm font-semibold text-foreground block truncate'>
-                        {visitType}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className='border-b border-border/40 pb-3 pt-2 min-w-0'>
-                    <span className='text-xs font-normal text-muted-foreground block mb-1'>
-                      Keluhan Medis
-                    </span>
-                    <p className='text-sm font-medium text-foreground leading-relaxed break-words'>
-                      {complaintText}
-                    </p>
                   </div>
                 </div>
 
@@ -479,22 +482,10 @@ export function AppointmentDetailOrganism({
                   <AppointmentFormInspector
                     appointment={appointment}
                     hideHeader
+                    showBottomActions
                     readOnly={isHistoryMode}
                     onClose={() => setModalStep('details')}
                   />
-                </div>
-
-                <div className='pt-3.5 border-t border-border/40 flex items-center justify-end shrink-0'>
-                  <Button
-                    type='button'
-                    variant='outline'
-                    shape='pill'
-                    size='card-action'
-                    onClick={() => setModalStep('details')}
-                    className='w-full sm:w-auto px-6 font-semibold text-xs cursor-pointer'
-                  >
-                    Kembali ke Detail
-                  </Button>
                 </div>
               </div>
             )}

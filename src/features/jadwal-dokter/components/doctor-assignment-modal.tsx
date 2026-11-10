@@ -21,6 +21,7 @@ import {
 import { Switch } from '@/components/ui/switch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DoctorRosterDayCard } from './roster/doctor-roster-day-card';
 import { DataTableSkeleton } from '@/components/ui/table/data-table-skeleton';
 import { cn } from '@/lib/utils';
 import { formatClinicDateTime } from '@/lib/date-format';
@@ -270,113 +271,16 @@ export function ScheduleAssignmentModal({
                         : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3'
                     )}
                   >
-                    {displayDays.map((day) => {
-                      const isDoctorAssignedOnDay = day.sessions.some((s) =>
-                        Boolean(selectedAssignments[`${day.dow}_${s.sessionId}`])
-                      );
-                      const isToday = day.dow === new Date().getDay();
-
-                      return (
-                        <div
-                          key={day.dow}
-                          className={cn(
-                            'p-3.5 rounded-xl border transition-colors flex flex-col justify-between min-w-0',
-                            isDoctorAssignedOnDay
-                              ? 'bg-card border-border/80 shadow-2xs'
-                              : !day.isOperatingDay
-                                ? 'bg-muted/20 border-dashed border-border/40 opacity-75'
-                                : 'bg-muted/30 border-border/60',
-                            isToday && 'ring-2 ring-primary border-primary bg-primary/[0.04]'
-                          )}
-                        >
-                          <div className='flex items-center justify-between pb-2 mb-2.5 border-b border-border/40 gap-1.5'>
-                            <div className='flex items-center gap-1.5 min-w-0'>
-                              <span className='font-bold text-sm text-foreground whitespace-nowrap'>
-                                {day.dayName}
-                              </span>
-                              {isToday && (
-                                <span className='text-[10px] px-1.5 py-0.5 rounded bg-primary/15 text-primary font-bold shrink-0'>
-                                  Hari Ini
-                                </span>
-                              )}
-                              {!day.isOperatingDay && (
-                                <span className='text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold shrink-0'>
-                                  Klinik Tutup
-                                </span>
-                              )}
-                            </div>
-                            <div className='flex items-center gap-1.5 shrink-0'>
-                              {day.sessions.some(
-                                (s) =>
-                                  Boolean(selectedAssignments[`${day.dow}_${s.sessionId}`]) !==
-                                  Boolean(s.isTemplateActive)
-                              ) && (
-                                <button
-                                  type='button'
-                                  onClick={() => resetDayToTemplate(day.dow)}
-                                  title={`Sesuaikan jadwal hari ${day.dayName} ke template mingguan`}
-                                  className='size-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/70 transition-colors cursor-pointer'
-                                >
-                                  <Icons.refresh className='size-3' />
-                                </button>
-                              )}
-                              <span
-                                className={cn(
-                                  'text-xs font-semibold',
-                                  isDoctorAssignedOnDay ? 'text-primary' : 'text-muted-foreground'
-                                )}
-                              >
-                                {isDoctorAssignedOnDay ? 'Aktif' : 'Libur'}
-                              </span>
-                              <Switch
-                                checked={isDoctorAssignedOnDay}
-                                onCheckedChange={() => toggleDay(day.dow)}
-                                aria-label={`Aktifkan jadwal dokter hari ${day.dayName}`}
-                              />
-                            </div>
-                          </div>
-
-                          <div className='space-y-1.5'>
-                            {day.sessions.map((s) => {
-                              const key = `${day.dow}_${s.sessionId}`;
-                              const isChecked = Boolean(selectedAssignments[key]);
-
-                              return (
-                                <label
-                                  key={s.sessionId}
-                                  htmlFor={`session-chk-${key}`}
-                                  className={cn(
-                                    'flex items-center justify-between p-2 rounded-lg border text-xs cursor-pointer transition-colors',
-                                    isChecked
-                                      ? 'bg-primary/5 border-primary/40 text-foreground font-semibold'
-                                      : 'bg-muted/20 border-border/40 text-muted-foreground hover:bg-muted/40'
-                                  )}
-                                >
-                                  <div className='flex items-center gap-2.5 min-w-0 flex-1'>
-                                    <input
-                                      id={`session-chk-${key}`}
-                                      type='checkbox'
-                                      aria-label={`${day.dayName} ${s.sessionLabel}`}
-                                      checked={isChecked}
-                                      onChange={() => toggleSession(day.dow, s.sessionId)}
-                                      className='size-4 rounded border-border text-primary focus:ring-primary/30 accent-primary cursor-pointer shrink-0'
-                                    />
-                                    <div className='min-w-0 flex-1 flex flex-col'>
-                                      <span className='font-semibold text-xs whitespace-nowrap text-foreground'>
-                                        {s.sessionLabel}
-                                      </span>
-                                      <span className='text-[10.5px] text-muted-foreground font-mono whitespace-nowrap'>
-                                        {s.timeRange}
-                                      </span>
-                                    </div>
-                                  </div>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
+                    {displayDays.map((day) => (
+                      <DoctorRosterDayCard
+                        key={day.dow}
+                        day={day}
+                        selectedAssignments={selectedAssignments}
+                        onToggleDay={toggleDay}
+                        onToggleSession={toggleSession}
+                        onResetDayToTemplate={resetDayToTemplate}
+                      />
+                    ))}
                   </div>
                 </div>
               )}

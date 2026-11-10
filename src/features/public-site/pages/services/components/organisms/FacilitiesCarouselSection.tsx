@@ -25,17 +25,56 @@ import {
 } from '@/features/public-site/components/ui/carousel';
 import { cn } from '@/features/public-site/lib/helpers';
 import { facilitiesSectionData } from '../../data';
+import type { FacilityCarouselItem } from '../../types';
+import { publicContentService } from '@/features/public-site/api/public-content.service';
 
 gsap.registerPlugin(ScrollTrigger);
 
 type FacilitiesCarouselSectionProps = {
   className?: string;
+  initialFacilities?: FacilityCarouselItem[];
 };
 
-export function FacilitiesCarouselSection({ className }: FacilitiesCarouselSectionProps) {
+export function FacilitiesCarouselSection({
+  className,
+  initialFacilities
+}: FacilitiesCarouselSectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const leftColRef = useRef<HTMLDivElement>(null);
   const carouselContainerRef = useRef<HTMLDivElement>(null);
+
+  const [facilities, setFacilities] = useState<FacilityCarouselItem[]>(
+    initialFacilities || []
+  );
+  const [isLoading, setIsLoading] = useState(!initialFacilities || initialFacilities.length === 0);
+
+  useEffect(() => {
+    if (initialFacilities && initialFacilities.length > 0) {
+      setFacilities(initialFacilities);
+      setIsLoading(false);
+      return;
+    }
+
+    let isMounted = true;
+    publicContentService
+      .getFacilities()
+      .then((data) => {
+        if (isMounted) {
+          setFacilities(data);
+          setIsLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch facilities on client:', err);
+        if (isMounted) {
+          setIsLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [initialFacilities]);
 
   const [carouselApi, setCarouselApi] = useState<CarouselApi>();
   const [canScrollPrev, setCanScrollPrev] = useState(false);
@@ -261,7 +300,7 @@ export function FacilitiesCarouselSection({ className }: FacilitiesCarouselSecti
                 sm:-ml-4
               '
               >
-                {facilitiesSectionData.items.map((item) => (
+                {facilities.map((item) => (
                   <CarouselItem
                     key={item.id}
                     className='
@@ -299,6 +338,11 @@ export function FacilitiesCarouselSection({ className }: FacilitiesCarouselSecti
                             fill
                             src={item.image}
                             alt={item.title}
+                            unoptimized={Boolean(
+                              item.image &&
+                                (item.image.startsWith('http://') ||
+                                  item.image.startsWith('https://'))
+                            )}
                             sizes='(min-width: 1280px) 340px, (min-width: 768px) 50vw, 85vw'
                             className='
                               size-full object-cover object-center

@@ -61,16 +61,16 @@ export function ConsultationWidget() {
           : undefined
       }
       className={cn(
-        'fixed bottom-6 right-6 z-50 flex flex-col font-sans overflow-hidden border transition-[width,height,max-width,max-height,border-radius,padding,box-shadow,background-color] duration-300 ease-out select-none',
+        'z-50 flex flex-col font-sans overflow-hidden transition-[width,height,max-width,max-height,border-radius,padding,box-shadow,background-color] duration-300 ease-out select-none',
         !isOpen
           ? isHovered
-            ? 'w-[200px] h-14 rounded-2xl px-3 py-1.5 cursor-pointer ring-4 ring-primary/25 text-white'
-            : 'w-14 h-14 rounded-2xl p-0 cursor-pointer ring-2 ring-primary/20 text-white'
+            ? 'fixed bottom-6 right-6 w-[200px] h-14 rounded-2xl px-3 py-1.5 cursor-pointer ring-4 ring-primary/25 text-white border'
+            : 'fixed bottom-6 right-6 w-14 h-14 rounded-2xl p-0 cursor-pointer ring-2 ring-primary/20 text-white border'
           : isExpanded
-            ? 'w-[calc(100vw-2rem)] sm:w-[min(1080px,calc(100vw-3rem))] h-[min(820px,calc(100vh-4rem))] rounded-[28px] p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
+            ? 'fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 w-full sm:w-[min(1080px,calc(100vw-3rem))] h-[100dvh] sm:h-[min(820px,calc(100vh-4rem))] rounded-none sm:rounded-[28px] p-0 border-0 sm:border border-border/70 bg-card text-card-foreground shadow-none sm:shadow-2xl backdrop-blur-2xl'
             : isAdmin
-              ? 'w-[calc(100vw-2rem)] sm:w-[720px] md:w-[780px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
-              : 'w-[calc(100vw-2rem)] sm:w-[480px] md:w-[540px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
+              ? 'fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 w-full sm:w-[720px] md:sm:w-[780px] h-[100dvh] sm:h-[640px] sm:max-h-[calc(100vh-5rem)] rounded-none sm:rounded-3xl p-0 border-0 sm:border border-border/70 bg-card text-card-foreground shadow-none sm:shadow-2xl backdrop-blur-2xl'
+              : 'fixed inset-0 sm:inset-auto sm:bottom-6 sm:right-6 w-full sm:w-[480px] md:sm:w-[540px] h-[100dvh] sm:h-[640px] sm:max-h-[calc(100vh-5rem)] rounded-none sm:rounded-3xl p-0 border-0 sm:border border-border/70 bg-card text-card-foreground shadow-none sm:shadow-2xl backdrop-blur-2xl'
       )}
     >
       {/* Collapsed Pill Button */}

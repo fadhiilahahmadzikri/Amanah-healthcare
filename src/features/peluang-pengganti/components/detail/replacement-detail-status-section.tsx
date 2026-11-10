@@ -27,7 +27,7 @@ export function ReplacementDetailStatusSection({
   notes
 }: ReplacementDetailStatusSectionProps) {
   return (
-    <div className='bg-muted/30 p-3 rounded-xl space-y-2 text-xs'>
+    <div className='bg-card border border-border/60 p-3.5 rounded-xl space-y-2 text-xs shadow-2xs'>
       <div className='text-xs font-semibold text-foreground'>Status penugasan pengganti</div>
       {isClaimed || isCompleted ? (
         <div className='space-y-1.5'>

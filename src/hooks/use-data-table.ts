@@ -109,9 +109,26 @@ export function useDataTable<TData>(props: UseDataTableProps<TData>) {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(
     initialState?.columnVisibility ?? {}
   );
-  const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>(
-    initialState?.columnPinning ?? {}
-  );
+  const defaultColumnPinning = React.useMemo<ColumnPinningState>(() => {
+    if (initialState?.columnPinning) {
+      return initialState.columnPinning;
+    }
+    const left: string[] = [];
+    const right: string[] = [];
+
+    const hasSelect = columns.some((col) => col.id === 'select');
+    const hasActions = columns.some((col) => col.id === 'actions');
+
+    if (hasSelect) left.push('select');
+    if (hasActions) right.push('actions');
+
+    return {
+      left: left.length > 0 ? left : undefined,
+      right: right.length > 0 ? right : undefined
+    };
+  }, [initialState?.columnPinning, columns]);
+
+  const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>(defaultColumnPinning);
   const [expanded, setExpanded] = React.useState<ExpandedState>(initialState?.expanded ?? {});
 
   const [page, setPage] = useQueryState(

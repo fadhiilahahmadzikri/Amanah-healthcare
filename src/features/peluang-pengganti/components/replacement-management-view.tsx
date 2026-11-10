@@ -169,7 +169,10 @@ export function ReplacementManagementView() {
               <div className='hidden md:block w-full'>
                 <ScrollArea className='h-full w-full pr-3'>
                   <div className='pb-20 pt-1'>
-                    <EntityCardGridSkeleton count={6} />
+                    <EntityCardGridSkeleton
+                      count={6}
+                      className='lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1800px]:grid-cols-5'
+                    />
                   </div>
                 </ScrollArea>
               </div>
@@ -221,7 +224,7 @@ export function ReplacementManagementView() {
                 {viewMode.isFlattenMode ? (
                   <ScrollArea className='h-full w-full pr-3'>
                     <div className='pb-20 pt-1'>
-                      <EntityCardGrid>
+                      <EntityCardGrid className='lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 min-[1800px]:grid-cols-5'>
                         {filters.filteredOpportunities.map((item) => (
                           <ReplacementCard
                             key={item.id}

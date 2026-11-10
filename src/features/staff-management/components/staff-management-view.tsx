@@ -231,7 +231,7 @@ export function StaffManagementView() {
                             <TableHead className='font-semibold text-xs'>Status</TableHead>
                             <TableHead className='font-semibold text-xs'>Kedaluwarsa</TableHead>
                             <TableHead className='font-semibold text-xs'>Tanggal Kirim</TableHead>
-                            <TableHead className='text-right font-semibold text-xs'>Aksi</TableHead>
+                            <TableHead className='text-right font-semibold text-xs sticky right-0 bg-muted/90 backdrop-blur-xs z-20 border-l border-border/40 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]'>Aksi</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody className='divide-y divide-border/40'>
@@ -258,7 +258,7 @@ export function StaffManagementView() {
                                   year: 'numeric'
                                 })}
                               </TableCell>
-                              <TableCell className='text-right'>
+                              <TableCell className='text-right sticky right-0 bg-card z-10 border-l border-border/40 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.05)] [tr:hover_&]:bg-muted/20 transition-colors'>
                                 {inv.status === STAFF_INVITATION_STATUS.PENDING && (
                                   <Button
                                     variant='ghost'

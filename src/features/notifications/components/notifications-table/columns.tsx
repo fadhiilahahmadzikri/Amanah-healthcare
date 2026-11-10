@@ -72,7 +72,8 @@ export const columns: ColumnDef<ClinicNotification>[] = [
       />
     ),
     enableSorting: false,
-    enableHiding: false
+    enableHiding: false,
+    size: 40
   },
   {
     id: 'title',
@@ -200,6 +201,9 @@ export const columns: ColumnDef<ClinicNotification>[] = [
   {
     id: 'actions',
     header: 'Aksi',
-    cell: ({ row }) => <NotificationTableRowAction item={row.original} />
+    cell: ({ row }) => <NotificationTableRowAction item={row.original} />,
+    enableSorting: false,
+    enableHiding: false,
+    size: 110
   }
 ];

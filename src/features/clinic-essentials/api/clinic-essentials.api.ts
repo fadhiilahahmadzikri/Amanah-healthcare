@@ -2,14 +2,17 @@ import { clientFetch } from '@/lib/client-fetch';
 import type {
   BulkFacilityActionPayload,
   BulkFacilityActionResult,
+  ClinicFacilityItem,
   ClinicService,
   ClinicalIntakeForm,
   CreateCategoryPayload,
+  CreateClinicFacilityPayload,
   CreateDemographicPayload,
   CreateIntakeFormPayload,
   CreateRelationshipPayload,
   CreateRoomPayload,
   CreateServicePayload,
+  CreateSupportFaqPayload,
   CreateUnitPayload,
   CreateUnitTypePayload,
   DemographicMasterItem,
@@ -18,12 +21,15 @@ import type {
   FacilityUnitType,
   PatientRelationshipTypeItem,
   ServiceCategory,
+  SupportFaqItem,
   UpdateCategoryPayload,
+  UpdateClinicFacilityPayload,
   UpdateDemographicPayload,
   UpdateIntakeFormPayload,
   UpdateRelationshipPayload,
   UpdateRoomPayload,
   UpdateServicePayload,
+  UpdateSupportFaqPayload,
   UpdateUnitPayload,
   UpdateUnitTypePayload
 } from '../types/clinic-essentials.types';
@@ -478,6 +484,62 @@ export const clinicEssentialsApi = {
 
   deleteOccupation: (id: string): Promise<void> =>
     clientFetch<void>(`/api/v1/admin/facilities/occupations/${id}`, {
+      method: 'DELETE'
+    }),
+
+  // Facilities (Fasilitas Unggulan Carousel)
+  getFacilities: async (): Promise<ClinicFacilityItem[]> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: ClinicFacilityItem[] } | ClinicFacilityItem[]
+    >('/api/v1/admin/facilities/items');
+    if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
+      return res.data;
+    }
+    return Array.isArray(res) ? res : [];
+  },
+
+  createFacility: (payload: CreateClinicFacilityPayload): Promise<ClinicFacilityItem> =>
+    clientFetch<ClinicFacilityItem>('/api/v1/admin/facilities/items', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateFacility: (id: string, payload: UpdateClinicFacilityPayload): Promise<ClinicFacilityItem> =>
+    clientFetch<ClinicFacilityItem>(`/api/v1/admin/facilities/items/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteFacility: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/items/${id}`, {
+      method: 'DELETE'
+    }),
+
+  // FAQs (Akordeon FAQ Landing Page)
+  getFaqs: async (): Promise<SupportFaqItem[]> => {
+    const res = await clientFetch<
+      { success?: boolean; data?: SupportFaqItem[] } | SupportFaqItem[]
+    >('/api/v1/admin/facilities/faqs');
+    if (res && typeof res === 'object' && 'data' in res && Array.isArray(res.data)) {
+      return res.data;
+    }
+    return Array.isArray(res) ? res : [];
+  },
+
+  createFaq: (payload: CreateSupportFaqPayload): Promise<SupportFaqItem> =>
+    clientFetch<SupportFaqItem>('/api/v1/admin/facilities/faqs', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }),
+
+  updateFaq: (id: string, payload: UpdateSupportFaqPayload): Promise<SupportFaqItem> =>
+    clientFetch<SupportFaqItem>(`/api/v1/admin/facilities/faqs/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    }),
+
+  deleteFaq: (id: string): Promise<void> =>
+    clientFetch<void>(`/api/v1/admin/facilities/faqs/${id}`, {
       method: 'DELETE'
     }),
 

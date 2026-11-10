@@ -37,13 +37,13 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
           <span className='text-xs font-bold text-foreground tracking-tight block'>
             Riwayat Medis KIA & Kehamilan (ANC)
           </span>
-          <span className='font-mono font-bold text-[11px] px-2 py-0.5 rounded-md bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20'>
+          <span className='font-mono font-bold text-[11px] px-2.5 py-0.5 rounded-full bg-pink-500/10 text-pink-600 dark:text-pink-400 border border-pink-500/20 shadow-2xs'>
             {gpa}
           </span>
         </div>
 
-        <div className='p-3.5 rounded-xl bg-muted/15 border border-border/50 text-xs space-y-3'>
-          <div className='grid grid-cols-2 sm:grid-cols-3 gap-2 pb-2.5 border-b border-border/30'>
+        <div className='p-4 rounded-2xl bg-surface-subtle/90 dark:bg-muted/20 border border-border/70 text-xs space-y-3 shadow-xs'>
+          <div className='p-3 rounded-xl bg-card border border-border/60 shadow-2xs grid grid-cols-2 sm:grid-cols-3 gap-3'>
             <div>
               <span className='text-[10.5px] font-medium text-muted-foreground block mb-0.5'>
                 HPHT
@@ -70,7 +70,7 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
             </div>
           </div>
 
-          <div className='grid grid-cols-2 sm:grid-cols-4 gap-2 pb-2.5 border-b border-border/30'>
+          <div className='p-3 rounded-xl bg-card border border-border/60 shadow-2xs grid grid-cols-2 sm:grid-cols-4 gap-3'>
             <div>
               <span className='text-[10.5px] font-medium text-muted-foreground block mb-0.5'>
                 TB / BB Awal
@@ -108,15 +108,15 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
           </div>
 
           {maternal.previousPregnancies && maternal.previousPregnancies.length > 0 && (
-            <div className='space-y-1.5 pb-2.5 border-b border-border/30'>
-              <span className='text-[11px] font-semibold text-foreground block'>
+            <div className='p-3 rounded-xl bg-card border border-border/60 shadow-2xs space-y-2'>
+              <span className='text-[11px] font-semibold text-foreground block pb-1 border-b border-border/30'>
                 Riwayat Persalinan Sebelumnya
               </span>
               <div className='space-y-1.5'>
                 {maternal.previousPregnancies.map((p) => (
                   <div
                     key={p.orderNumber}
-                    className='p-2 rounded-lg bg-card border border-border/40 text-[11px] space-y-0.5'
+                    className='p-2 rounded-lg bg-surface-subtle/50 border border-border/40 text-[11px] space-y-0.5'
                   >
                     <div className='flex items-center justify-between font-semibold text-foreground'>
                       <span>
@@ -142,15 +142,15 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
           )}
 
           {maternal.contraceptiveHistories && maternal.contraceptiveHistories.length > 0 && (
-            <div className='space-y-1.5'>
-              <span className='text-[11px] font-semibold text-foreground block'>
+            <div className='p-3 rounded-xl bg-card border border-border/60 shadow-2xs space-y-2'>
+              <span className='text-[11px] font-semibold text-foreground block pb-1 border-b border-border/30'>
                 Riwayat Pemakaian Kontrasepsi (KB)
               </span>
               <div className='space-y-1'>
                 {maternal.contraceptiveHistories.map((c) => (
                   <div
                     key={c.orderNumber}
-                    className='p-2 rounded-lg bg-card border border-border/40 text-[11px] flex items-center justify-between'
+                    className='p-2 rounded-lg bg-surface-subtle/50 border border-border/40 text-[11px] flex items-center justify-between'
                   >
                     <span className='font-medium text-foreground'>{c.contraceptiveType}</span>
                     <span className='text-muted-foreground text-[10.5px]'>
@@ -175,13 +175,13 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
           <span className='text-xs font-bold text-foreground tracking-tight block'>
             Skrining Imunisasi & Tumbuh Kembang Anak
           </span>
-          <span className='font-mono font-bold text-[11px] px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20'>
+          <span className='font-mono font-bold text-[11px] px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20 shadow-2xs'>
             {child.childAgeFormatted ?? '-'}
           </span>
         </div>
 
-        <div className='p-3.5 rounded-xl bg-muted/15 border border-border/50 text-xs space-y-2.5'>
-          <div className='grid grid-cols-2 sm:grid-cols-3 gap-2 pb-2.5 border-b border-border/30'>
+        <div className='p-4 rounded-2xl bg-surface-subtle/90 dark:bg-muted/20 border border-border/70 text-xs space-y-3 shadow-xs'>
+          <div className='p-3 rounded-xl bg-card border border-border/60 shadow-2xs grid grid-cols-2 sm:grid-cols-3 gap-3'>
             <div>
               <span className='text-[10.5px] font-medium text-muted-foreground block mb-0.5'>
                 Nama & NIK Anak
@@ -209,21 +209,21 @@ export function BookedPatientKiaIntake({ appointmentId }: BookedPatientKiaIntake
             </div>
           </div>
 
-          <div className='space-y-1'>
+          <div className='p-3 rounded-xl bg-card border border-border/60 shadow-2xs space-y-1.5'>
             <span className='text-[10.5px] font-medium text-muted-foreground block'>
               Riwayat Vaksinasi Sebelumnya
             </span>
-            <div className='p-2 rounded-lg bg-card border border-border/40 text-foreground leading-relaxed text-[11.5px]'>
+            <div className='p-2.5 rounded-lg bg-surface-subtle/50 border border-border/40 text-foreground leading-relaxed text-[11.5px]'>
               {child.previousVaccineHistory || 'Belum ada catatan vaksinasi sebelumnya.'}
             </div>
           </div>
 
           {child.childAllergyHistory && child.childAllergyHistory !== 'Tidak ada alergi' && (
-            <div className='space-y-1'>
-              <span className='text-[10.5px] font-medium text-destructive block'>
+            <div className='p-3 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-[11.5px] space-y-1'>
+              <span className='text-[10.5px] font-bold block'>
                 Riwayat Alergi Anak
               </span>
-              <div className='p-2 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-[11.5px]'>
+              <div className='leading-relaxed'>
                 {child.childAllergyHistory}
               </div>
             </div>

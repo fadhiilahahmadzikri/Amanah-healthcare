@@ -93,9 +93,10 @@ export function PatientModalIdentityFields({
 
         <form.AppField name='nik'>
           {(field: any) => {
-            const error = field.state.meta.isTouched
-              ? getErrorMessage(field.state.meta.errors)
-              : undefined;
+            const error =
+              field.state.meta.isTouched || field.state.meta.isDirty
+                ? getErrorMessage(field.state.meta.errors)
+                : undefined;
             return (
               <PatientLineInput
                 id='nik'
@@ -148,13 +149,18 @@ export function PatientModalIdentityFields({
 
       <form.AppField name='name'>
         {(field: any) => {
-          const error = field.state.meta.isTouched
-            ? getErrorMessage(field.state.meta.errors)
-            : undefined;
+          const error =
+            field.state.meta.isTouched || field.state.meta.isDirty
+              ? getErrorMessage(field.state.meta.errors)
+              : undefined;
           return (
             <PatientLineInput
               id='name'
-              label='Nama Lengkap Pasien'
+              label={
+                <span>
+                  Nama Lengkap Pasien <span className='text-destructive font-bold'>*</span>
+                </span>
+              }
               placeholder='Nama lengkap pasien sesuai KTP'
               value={field.state.value}
               onChange={(val: string) => field.handleChange(val)}
@@ -211,13 +217,18 @@ export function PatientModalIdentityFields({
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
         <form.AppField name='birth_date'>
           {(field: any) => {
-            const error = field.state.meta.isTouched
-              ? getErrorMessage(field.state.meta.errors)
-              : undefined;
+            const error =
+              field.state.meta.isTouched || field.state.meta.isDirty
+                ? getErrorMessage(field.state.meta.errors)
+                : undefined;
             return (
               <PatientBirthdatePicker
                 id='birth_date'
-                label='Tanggal Lahir'
+                label={
+                  <span>
+                    Tanggal Lahir <span className='text-destructive font-bold'>*</span>
+                  </span>
+                }
                 placeholder='Pilih tanggal lahir...'
                 value={field.state.value}
                 onChange={(iso: string) => {
@@ -260,13 +271,18 @@ export function PatientModalIdentityFields({
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4'>
         <form.AppField name='gender'>
           {(field: any) => {
-            const error = field.state.meta.isTouched
-              ? getErrorMessage(field.state.meta.errors)
-              : undefined;
+            const error =
+              field.state.meta.isTouched || field.state.meta.isDirty
+                ? getErrorMessage(field.state.meta.errors)
+                : undefined;
             return (
               <PatientGenderSelector
                 id='patient_gender'
-                label='Jenis Kelamin'
+                label={
+                  <span>
+                    Jenis Kelamin <span className='text-destructive font-bold'>*</span>
+                  </span>
+                }
                 required
                 variant='dropdown'
                 value={field.state.value}
@@ -283,13 +299,18 @@ export function PatientModalIdentityFields({
 
         <form.AppField name='blood_type'>
           {(field: any) => {
-            const error = field.state.meta.isTouched
-              ? getErrorMessage(field.state.meta.errors)
-              : undefined;
+            const error =
+              field.state.meta.isTouched || field.state.meta.isDirty
+                ? getErrorMessage(field.state.meta.errors)
+                : undefined;
             return (
               <PatientBloodTypeSelector
                 id='patient_blood_type'
-                label='Golongan Darah'
+                label={
+                  <span>
+                    Golongan Darah <span className='text-destructive font-bold'>*</span>
+                  </span>
+                }
                 required
                 placeholder='Pilih golongan darah...'
                 value={field.state.value}

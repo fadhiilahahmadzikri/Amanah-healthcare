@@ -43,9 +43,9 @@ export function DoctorProfileHeaderSkeleton({ className }: { className?: string 
       {/* Profile Identity Skeleton Overlapping Banner */}
       <div className='px-6 pb-3.5 pt-0'>
         <div className='flex items-end gap-3.5 sm:gap-4 -mt-10 sm:-mt-11'>
-          {/* Avatar Circle */}
-          <div className='relative shrink-0 size-20 sm:size-22'>
-            <ShimmerSkeleton className='size-20 sm:size-22 rounded-full ring-4 ring-card' />
+          {/* Avatar Petak Rounded */}
+          <div className='relative shrink-0 size-22 sm:size-24'>
+            <ShimmerSkeleton className='size-22 sm:size-24 rounded-2xl sm:rounded-3xl ring-4 ring-card' />
           </div>
 
           {/* Name & Badges */}

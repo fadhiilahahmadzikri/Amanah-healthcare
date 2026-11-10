@@ -229,9 +229,19 @@ export function useDoctorScheduleSettingsModal({
   );
 
   const toggleOperatingDayActive = useCallback((dow: number) => {
-    setDraftOperatingDays((prev) =>
-      prev.map((item) => (item.dow === dow ? { ...item, isActive: !item.isActive } : item))
-    );
+    setDraftOperatingDays((prev) => {
+      const next = prev.map((item) =>
+        item.dow === dow ? { ...item, isActive: !item.isActive } : item
+      );
+      const targetDay = next.find((d) => d.dow === dow);
+      // Master cascading: Jika hari operasional dinonaktifkan (tutup), sinkronkan template mingguan hari tersebut menjadi tutup
+      if (targetDay && !targetDay.isActive) {
+        setDraftWeeklyTemplates((prevTpls) =>
+          prevTpls.map((tpl) => (tpl.dow === dow ? { ...tpl, isActive: false } : tpl))
+        );
+      }
+      return next;
+    });
   }, []);
 
   const updateClinicSettingValue = useCallback((key: string, value: ClinicSettingValue) => {

@@ -274,9 +274,9 @@ export function PatientChatView() {
   const patientName = viewer?.viewer?.name || 'Pasien';
 
   return (
-    <div className='relative w-full h-full flex-1 min-h-0 bg-card border border-border/80 rounded-[10px] overflow-hidden shadow-xs flex flex-col select-none'>
+    <div className='relative w-full h-full flex-1 min-h-0 bg-background md:bg-card border-0 md:border md:border-border/80 rounded-none md:rounded-[10px] overflow-hidden shadow-none md:shadow-xs flex flex-col select-none'>
       {/* 1. Top Header */}
-      <header className='h-[56px] px-4 sm:px-6 border-b border-border/60 bg-card/80 flex items-center justify-between shrink-0 relative z-20'>
+      <header className='h-[56px] px-4 sm:px-6 border-b border-border/60 bg-background md:bg-card/80 flex items-center justify-between shrink-0 relative z-20'>
         <div className='flex items-center gap-3 min-w-0'>
           <Avatar className='size-9 rounded-full ring-1 ring-primary/20 overflow-hidden shrink-0'>
             <AvatarImage
@@ -344,7 +344,7 @@ export function PatientChatView() {
       </div>
 
       {/* 3. Text Composer (Always unlocked) with Floating Bare 3-Dot Indicator directly above it */}
-      <div className='relative z-20 p-3 sm:p-4 border-t border-border/60 bg-card/95 backdrop-blur-md shrink-0'>
+      <div className='relative z-20 p-2.5 sm:p-4 border-t border-border/60 bg-background md:bg-card/95 backdrop-blur-md shrink-0'>
         {isAdminTyping && (
           <div className='absolute -top-6 left-4 sm:left-5 z-30 flex items-center gap-1.5 pointer-events-none animate-in fade-in duration-200'>
             <span className='size-2 rounded-full bg-primary animate-bounce [animation-delay:-0.3s]' />

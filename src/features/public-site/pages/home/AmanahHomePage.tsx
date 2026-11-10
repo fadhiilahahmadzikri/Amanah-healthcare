@@ -1,4 +1,5 @@
 import { HealthcareShell, TechnicalDivider } from '@/features/public-site/components/shared';
+import { PromoSection } from '@/features/promotions';
 import { AppointmentSection } from './components/AppointmentSection';
 import { FacilitiesSection } from './components/FacilitiesSection';
 import { HeroSection } from './components/HeroSection';
@@ -18,6 +19,8 @@ export function AmanahHomePage({ locale }: AmanahHomePageProps) {
       <HeroSection />
       <TechnicalDivider className='lg:hidden' />
       <TrustHighlights />
+      <TechnicalDivider />
+      <PromoSection />
       <TechnicalDivider />
       <ReviewsMarqueeSection />
       <TechnicalDivider />

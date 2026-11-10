@@ -18,6 +18,9 @@ export const ESSENTIAL_FALLBACK_ICONS: Record<FacilityResource, string> = {
   rooms: 'door-open',
   categories: 'folder',
   services: 'stethoscope',
+  facilities: 'building-2',
+  faqs: 'help-circle',
+  promotions: 'megaphone',
   relationships: 'users',
   'blood-types': 'droplet',
   'education-levels': 'graduation-cap',
@@ -66,6 +69,12 @@ export function getEssentialFirstIcon(
       return resolveEntityIconName(data.categories, ESSENTIAL_FALLBACK_ICONS['categories']);
     case 'services':
       return resolveEntityIconName(data.services, ESSENTIAL_FALLBACK_ICONS['services']);
+    case 'facilities':
+      return ESSENTIAL_FALLBACK_ICONS['facilities'];
+    case 'faqs':
+      return ESSENTIAL_FALLBACK_ICONS['faqs'];
+    case 'promotions':
+      return ESSENTIAL_FALLBACK_ICONS['promotions'];
     case 'relationships':
       return resolveEntityIconName(data.relationships, ESSENTIAL_FALLBACK_ICONS['relationships']);
     case 'blood-types':

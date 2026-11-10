@@ -8,6 +8,66 @@ import { PatientRelationshipSelector } from './patient-relationship-selector';
 import type { PatientAffiliationProfile } from '@/features/data-pasien/api/patient-affiliation-service';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 
+export interface PatientEmergencyChoiceStepProps {
+  onChooseYes: () => void;
+  onSkip: () => void;
+  className?: string;
+}
+
+/**
+ * Slide 1 (Choice): "Punya kontak darurat?"
+ * Zero duplicate headers - relies on parent wizard step header.
+ * Zero misleading checkmarks - uses navigational chevron-right.
+ * Directly triggers slide advancement to detail or skip to address.
+ */
+export function PatientEmergencyChoiceStep({
+  onChooseYes,
+  onSkip,
+  className
+}: PatientEmergencyChoiceStepProps) {
+  return (
+    <div className={cn('grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 select-none font-sans', className)}>
+      <button
+        type='button'
+        onClick={onChooseYes}
+        className={cn(
+          'group flex flex-col items-start p-4 rounded-2xl border text-left transition-all cursor-pointer bg-card shadow-xs',
+          'border-border/70 hover:border-primary hover:bg-primary/5 active:scale-[0.99] focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary'
+        )}
+      >
+        <div className='flex items-center justify-between w-full mb-1.5'>
+          <span className='text-xs sm:text-sm font-bold text-foreground group-hover:text-primary transition-colors'>
+            Ya, Punya Kontak Darurat
+          </span>
+          <Icons.chevronRight className='size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0' />
+        </div>
+        <span className='text-[11px] sm:text-xs text-muted-foreground leading-relaxed'>
+          Pilih dari kerabat terdaftar atau masukkan nama dan nomor kontak baru
+        </span>
+      </button>
+
+      <button
+        type='button'
+        onClick={onSkip}
+        className={cn(
+          'group flex flex-col items-start p-4 rounded-2xl border text-left transition-all cursor-pointer bg-card shadow-xs',
+          'border-border/70 hover:border-primary hover:bg-primary/5 active:scale-[0.99] focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-primary'
+        )}
+      >
+        <div className='flex items-center justify-between w-full mb-1.5'>
+          <span className='text-xs sm:text-sm font-bold text-foreground group-hover:text-primary transition-colors'>
+            Tidak Punya / Lewati
+          </span>
+          <Icons.chevronRight className='size-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all shrink-0' />
+        </div>
+        <span className='text-[11px] sm:text-xs text-muted-foreground leading-relaxed'>
+          Lanjut ke langkah berikutnya tanpa mengisi kontak darurat
+        </span>
+      </button>
+    </div>
+  );
+}
+
 export interface PatientEmergencyContactSelectorProps {
   affiliations?: PatientAffiliationProfile[];
   name: string;
@@ -24,6 +84,11 @@ export interface PatientEmergencyContactSelectorProps {
   className?: string;
 }
 
+/**
+ * Slide 2 (Detail): "Data kontak darurat"
+ * Zero duplicate headers - relies on parent wizard step header.
+ * Zero internal back buttons - parent wizard footer back button handles "Kembali".
+ */
 export function PatientEmergencyContactSelector({
   affiliations = [],
   name,
@@ -54,10 +119,10 @@ export function PatientEmergencyContactSelector({
 
   const hasAffiliations = availableAffiliations.length > 0;
 
-  // Determine mode: 'select_existing' or 'manual'
-  const [mode, setMode] = React.useState<'select_existing' | 'manual'>(() => {
-    if (selectedAffiliationPatientId) return 'select_existing';
-    if (hasAffiliations) return 'select_existing';
+  // Mode: 'existing' (Pilih dari Keluarga) or 'manual' (Input Baru)
+  const [mode, setMode] = React.useState<'existing' | 'manual'>(() => {
+    if (selectedAffiliationPatientId && hasAffiliations) return 'existing';
+    if (!name && !phone && hasAffiliations) return 'existing';
     return 'manual';
   });
 
@@ -75,57 +140,51 @@ export function PatientEmergencyContactSelector({
   };
 
   const handleSwitchToExisting = () => {
-    setMode('select_existing');
-    if (availableAffiliations.length > 0) {
-      handleSelectAffiliation(availableAffiliations[0]);
-    }
+    setMode('existing');
   };
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-3.5 select-none font-sans', className)}>
       {/* Mode switcher if affiliations exist */}
       {hasAffiliations && (
-        <div className='flex items-center gap-2 p-1 bg-muted/30 border border-border/60 rounded-xl'>
+        <div className='flex items-center gap-1.5 p-1 bg-muted/30 border border-border/60 rounded-xl'>
           <button
             type='button'
             onClick={handleSwitchToExisting}
             className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all',
-              mode === 'select_existing'
-                ? 'bg-background text-foreground shadow-sm'
+              'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer',
+              mode === 'existing'
+                ? 'bg-card text-foreground shadow-xs border border-border/60'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            <Icons.users className='w-3.5 h-3.5 text-primary shrink-0' />
+            <Icons.users className='size-3.5 text-primary shrink-0' />
             <span>Pilih dari Keluarga ({availableAffiliations.length})</span>
           </button>
           <button
             type='button'
             onClick={handleSwitchToManual}
             className={cn(
-              'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all',
+              'flex-1 flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer',
               mode === 'manual'
-                ? 'bg-background text-foreground shadow-sm'
+                ? 'bg-card text-foreground shadow-xs border border-border/60'
                 : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            <Icons.userPlus className='w-3.5 h-3.5 text-primary shrink-0' />
+            <Icons.userPlus className='size-3.5 text-primary shrink-0' />
             <span>Input Kontak Baru</span>
           </button>
         </div>
       )}
 
-      {/* Mode 1: Select from existing affiliations */}
-      {hasAffiliations && mode === 'select_existing' && (
-        <div className='space-y-2.5'>
-          <p className='text-xs text-muted-foreground'>
-            Pilih anggota keluarga atau kerabat yang dapat dihubungi saat darurat:
-          </p>
+      {/* Mode 1: Select from existing family affiliations */}
+      {hasAffiliations && mode === 'existing' ? (
+        <div className='space-y-3 animate-in fade-in duration-200'>
           <div className='grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[220px] overflow-y-auto pr-1'>
             {availableAffiliations.map((aff) => {
               const isSelected =
                 selectedAffiliationPatientId === aff.id ||
-                (name &&
+                Boolean(name &&
                   aff.fullName &&
                   name.trim().toLowerCase() === aff.fullName.trim().toLowerCase());
 
@@ -135,9 +194,9 @@ export function PatientEmergencyContactSelector({
                   type='button'
                   onClick={() => handleSelectAffiliation(aff)}
                   className={cn(
-                    'flex items-center justify-between p-3 rounded-xl border text-left transition-all',
+                    'flex items-center justify-between p-3 rounded-xl border text-left transition-all cursor-pointer',
                     isSelected
-                      ? 'border-primary bg-primary/10 shadow-sm'
+                      ? 'border-primary bg-primary/10 shadow-xs'
                       : 'border-border/60 bg-card hover:border-border hover:bg-muted/30'
                   )}
                 >
@@ -151,8 +210,8 @@ export function PatientEmergencyContactSelector({
                   </div>
                   {isSelected && (
                     <span className='flex items-center gap-1 text-[11px] font-bold text-primary shrink-0'>
-                      <Icons.check className='w-3.5 h-3.5 stroke-[2.5]' />
-                      Dipilih
+                      <Icons.check className='size-3.5 stroke-[2.5]' />
+                      <span>Dipilih</span>
                     </span>
                   )}
                 </button>
@@ -160,12 +219,12 @@ export function PatientEmergencyContactSelector({
             })}
           </div>
 
-          {/* If the chosen affiliate is missing a phone number, prompt for phone */}
+          {/* Prompt for phone if selected relative lacks phone number */}
           {name && !phone && (
-            <div className='mt-2'>
+            <div className='mt-2 pt-2 border-t border-border/50'>
               <PatientLineInput
                 id='patient-emergency-phone'
-                label='No. Telepon / WhatsApp Kontak Darurat'
+                label='No. Telepon / WhatsApp Kerabat'
                 type='tel'
                 placeholder='contoh: 0812-9876-5432'
                 value={phone}
@@ -179,11 +238,9 @@ export function PatientEmergencyContactSelector({
             </div>
           )}
         </div>
-      )}
-
-      {/* Mode 2: Manual entry with database-driven relationship selector */}
-      {(mode === 'manual' || !hasAffiliations) && (
-        <div className='space-y-3.5'>
+      ) : (
+        /* Mode 2: Manual input form */
+        <div className='space-y-3 animate-in fade-in duration-200'>
           <PatientLineInput
             id='patient-emergency-name'
             label='Nama Kontak Darurat'

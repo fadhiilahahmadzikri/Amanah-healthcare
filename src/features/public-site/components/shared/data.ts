@@ -17,6 +17,7 @@ export const healthcareNavigationItems: HealthcareNavigationItem[] = [
   { label: 'Beranda', path: '/' },
   { label: 'Tentang Kami', path: '/tentang-kami' },
   { label: 'Fasilitas & Layanan', path: '/fasilitas' },
+  { label: 'Kalkulator Kehamilan', path: '/kalkulator-kehamilan' },
   { label: 'Testimoni', path: '/testimoni' },
   { label: 'Ulasan', path: '/ulasan' },
   { label: 'Kontak', path: '/kontak' }

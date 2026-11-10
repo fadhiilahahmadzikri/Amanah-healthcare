@@ -36,7 +36,7 @@ export function NotificationsListTable({
         <table className='w-full text-left text-xs font-normal'>
           <thead className='bg-muted/40 border-b border-border text-foreground font-semibold text-xs'>
             <tr>
-              <th className='p-3.5 w-8 text-center' aria-label='Pilih semua'>
+              <th className='p-3.5 w-8 text-center sticky left-0 z-20 bg-muted/90 backdrop-blur-xs border-r border-border/40 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.06)]' aria-label='Pilih semua'>
                 <Checkbox
                   checked={isAllSelected}
                   onCheckedChange={onToggleSelectAll}
@@ -48,7 +48,7 @@ export function NotificationsListTable({
               <th className='py-3 px-3 font-semibold text-xs text-foreground'>Kategori</th>
               <th className='py-3 px-3 font-semibold text-xs text-foreground'>Status</th>
               <th className='py-3 px-3 font-semibold text-xs text-foreground'>Waktu</th>
-              <th className='py-3 px-3 text-right font-semibold text-xs text-foreground'>Aksi</th>
+              <th className='py-3 px-3 text-right font-semibold text-xs text-foreground sticky right-0 z-20 bg-muted/90 backdrop-blur-xs border-l border-border/40 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.06)]'>Aksi</th>
             </tr>
           </thead>
           <tbody className='divide-y divide-border/60'>
@@ -66,7 +66,7 @@ export function NotificationsListTable({
                     isChecked && 'bg-primary/[0.05]'
                   )}
                 >
-                  <td className='p-3.5 text-center'>
+                  <td className='p-3.5 text-center sticky left-0 z-10 bg-card border-r border-border/40 shadow-[2px_0_4px_-1px_rgba(0,0,0,0.05)] [tr:hover_&]:bg-muted/40 [tr.bg-primary\/\[0\.05\]_&]:bg-muted/50 transition-colors'>
                     <Checkbox
                       checked={isChecked}
                       onCheckedChange={() => onToggleSelect(item.id)}
@@ -156,7 +156,7 @@ export function NotificationsListTable({
                   <td className='py-3 px-3 text-muted-foreground text-[11px] whitespace-nowrap'>
                     {item.timeAgo}
                   </td>
-                  <td className='py-3 px-3 text-right'>
+                  <td className='py-3 px-3 text-right sticky right-0 z-10 bg-card border-l border-border/40 shadow-[-2px_0_4px_-1px_rgba(0,0,0,0.05)] [tr:hover_&]:bg-muted/40 [tr.bg-primary\/\[0\.05\]_&]:bg-muted/50 transition-colors'>
                     <Button
                       type='button'
                       variant='default'

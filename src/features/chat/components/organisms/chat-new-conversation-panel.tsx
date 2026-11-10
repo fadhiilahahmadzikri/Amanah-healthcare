@@ -30,6 +30,7 @@ export function ChatNewConversationPanel({
   className
 }: ChatNewConversationPanelProps) {
   const queryClient = useQueryClient();
+  const conversations = useChatStore((state) => state.conversations);
   const selectConversation = useChatStore((state) => state.selectConversation);
   const upsertConversation = useChatStore((state) => state.upsertConversation);
 
@@ -86,9 +87,12 @@ export function ChatNewConversationPanel({
   const handleSelectCandidate = (candidate: ChatCandidateUser) => {
     setSelectedCandidateId(candidate.id);
     if (candidate.existingConversationId) {
-      selectConversation(candidate.existingConversationId);
-      onClose();
-      return;
+      const existingInStore = conversations.some((c) => c.id === candidate.existingConversationId);
+      if (existingInStore) {
+        selectConversation(candidate.existingConversationId);
+        onClose();
+        return;
+      }
     }
 
     createMutation.mutate(candidate.id);

@@ -83,7 +83,7 @@ export function PayrollActionMenu({
                 Menu Aksi Penggajian
               </DrawerTitle>
               <DrawerDescription className='text-xs text-muted-foreground'>
-                Kelola kalkulasi, unduh rekap, dan tata kelola tutup buku periode
+                Kalkulasi gaji, unduh rekap, sinkronkan cuti, dan tutup buku
               </DrawerDescription>
             </DrawerHeader>
 
@@ -169,9 +169,9 @@ export function PayrollActionMenu({
                   <Icons.settings className='size-4' />
                 </div>
                 <div>
-                  <p className='text-xs font-semibold text-foreground'>Konfigurasi Tarif</p>
+                  <p className='text-xs font-semibold text-foreground'>Tarif Gaji</p>
                   <p className='text-[11px] text-muted-foreground'>
-                    Atur standar tarif dokter, bidan, dan staf
+                    Atur gaji pokok dan lembur per jam tiap jabatan
                   </p>
                 </div>
               </button>
@@ -190,9 +190,9 @@ export function PayrollActionMenu({
                   <Icons.refresh className={cn('size-4', isReconciling && 'animate-spin')} />
                 </div>
                 <div>
-                  <p className='text-xs font-semibold text-foreground'>Rekap Cuti Harian</p>
+                  <p className='text-xs font-semibold text-foreground'>Sinkronkan Cuti</p>
                   <p className='text-[11px] text-muted-foreground'>
-                    Sinkronkan pemotongan cuti disetujui on-demand
+                    Sinkronkan pemotongan upah staf yang izin atau cuti
                   </p>
                 </div>
               </button>
@@ -210,9 +210,9 @@ export function PayrollActionMenu({
                   <Icons.receipt className='size-4' />
                 </div>
                 <div>
-                  <p className='text-xs font-semibold text-foreground'>Audit Mutasi</p>
+                  <p className='text-xs font-semibold text-foreground'>Rincian Mutasi Gaji</p>
                   <p className='text-[11px] text-muted-foreground'>
-                    Inspeksi riwayat mutasi komponen periode
+                    Lihat riwayat penambahan atau potongan gaji staf
                   </p>
                 </div>
               </button>
@@ -284,7 +284,7 @@ export function PayrollActionMenu({
           className='cursor-pointer text-xs py-2 px-2.5 rounded-lg flex items-center gap-2.5 font-medium'
         >
           <Icons.settings className='size-3.5 text-muted-foreground shrink-0' />
-          <span>Konfigurasi Tarif</span>
+          <span>Tarif Gaji</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -298,7 +298,7 @@ export function PayrollActionMenu({
               isReconciling && 'animate-spin'
             )}
           />
-          <span>{isReconciling ? 'Menyinkronkan...' : 'Rekap Cuti Harian'}</span>
+          <span>{isReconciling ? 'Menyinkronkan...' : 'Sinkronkan Cuti'}</span>
         </DropdownMenuItem>
 
         <DropdownMenuItem
@@ -306,7 +306,7 @@ export function PayrollActionMenu({
           className='cursor-pointer text-xs py-2 px-2.5 rounded-lg flex items-center gap-2.5 font-medium'
         >
           <Icons.receipt className='size-3.5 text-muted-foreground shrink-0' />
-          <span>Audit Mutasi</span>
+          <span>Rincian Mutasi Gaji</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

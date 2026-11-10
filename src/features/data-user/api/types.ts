@@ -81,6 +81,9 @@ export interface UserItem {
   phoneVerified: boolean;
   twoFactorEnabled: boolean;
   authVersion: number;
+  authProviders?: string[];
+  hasGoogle?: boolean;
+  hasPassword?: boolean;
   roles: UserRoleItem[];
   primaryRole?: UserRoleItem | null;
   primaryAudience: string;

@@ -27,12 +27,12 @@ export function ReplacementRouteBlock({ opportunity, className }: ReplacementRou
 
   return (
     <div
-      className={`flex flex-col w-full min-w-0 select-none my-2 sm:my-2.5 py-0.5 ${className || ''}`}
+      className={`flex flex-col w-full min-w-0 select-none my-2.5 sm:my-3 py-1 min-h-[58px] justify-center ${className || ''}`}
     >
-      <div className='flex items-center justify-between gap-1.5 sm:gap-2.5 min-w-0 w-full'>
+      <div className='flex items-center justify-between gap-1.5 sm:gap-2 min-w-0 w-full'>
         {/* Left: Staf Cuti / Berhalangan */}
         <div className='flex items-center gap-1.5 sm:gap-2 min-w-0 flex-1 text-left'>
-          <Avatar className='size-7 sm:size-8 rounded-lg border border-border/50 shrink-0 shadow-2xs'>
+          <Avatar className='size-7 sm:size-[30px] rounded-lg border border-border/50 shrink-0 shadow-2xs'>
             <AvatarImage
               src={opportunity.originalStaffAvatarUrl || DEFAULT_AVATAR_PATH}
               alt={opportunity.originalStaffName || 'Staf Cuti'}
@@ -42,26 +42,26 @@ export function ReplacementRouteBlock({ opportunity, className }: ReplacementRou
               <Image
                 src={DEFAULT_AVATAR_PATH}
                 alt={opportunity.originalStaffName || 'Staf Cuti'}
-                width={32}
-                height={32}
+                width={30}
+                height={30}
                 unoptimized
                 className='size-full rounded-lg object-cover'
               />
             </AvatarFallback>
           </Avatar>
           <div className='min-w-0 flex-1 space-y-0.5'>
-            <span className='text-[9.5px] sm:text-[10px] font-semibold text-muted-foreground/80 leading-none block whitespace-nowrap'>
+            <span className='text-[9px] sm:text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground/75 leading-none block whitespace-nowrap'>
               Staf cuti
             </span>
             <div
-              className='text-[11.5px] sm:text-xs font-bold text-foreground truncate leading-tight'
+              className='text-[11px] sm:text-[11.5px] font-bold text-foreground truncate leading-snug'
               title={opportunity.originalStaffName || undefined}
             >
               {opportunity.originalStaffName}
             </div>
             {opportunity.originalStaffRole && (
               <div
-                className='text-[10px] sm:text-[10.5px] text-muted-foreground truncate leading-tight'
+                className='text-[9.5px] sm:text-[10px] text-muted-foreground/80 truncate leading-tight'
                 title={opportunity.originalStaffRole || undefined}
               >
                 {opportunity.originalStaffRole}
@@ -71,15 +71,15 @@ export function ReplacementRouteBlock({ opportunity, className }: ReplacementRou
         </div>
 
         {/* Center Path Connector with Session & Hours Badge */}
-        <div className='flex flex-col items-center justify-center shrink-0 px-0.5 sm:px-1 max-w-[85px] sm:max-w-none'>
-          <span className='text-[10px] sm:text-[10.5px] font-bold text-primary tracking-wide leading-tight whitespace-nowrap'>
+        <div className='flex flex-col items-center justify-center shrink-0 px-1 sm:px-1.5 max-w-[85px] sm:max-w-[95px]'>
+          <span className='text-[9.5px] sm:text-[10px] font-bold text-primary tracking-wide leading-tight whitespace-nowrap'>
             {sessionName}
           </span>
-          <div className='flex items-center w-full min-w-[36px] sm:min-w-[48px] max-w-[56px] sm:max-w-[76px] justify-center gap-1 text-muted-foreground/60 my-0.5 sm:my-1'>
+          <div className='flex items-center w-full min-w-[28px] sm:min-w-[36px] max-w-[48px] sm:max-w-[60px] justify-center gap-0.5 text-muted-foreground/60 my-0.5'>
             <div className='flex-1 h-[1.5px] border-t border-dashed border-border' />
             <Icons.chevronRight className='size-2.5 sm:size-3 text-muted-foreground/70 shrink-0' />
           </div>
-          <span className='text-[9px] sm:text-[9.5px] font-medium text-muted-foreground/90 leading-tight whitespace-nowrap'>
+          <span className='text-[8.5px] sm:text-[9px] font-medium text-muted-foreground/80 leading-tight whitespace-nowrap'>
             {timeRange}
           </span>
         </div>
@@ -87,20 +87,20 @@ export function ReplacementRouteBlock({ opportunity, className }: ReplacementRou
         {/* Right: Staf Pengganti */}
         <div className='flex items-center justify-end gap-1.5 sm:gap-2 min-w-0 flex-1 text-right'>
           <div className='min-w-0 flex-1 space-y-0.5'>
-            <span className='text-[9.5px] sm:text-[10px] font-semibold text-muted-foreground/80 leading-none block whitespace-nowrap'>
+            <span className='text-[9px] sm:text-[9.5px] font-semibold uppercase tracking-wider text-muted-foreground/75 leading-none block whitespace-nowrap'>
               Pengganti
             </span>
             {isClaimed || isCompleted ? (
               <>
                 <div
-                  className='text-[11.5px] sm:text-xs font-bold text-primary truncate leading-tight'
+                  className='text-[11px] sm:text-[11.5px] font-bold text-primary truncate leading-snug'
                   title={opportunity.claimedByName || undefined}
                 >
                   {opportunity.claimedByName}
                 </div>
                 {opportunity.claimedByRole && (
                   <div
-                    className='text-[10px] sm:text-[10.5px] text-muted-foreground truncate leading-tight'
+                    className='text-[9.5px] sm:text-[10px] text-muted-foreground/80 truncate leading-tight'
                     title={opportunity.claimedByRole || undefined}
                   >
                     {opportunity.claimedByRole}
@@ -108,19 +108,19 @@ export function ReplacementRouteBlock({ opportunity, className }: ReplacementRou
                 )}
               </>
             ) : isOpen ? (
-              <div className='flex items-center justify-end gap-1 text-amber-600 dark:text-amber-400 whitespace-nowrap'>
+              <div className='flex items-center justify-end gap-1 text-amber-600 dark:text-amber-400 whitespace-nowrap pt-0.5'>
                 <span className='size-1.5 rounded-full bg-amber-500 animate-pulse shrink-0' />
-                <span className='text-[10.5px] sm:text-[11px] font-bold'>Terbuka</span>
+                <span className='text-[10px] sm:text-[10.5px] font-bold'>Terbuka</span>
               </div>
             ) : (
-              <span className='text-[10.5px] sm:text-[11px] font-semibold text-rose-500 whitespace-nowrap'>
+              <span className='text-[10px] sm:text-[10.5px] font-semibold text-rose-500 whitespace-nowrap pt-0.5'>
                 Dibatalkan
               </span>
             )}
           </div>
 
           {(isClaimed || isCompleted) && (
-            <Avatar className='size-7 sm:size-8 rounded-lg border border-border/50 shrink-0 shadow-2xs'>
+            <Avatar className='size-7 sm:size-[30px] rounded-lg border border-border/50 shrink-0 shadow-2xs'>
               <AvatarImage
                 src={opportunity.claimedByAvatarUrl || DEFAULT_AVATAR_PATH}
                 alt={opportunity.claimedByName || 'Pengganti'}
@@ -130,8 +130,8 @@ export function ReplacementRouteBlock({ opportunity, className }: ReplacementRou
                 <Image
                   src={DEFAULT_AVATAR_PATH}
                   alt={opportunity.claimedByName || 'Pengganti'}
-                  width={32}
-                  height={32}
+                  width={30}
+                  height={30}
                   unoptimized
                   className='size-full rounded-lg object-cover'
                 />

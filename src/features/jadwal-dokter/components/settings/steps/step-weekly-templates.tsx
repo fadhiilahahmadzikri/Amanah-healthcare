@@ -190,9 +190,11 @@ export function StepWeeklyTemplates({
                 key={def.id}
                 className={cn(
                   'p-3.5 rounded-xl border flex flex-col justify-between transition-all min-w-0',
-                  isActive
-                    ? 'border-border/90 bg-card shadow-2xs'
-                    : 'border-border/40 bg-muted/10 opacity-75'
+                  !isSelectedDayActive
+                    ? 'border-border/30 bg-muted/15 opacity-60'
+                    : isActive
+                      ? 'border-border/90 bg-card shadow-2xs'
+                      : 'border-border/40 bg-muted/10 opacity-75'
                 )}
               >
                 <div>
@@ -204,10 +206,11 @@ export function StepWeeklyTemplates({
 
                     <div className='flex items-center gap-1.5 shrink-0'>
                       <span className='text-[11px] text-muted-foreground'>
-                        {isActive ? 'Buka' : 'Tutup'}
+                        {!isSelectedDayActive ? 'Tutup' : isActive ? 'Buka' : 'Tutup'}
                       </span>
                       <Switch
-                        checked={isActive}
+                        checked={isSelectedDayActive && isActive}
+                        disabled={!isSelectedDayActive}
                         onCheckedChange={() => onToggleShiftActive(selectedDow, def.id)}
                         aria-label={`Aktifkan shift ${shiftLabel}`}
                       />

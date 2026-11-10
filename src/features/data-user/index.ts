@@ -6,3 +6,5 @@ export * from './api/service';
 export * from './api/queries';
 export * from './api/mutations';
 export * from './model/useUserTable';
+export * from './model/useUserDetailModal';
+export * from './schemas/user-update.schema';

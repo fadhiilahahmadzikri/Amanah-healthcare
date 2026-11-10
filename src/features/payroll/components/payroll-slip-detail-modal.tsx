@@ -114,63 +114,65 @@ export function PayrollSlipDetailModal({
         {/* Scrollable Body */}
         <div className='flex-1 min-h-0 overflow-y-auto py-4 space-y-4 pr-1'>
           {/* Wide Metrics Banner */}
-          <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
-            {/* THP Primary */}
-            <div className='bg-primary/5 border border-primary/20 rounded-xl p-3.5 flex flex-col justify-between'>
-              <span className='text-[11px] font-medium text-muted-foreground block'>
-                Total Gaji Bersih (THP)
-              </span>
-              <div className='mt-1'>
-                <span className='text-xl sm:text-2xl font-bold text-foreground tabular-nums'>
-                  {formatCurrency(staffSummary.netPayroll)}
+          <div className='p-4 rounded-2xl bg-surface-subtle/80 dark:bg-muted/20 border border-border/70 shadow-xs'>
+            <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3'>
+              {/* THP Primary */}
+              <div className='bg-primary/5 border border-primary/20 rounded-xl p-3.5 flex flex-col justify-between shadow-2xs'>
+                <span className='text-[11px] font-medium text-muted-foreground block'>
+                  Total Gaji Bersih (THP)
                 </span>
+                <div className='mt-1'>
+                  <span className='text-xl sm:text-2xl font-bold text-foreground tabular-nums'>
+                    {formatCurrency(staffSummary.netPayroll)}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Gaji Pokok & Jam */}
-            <div className='bg-card border border-border/60 rounded-xl p-3.5 flex flex-col justify-between'>
-              <span className='text-[11px] font-medium text-muted-foreground block'>
-                Gaji Pokok ({formatPracticeHours(staffSummary.baseHours)})
-              </span>
-              <div className='mt-1'>
-                <span className='text-base font-bold text-foreground tabular-nums'>
-                  {formatCurrency(staffSummary.baseEarnings)}
+              {/* Gaji Pokok & Jam */}
+              <div className='bg-card border border-border/60 rounded-xl p-3.5 flex flex-col justify-between shadow-2xs'>
+                <span className='text-[11px] font-medium text-muted-foreground block'>
+                  Gaji Pokok ({formatPracticeHours(staffSummary.baseHours)})
                 </span>
+                <div className='mt-1'>
+                  <span className='text-base font-bold text-foreground tabular-nums'>
+                    {formatCurrency(staffSummary.baseEarnings)}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Potongan Cuti */}
-            <div className='bg-card border border-border/60 rounded-xl p-3.5 flex flex-col justify-between'>
-              <span className='text-[11px] font-medium text-muted-foreground block'>
-                Potongan Cuti
-              </span>
-              <div className='mt-1'>
-                <span className='text-base font-bold text-destructive tabular-nums'>
-                  {staffSummary.leaveDeductions > 0
-                    ? `-${formatCurrency(staffSummary.leaveDeductions)}`
-                    : 'Rp 0'}
+              {/* Potongan Cuti */}
+              <div className='bg-card border border-border/60 rounded-xl p-3.5 flex flex-col justify-between shadow-2xs'>
+                <span className='text-[11px] font-medium text-muted-foreground block'>
+                  Potongan Cuti
                 </span>
+                <div className='mt-1'>
+                  <span className='text-base font-bold text-destructive tabular-nums'>
+                    {staffSummary.leaveDeductions > 0
+                      ? `-${formatCurrency(staffSummary.leaveDeductions)}`
+                      : 'Rp 0'}
+                  </span>
+                </div>
               </div>
-            </div>
 
-            {/* Insentif Pengganti */}
-            <div className='bg-card border border-border/60 rounded-xl p-3.5 flex flex-col justify-between'>
-              <span className='text-[11px] font-medium text-muted-foreground block'>
-                Insentif Pengganti / Lembur
-              </span>
-              <div className='mt-1'>
-                <span className='text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums'>
-                  {staffSummary.replacementAdditions > 0
-                    ? `+${formatCurrency(staffSummary.replacementAdditions)}`
-                    : 'Rp 0'}
+              {/* Insentif Pengganti */}
+              <div className='bg-card border border-border/60 rounded-xl p-3.5 flex flex-col justify-between shadow-2xs'>
+                <span className='text-[11px] font-medium text-muted-foreground block'>
+                  Insentif Pengganti / Lembur
                 </span>
+                <div className='mt-1'>
+                  <span className='text-base font-bold text-emerald-600 dark:text-emerald-400 tabular-nums'>
+                    {staffSummary.replacementAdditions > 0
+                      ? `+${formatCurrency(staffSummary.replacementAdditions)}`
+                      : 'Rp 0'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Itemized Entries Section */}
-          <div className='space-y-2.5 pt-1'>
-            <div className='flex items-center justify-between'>
+          <div className='p-4 rounded-2xl bg-surface-subtle/80 dark:bg-muted/20 border border-border/70 shadow-xs space-y-3'>
+            <div className='flex items-center justify-between pb-1 border-b border-border/30'>
               <h4 className='text-xs font-bold text-foreground tracking-tight'>
                 Rincian Komponen Transaksi Slip Gaji ({staffSummary.entries.length} entri)
               </h4>
@@ -180,7 +182,7 @@ export function PayrollSlipDetailModal({
             </div>
 
             {staffSummary.entries.length === 0 ? (
-              <div className='p-8 text-center text-xs text-muted-foreground bg-muted/20 rounded-xl border border-border/40'>
+              <div className='p-8 text-center text-xs text-muted-foreground bg-card rounded-xl border border-border/40 shadow-2xs'>
                 Tidak ada entri komponen pada periode ini.
               </div>
             ) : (
@@ -193,7 +195,7 @@ export function PayrollSlipDetailModal({
                   return (
                     <div
                       key={entry.id}
-                      className='p-3 bg-card border border-border/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-border transition-colors'
+                      className='p-3 bg-card border border-border/60 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs hover:border-border transition-colors shadow-2xs'
                     >
                       <div className='space-y-1 min-w-0 flex-1'>
                         <div className='flex items-center gap-2 flex-wrap'>

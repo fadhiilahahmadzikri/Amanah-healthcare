@@ -15,7 +15,7 @@ export interface UnifiedNotificationToastProps {
 /**
  * Renders appropriate contextual icon when event is clinic/system-wide.
  */
-function renderSystemIcon(iconType?: string | null): React.ReactNode {
+export function renderSystemIcon(iconType?: string | null): React.ReactNode {
   switch (iconType) {
     case 'calendar':
     case 'calendar-check':

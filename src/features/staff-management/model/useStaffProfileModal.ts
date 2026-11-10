@@ -14,6 +14,8 @@ import {
 import { syncAllStaffQueries } from '../api/mutations';
 import { staffManagementKeys } from '../api/query-keys';
 import type { DoctorSchedule } from '@/features/jadwal-dokter/api/types';
+import type { z } from 'zod';
+import { staffProfileSchema } from '../schemas/staff-profile.schema';
 
 export interface UseStaffProfileModalProps {
   staff?: StaffMember | null;
@@ -62,7 +64,11 @@ export interface UseStaffProfileModalResult {
   professionPlaceholder: string;
   leaveInfo?: StaffLeaveInfo | null;
   rawStaffMember: StaffMember | null;
+  hasGoogle: boolean;
+  hasPassword: boolean;
+  errors: Record<string, string>;
   handleChange: (field: keyof StaffProfileFormData, value: unknown) => void;
+  handleBlur: (field: keyof StaffProfileFormData) => void;
   handleRegionChange: (updates: Partial<PatientRegionValues>) => void;
   handleSubmit: (e?: FormEvent) => Promise<void>;
 }
@@ -234,6 +240,26 @@ export function useStaffProfileModal({
     return formChanged || regionChanged;
   }, [formData, snapshotFormData, regionValues, snapshotRegionValues]);
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validateField = useCallback((field: keyof StaffProfileFormData, value: unknown) => {
+    const fieldSchema = (staffProfileSchema.shape as Record<string, z.ZodTypeAny>)[field];
+    if (fieldSchema) {
+      const result = fieldSchema.safeParse(value);
+      setErrors((prev) => {
+        if (!result.success) {
+          return { ...prev, [field]: result.error.issues[0]?.message || 'Input tidak valid' };
+        }
+        if (prev[field]) {
+          const next = { ...prev };
+          delete next[field];
+          return next;
+        }
+        return prev;
+      });
+    }
+  }, []);
+
   const handleUnlockEdit = useCallback(() => {
     setIsEditing(true);
   }, []);
@@ -241,12 +267,24 @@ export function useStaffProfileModal({
   const handleCancelEdit = useCallback(() => {
     setFormData(snapshotFormData);
     setRegionValues(snapshotRegionValues);
+    setErrors({});
     setIsEditing(false);
   }, [snapshotFormData, snapshotRegionValues]);
 
-  const handleChange = useCallback((field: keyof StaffProfileFormData, value: unknown) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  }, []);
+  const handleChange = useCallback(
+    (field: keyof StaffProfileFormData, value: unknown) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      validateField(field, value);
+    },
+    [validateField]
+  );
+
+  const handleBlur = useCallback(
+    (field: keyof StaffProfileFormData) => {
+      validateField(field, formData[field]);
+    },
+    [validateField, formData]
+  );
 
   const handleRegionChange = useCallback((updates: Partial<PatientRegionValues>) => {
     setRegionValues((prev) => ({ ...prev, ...updates }));
@@ -320,8 +358,17 @@ export function useStaffProfileModal({
         return;
       }
 
-      if (!formData.fullName.trim()) {
-        toast.error('Nama lengkap wajib diisi');
+      const validation = staffProfileSchema.safeParse(formData);
+      if (!validation.success) {
+        const issueMap: Record<string, string> = {};
+        for (const issue of validation.error.issues) {
+          const path = issue.path[0];
+          if (typeof path === 'string' && !issueMap[path]) {
+            issueMap[path] = issue.message;
+          }
+        }
+        setErrors(issueMap);
+        toast.error(validation.error.issues[0]?.message || 'Periksa kembali formulir isian.');
         return;
       }
 
@@ -341,14 +388,14 @@ export function useStaffProfileModal({
           fullName: formData.fullName.trim(),
           // Email akun bersifat permanen bagi administrator dan hanya dapat diubah oleh pemilik akun
           phoneNumber: formData.phoneNumber.trim(),
-          profession: formData.profession.trim() || undefined,
-          birthPlace: formData.birthPlace.trim() || undefined,
-          birthDate: formData.birthDate || undefined,
+          profession: formData.profession.trim() || null,
+          birthPlace: formData.birthPlace.trim() || null,
+          birthDate: formData.birthDate || null,
           gender: formData.gender,
-          nationalId: formData.nationalId.trim() || undefined,
+          nationalId: formData.nationalId.trim() ? formData.nationalId.trim() : null,
           isActive: formData.isActive,
-          poliklinikId: formData.poliklinikId || undefined,
-          licenseNumber: isClinical ? formData.licenseNumber.trim() || undefined : undefined,
+          poliklinikId: formData.poliklinikId || null,
+          licenseNumber: isClinical ? formData.licenseNumber.trim() || null : null,
           address: {
             provinceCode: regionValues.provinceCode || undefined,
             provinceName: regionValues.provinceName || undefined,
@@ -404,7 +451,11 @@ export function useStaffProfileModal({
     professionPlaceholder,
     leaveInfo,
     rawStaffMember,
+    hasGoogle: Boolean(profile?.hasGoogle || rawStaffMember?.hasGoogle),
+    hasPassword: Boolean(profile?.hasPassword || rawStaffMember?.hasPassword),
+    errors,
     handleChange,
+    handleBlur,
     handleRegionChange,
     handleSubmit
   };

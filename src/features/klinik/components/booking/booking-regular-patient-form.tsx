@@ -16,12 +16,14 @@ import { formatBloodTypeDisplay } from '@/constants/blood-type.constants';
 import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import { PatientRegionDropdown } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
-import { PatientEmergencyContactSelector } from '@/features/data-pasien/components/registration/molecules/patient-emergency-contact-selector';
+import {
+  PatientEmergencyChoiceStep,
+  PatientEmergencyContactSelector
+} from '@/features/data-pasien/components/registration/molecules/patient-emergency-contact-selector';
 import { ShiftIconDisplay } from '@/features/jadwal-dokter/components/settings/atoms/shift-icon-display';
-import { MaskedNik, formatMaskedNik } from '@/components/ui/masked-nik';
+import { formatMaskedNik } from '@/components/ui/masked-nik';
 import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import { BookingRegularReviewSection } from './molecules/booking-regular-review-section';
-import { BookingPrimaryEmergencyInterceptor } from './molecules/booking-primary-emergency-interceptor';
 import { REGULAR_BOOKING_STEPS } from '../../model/booking-regular-form-steps';
 import { useBookingRegularPatientForm } from '../../model/useBookingRegularPatientForm';
 
@@ -91,9 +93,8 @@ export function BookingRegularPatientForm({
     references,
     relationshipOptions,
     isSelf,
-    isEnteringManualEmergency,
     handleSkipEmergencyContact,
-    handleChooseManualEmergencyContact,
+    handleChooseYesEmergencyContact,
 
     handleBack,
     handleNext,
@@ -173,33 +174,35 @@ export function BookingRegularPatientForm({
         valueClass: 'font-semibold text-foreground'
       },
       {
-        step: 8,
+        step: REGULAR_BOOKING_STEPS.PHONE,
         label: 'No. Telepon / WhatsApp',
         value: phone || '',
         valueClass: 'font-mono font-bold text-primary'
       },
       {
-        step: 12,
+        step: REGULAR_BOOKING_STEPS.CONFIRMATION,
         label: 'Email Akun (Tersinkron)',
         value: email || '',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
-        step: 9,
+        step: emergencyContactPhone
+          ? REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL
+          : REGULAR_BOOKING_STEPS.EMERGENCY_CHOICE,
         label: 'Kontak Darurat',
         value: emergencyContactPhone
           ? `${emergencyContactName || 'Kerabat'}${emergencyContactRelationship ? ` (${emergencyContactRelationship})` : ''} - ${emergencyContactPhone}`
-          : '',
+          : 'Tidak ada (Dilewati)',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
-        step: 10,
+        step: REGULAR_BOOKING_STEPS.ADDRESS,
         label: 'Alamat',
         value: region.line1 || '',
         valueClass: 'font-semibold text-foreground truncate max-w-[160px] sm:max-w-[210px]'
       },
       {
-        step: 11,
+        step: REGULAR_BOOKING_STEPS.OCCUPATION,
         label: 'Pekerjaan',
         value: activeOccupationName || '',
         valueClass:
@@ -267,7 +270,7 @@ export function BookingRegularPatientForm({
                     <div className='flex items-center justify-between w-full'>
                       <div className='flex items-center gap-2'>
                         <ShiftIconDisplay
-                          icon={(opt as any).icon || (opt as any).iconName || 'user'}
+                          icon={(opt as { icon?: string; iconName?: string }).icon || (opt as { icon?: string; iconName?: string }).iconName || 'user'}
                           size='md'
                           bare
                           className='size-4 text-primary shrink-0'
@@ -413,28 +416,30 @@ export function BookingRegularPatientForm({
           />
         )}
 
-        {currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT && (
+        {currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CHOICE && (
+          <div data-field-id='emergencyChoice'>
+            <PatientEmergencyChoiceStep
+              onChooseYes={handleChooseYesEmergencyContact}
+              onSkip={handleSkipEmergencyContact}
+            />
+          </div>
+        )}
+
+        {currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL && (
           <div data-field-id='emergencyContact'>
-            {isSelf && !isEnteringManualEmergency ? (
-              <BookingPrimaryEmergencyInterceptor
-                onSkip={handleSkipEmergencyContact}
-                onManual={handleChooseManualEmergencyContact}
-              />
-            ) : (
-              <PatientEmergencyContactSelector
-                affiliations={existingPatients}
-                name={emergencyContactName}
-                onChangeName={setEmergencyContactName}
-                relationship={emergencyContactRelationship}
-                onChangeRelationship={setEmergencyContactRelationship}
-                phone={emergencyContactPhone}
-                onChangePhone={setEmergencyContactPhone}
-                selectedAffiliationPatientId={emergencyContactPatientId}
-                onSelectAffiliationPatientId={setEmergencyContactPatientId}
-                relationshipOptions={references.relationships}
-                excludeSelfOrPrimary={isSelf}
-              />
-            )}
+            <PatientEmergencyContactSelector
+              affiliations={existingPatients}
+              name={emergencyContactName}
+              onChangeName={setEmergencyContactName}
+              relationship={emergencyContactRelationship}
+              onChangeRelationship={setEmergencyContactRelationship}
+              phone={emergencyContactPhone}
+              onChangePhone={setEmergencyContactPhone}
+              selectedAffiliationPatientId={emergencyContactPatientId}
+              onSelectAffiliationPatientId={setEmergencyContactPatientId}
+              relationshipOptions={references.relationships}
+              excludeSelfOrPrimary={isSelf}
+            />
           </div>
         )}
 

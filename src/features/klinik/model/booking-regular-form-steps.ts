@@ -14,10 +14,11 @@ export const REGULAR_BOOKING_STEPS = {
   GENDER: 6,
   BLOOD_TYPE: 7,
   PHONE: 8,
-  EMERGENCY_CONTACT: 9,
-  ADDRESS: 10,
-  OCCUPATION: 11,
-  CONFIRMATION: 12
+  EMERGENCY_CHOICE: 9,
+  EMERGENCY_DETAIL: 10,
+  ADDRESS: 11,
+  OCCUPATION: 12,
+  CONFIRMATION: 13
 } as const;
 
 export type RegularBookingStepNumber =
@@ -100,11 +101,17 @@ export function getBookingStepMeta(
         description:
           'Nomor aktif yang dapat dihubungi untuk konfirmasi antrean dan pengingat janji temu'
       };
-    case REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT:
+    case REGULAR_BOOKING_STEPS.EMERGENCY_CHOICE:
       return {
         title: 'Punya kontak darurat?',
         description:
           'Keluarga atau kerabat terdekat yang dapat dihubungi faskes dalam keadaan darurat medis'
+      };
+    case REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL:
+      return {
+        title: 'Data kontak darurat',
+        description:
+          'Pilih kerabat terdaftar atau masukkan nama dan nomor telepon baru'
       };
     case REGULAR_BOOKING_STEPS.ADDRESS:
       return {

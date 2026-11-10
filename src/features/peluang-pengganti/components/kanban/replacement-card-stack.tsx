@@ -37,7 +37,7 @@ export function ReplacementCardStack({
       return (
         <div
           data-card-placeholder-id={singleItem.id}
-          className='w-full h-[180px] rounded-[22px] border-2 border-dashed border-primary/40 bg-primary/5 transition-all duration-200'
+          className='w-full h-[195px] rounded-[22px] border-2 border-dashed border-primary/40 bg-primary/5 transition-all duration-200'
         />
       );
     }
@@ -99,7 +99,7 @@ export function ReplacementCardStack({
                 <div
                   key={item.id}
                   data-card-placeholder-id={item.id}
-                  className='w-full h-[180px] rounded-[22px] border-2 border-dashed border-primary/40 bg-primary/5'
+                  className='w-full h-[195px] rounded-[22px] border-2 border-dashed border-primary/40 bg-primary/5'
                 />
               );
             }
@@ -146,7 +146,7 @@ export function ReplacementCardStack({
     return (
       <div
         data-card-placeholder-id={topItem.id}
-        className='w-full h-[180px] rounded-[22px] border-2 border-dashed border-primary/40 bg-primary/5'
+        className='w-full h-[195px] rounded-[22px] border-2 border-dashed border-primary/40 bg-primary/5'
       />
     );
   }

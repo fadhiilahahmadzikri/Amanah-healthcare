@@ -99,7 +99,12 @@ export const paths = {
   },
   clinics: {
     catalog: () => `${getBaseApiUrl()}/api/v1/clinics/services/catalog`,
-    list: () => `${getBaseApiUrl()}/api/v1/clinics`
+    list: () => `${getBaseApiUrl()}/api/v1/clinics`,
+    facilities: () => `${getBaseApiUrl()}/api/v1/clinics/facilities`,
+    faqs: (path?: string) =>
+      path
+        ? `${getBaseApiUrl()}/api/v1/clinics/faqs?path=${encodeURIComponent(path)}`
+        : `${getBaseApiUrl()}/api/v1/clinics/faqs`
   },
   time: {
     current: () => `${getBaseApiUrl()}/api/v1/time/current`

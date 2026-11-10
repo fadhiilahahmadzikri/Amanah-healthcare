@@ -10,13 +10,12 @@ import type { ServiceCardItem } from '@/features/public-site/pages/services/type
 export interface BookingServiceStepProps {
   serviceBentoItems: ServiceCardItem[];
   onSelectServiceItem: (item: ServiceCardItem) => void;
-  onBackToCategory: () => void;
+  onBackToCategory?: () => void;
 }
 
 export function BookingServiceStep({
   serviceBentoItems,
-  onSelectServiceItem,
-  onBackToCategory
+  onSelectServiceItem
 }: BookingServiceStepProps) {
   const [searchQuery, setSearchQuery] = React.useState('');
 
@@ -33,25 +32,13 @@ export function BookingServiceStep({
 
   return (
     <div className='space-y-4'>
-      <div className='flex items-center justify-between'>
-        <div>
-          <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
-            Pilih Layanan Pemeriksaan
-          </h3>
-          <p className='text-xs text-muted-foreground mt-0.5'>
-            Pilih layanan medis yang sesuai dengan kebutuhan Anda.
-          </p>
-        </div>
-        <Button
-          type='button'
-          variant='ghost'
-          size='sm'
-          onClick={onBackToCategory}
-          className='text-xs gap-1 cursor-pointer'
-        >
-          <Icons.arrowLeft className='size-3.5' />
-          <span>Kategori</span>
-        </Button>
+      <div>
+        <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
+          Pilih Layanan Pemeriksaan
+        </h3>
+        <p className='text-xs text-muted-foreground mt-0.5 leading-relaxed'>
+          Pilih layanan medis yang sesuai dengan kebutuhan Anda.
+        </p>
       </div>
 
       {serviceBentoItems.length > 1 && (

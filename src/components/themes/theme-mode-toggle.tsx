@@ -52,12 +52,12 @@ export function ThemeModeToggle() {
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
-          variant='secondary'
+          variant='ghost'
           size='icon'
-          className='group/toggle size-8'
+          className='group/toggle size-9 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors cursor-pointer shrink-0'
           onClick={handleThemeToggle}
         >
-          <Icons.brightness />
+          <Icons.brightness className='size-4' />
           <span className='sr-only'>Toggle theme</span>
         </Button>
       </TooltipTrigger>

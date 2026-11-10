@@ -10,6 +10,7 @@ import {
   Droplet,
   Folder,
   GraduationCap,
+  HelpCircle,
   Layers,
   Plus,
   RefreshCw,
@@ -58,6 +59,8 @@ export interface ClinicEssentialsHeaderProps {
     type: 'blood-types' | 'education-levels' | 'religions' | 'occupations',
     label: string
   ) => void;
+  onOpenFacilityModal?: () => void;
+  onOpenFaqModal?: () => void;
 }
 
 export function ClinicEssentialsHeader({
@@ -81,6 +84,8 @@ export function ClinicEssentialsHeader({
   categoriesCount,
   onOpenModal,
   onOpenDemographicModal,
+  onOpenFacilityModal,
+  onOpenFaqModal,
 }: ClinicEssentialsHeaderProps) {
   return (
     <div className='shrink-0'>
@@ -219,6 +224,40 @@ export function ClinicEssentialsHeader({
                   >
                     <Plus className='size-3.5' />
                     {!isCompact && <span>Tambah Service</span>}
+                  </Button>
+                )}
+
+                {activeTab === 'facilities' && (
+                  <Button
+                    type='button'
+                    size={isCompact ? 'icon' : 'sm'}
+                    onClick={() => onOpenFacilityModal?.()}
+                    className={
+                      isCompact
+                        ? 'size-8 rounded-md shrink-0 shadow-xs'
+                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                    }
+                    title='Tambah Fasilitas Unggulan'
+                  >
+                    <Plus className='size-3.5' />
+                    {!isCompact && <span>Tambah Fasilitas</span>}
+                  </Button>
+                )}
+
+                {activeTab === 'faqs' && (
+                  <Button
+                    type='button'
+                    size={isCompact ? 'icon' : 'sm'}
+                    onClick={() => onOpenFaqModal?.()}
+                    className={
+                      isCompact
+                        ? 'size-8 rounded-md shrink-0 shadow-xs'
+                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                    }
+                    title='Tambah Pertanyaan FAQ'
+                  >
+                    <Plus className='size-3.5' />
+                    {!isCompact && <span>Tambah FAQ</span>}
                   </Button>
                 )}
 
@@ -368,6 +407,22 @@ export function ClinicEssentialsHeader({
                     >
                       <Stethoscope className='size-4 text-primary' />
                       <span>Tambah Service Medis</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => onOpenFacilityModal?.()}
+                      className='cursor-pointer gap-2'
+                    >
+                      <Building2 className='size-4 text-primary' />
+                      <span>Tambah Fasilitas Unggulan</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => onOpenFaqModal?.()}
+                      className='cursor-pointer gap-2'
+                    >
+                      <HelpCircle className='size-4 text-primary' />
+                      <span>Tambah Pertanyaan FAQ</span>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />

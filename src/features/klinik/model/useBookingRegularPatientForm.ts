@@ -10,11 +10,9 @@ import {
   type PatientRelationshipType,
   type PatientGender,
   type PatientBloodType,
-  type PatientAffiliationProfile,
   UNKNOWN_BLOOD_TYPE
 } from '@/features/data-pasien/api/patient-affiliation-service';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
-import type { ReferenceOptionItem } from '@/features/data-pasien/api/patient-reference-service';
 import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { appointmentDraftService } from '../services/appointment-draft.service';
 import {
@@ -31,7 +29,7 @@ export function useBookingRegularPatientForm({
   targetFlow: _targetFlow,
   onRelationshipSubmit: _onRelationshipSubmit,
   allowedRelationships,
-  hasExistingSelf = false,
+  hasExistingSelf: _hasExistingSelf = false,
   initialRelationship,
   existingPatients = []
 }: UseBookingRegularPatientFormOptions) {
@@ -142,17 +140,16 @@ export function useBookingRegularPatientForm({
     setEmergencyContactPhone('');
     setEmergencyContactRelationship('');
     setEmergencyContactPatientId('');
-    setIsEnteringManualEmergency(false);
     if (isEditingFromReview) {
       setIsEditingFromReview(false);
-      setCurrentStep(12);
+      setCurrentStep(REGULAR_BOOKING_STEPS.CONFIRMATION);
     } else {
-      setCurrentStep(10);
+      setCurrentStep(REGULAR_BOOKING_STEPS.ADDRESS);
     }
   }, [isEditingFromReview]);
 
-  const handleChooseManualEmergencyContact = React.useCallback(() => {
-    setIsEnteringManualEmergency(true);
+  const handleChooseYesEmergencyContact = React.useCallback(() => {
+    setCurrentStep(REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL);
   }, []);
   const [motherName, setMotherName] = React.useState(
     () => initialDraft?.newPatientData?.motherName ?? ''
@@ -432,19 +429,15 @@ export function useBookingRegularPatientForm({
         const cleanPhone = phone.replace(/\D/g, '');
         return cleanPhone.length >= 8 && cleanPhone.length <= 15;
       }
-      case REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT: {
-        if (isSelf && !isEnteringManualEmergency) {
-          return true;
-        }
+      case REGULAR_BOOKING_STEPS.EMERGENCY_CHOICE:
+        return true;
+      case REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL: {
         const cleanEmergencyPhone = emergencyContactPhone.replace(/\D/g, '');
-        if (
-          !emergencyContactName.trim() &&
-          !cleanEmergencyPhone &&
-          !emergencyContactRelationship.trim()
-        ) {
-          return true;
-        }
-        return cleanEmergencyPhone.length >= 8 && cleanEmergencyPhone.length <= 15;
+        return (
+          emergencyContactName.trim().length > 0 &&
+          cleanEmergencyPhone.length >= 8 &&
+          cleanEmergencyPhone.length <= 15
+        );
       }
       case REGULAR_BOOKING_STEPS.ADDRESS:
         return Boolean(region.line1.trim());
@@ -463,22 +456,19 @@ export function useBookingRegularPatientForm({
     phone,
     emergencyContactName,
     emergencyContactPhone,
-    emergencyContactRelationship,
     motherName,
     placeOfBirth,
     dateOfBirth,
     gender,
     bloodType,
     region.line1,
-    occupationCode,
-    isSelf,
-    isEnteringManualEmergency
+    occupationCode
   ]);
 
   const handleBack = () => {
     if (isEditingFromReview) {
       setIsEditingFromReview(false);
-      setCurrentStep(12);
+      setCurrentStep(REGULAR_BOOKING_STEPS.CONFIRMATION);
       return;
     }
 
@@ -496,12 +486,19 @@ export function useBookingRegularPatientForm({
     if (isAnimatingRef.current) return;
     isAnimatingRef.current = true;
 
-    if (
-      currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT &&
-      isSelf &&
-      isEnteringManualEmergency
-    ) {
-      setIsEnteringManualEmergency(false);
+    if (currentStep === REGULAR_BOOKING_STEPS.ADDRESS) {
+      const hasEmergency = Boolean(emergencyContactName.trim() || emergencyContactPhone.trim());
+      if (hasEmergency) {
+        setCurrentStep(REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL);
+      } else {
+        setCurrentStep(REGULAR_BOOKING_STEPS.EMERGENCY_CHOICE);
+      }
+      isAnimatingRef.current = false;
+      return;
+    }
+
+    if (currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL) {
+      setCurrentStep(REGULAR_BOOKING_STEPS.EMERGENCY_CHOICE);
       isAnimatingRef.current = false;
       return;
     }
@@ -594,16 +591,13 @@ export function useBookingRegularPatientForm({
     if (isEditingFromReview) {
       isAnimatingRef.current = true;
       setIsEditingFromReview(false);
-      setCurrentStep(12);
+      setCurrentStep(REGULAR_BOOKING_STEPS.CONFIRMATION);
       return;
     }
 
-    if (
-      currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CONTACT &&
-      isSelf &&
-      !isEnteringManualEmergency
-    ) {
-      handleSkipEmergencyContact();
+    if (currentStep === REGULAR_BOOKING_STEPS.EMERGENCY_CHOICE) {
+      isAnimatingRef.current = true;
+      setCurrentStep(REGULAR_BOOKING_STEPS.EMERGENCY_DETAIL);
       return;
     }
 
@@ -620,11 +614,11 @@ export function useBookingRegularPatientForm({
     [currentStep, isSelf, selectedRelOption]
   );
 
-  const isReviewStep = currentStep === 12;
+  const isReviewStep = currentStep === REGULAR_BOOKING_STEPS.CONFIRMATION;
 
   return {
     currentStep,
-    totalSteps: 11,
+    totalSteps: 12,
     isReviewStep,
     currentStepMeta,
     stepContainerRef,
@@ -676,7 +670,7 @@ export function useBookingRegularPatientForm({
     isEnteringManualEmergency,
     setIsEnteringManualEmergency,
     handleSkipEmergencyContact,
-    handleChooseManualEmergencyContact,
+    handleChooseYesEmergencyContact,
 
     handleBack,
     handleNext,

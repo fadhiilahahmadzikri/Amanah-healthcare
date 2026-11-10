@@ -159,12 +159,12 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
           className='h-8 px-3 text-xs gap-1.5 cursor-pointer shrink-0'
         >
           <Icons.plus className='size-3.5' />
-          <span>Tambah Tarif Peran</span>
+          <span>Tambah Jabatan</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align='end' className='w-64 sm:w-72 max-h-60 overflow-y-auto'>
         <DropdownMenuLabel className='text-xs font-semibold'>
-          Pilih Peran Internal
+          Pilih Jabatan Staf
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         {availableRolesToAdd.map((role) => (
@@ -197,18 +197,10 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
 
   const contentBody = (
     <div ref={contentContainerRef} className='space-y-4'>
-      {/* Accounting Governance Banner */}
-      <div className='p-3.5 bg-muted/30 border border-border/50 rounded-xl space-y-1.5 text-xs'>
-        <div className='font-semibold text-foreground flex items-center gap-1.5'>
-          <Icons.info className='size-3.5 text-primary shrink-0' />
-          <span>Prinsip Tata Kelola Tutup Buku (Accounting Governance)</span>
-        </div>
-        <p className='text-muted-foreground leading-relaxed text-[11px] max-w-2xl'>
-          Perubahan tarif akan berlaku untuk kalkulasi <strong>periode baru</strong> atau periode
-          berstatus <strong>terkalkulasi</strong> saat dihitung ulang. Periode yang telah{' '}
-          <strong>ditutup buku (final)</strong> bersifat permanen dan tidak akan mengalami perubahan
-          nilai historis.
-        </p>
+      {/* Friendly Note */}
+      <div className='p-3 bg-muted/40 border border-border/50 rounded-xl flex items-center gap-2 text-xs text-muted-foreground'>
+        <Icons.info className='size-3.5 text-primary shrink-0' />
+        <span>Perubahan tarif hanya berlaku untuk periode yang belum ditutup buku.</span>
       </div>
 
       {/* Dynamic Stacked Cards per Configured Role */}
@@ -250,12 +242,12 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                   className='text-xs gap-1.5 h-8.5 px-3.5 cursor-pointer'
                 >
                   <Icons.plus className='size-3.5' />
-                  <span>Tambah Tarif Peran</span>
+                  <span>Tambah Jabatan</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='center' className='w-64 max-h-60 overflow-y-auto'>
                 <DropdownMenuLabel className='text-xs font-semibold'>
-                  Pilih Peran Internal
+                  Pilih Jabatan Staf
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {availableRolesToAdd.map((role) => (
@@ -321,7 +313,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                       {role.isClinical ? 'Tenaga Klinis' : 'Staf Operasional'}
                     </span>
 
-                    {/* Tombol Hapus / Buang Tarif Peran */}
+                    {/* Tombol Hapus Tarif Jabatan */}
                     <Button
                       type='button'
                       variant='ghost'
@@ -343,10 +335,10 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                 )}
 
                 <div className='grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/40'>
-                  {/* Tarif Dasar Pokok */}
+                  {/* Gaji Pokok / Jam */}
                   <div className='flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/60 bg-muted/20'>
                     <span className='text-xs font-medium text-foreground whitespace-nowrap'>
-                      Tarif Dasar Pokok
+                      Gaji Pokok / Jam
                     </span>
                     <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 shrink-0 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
                       <span className='px-2.5 h-full flex items-center text-[11px] font-semibold text-muted-foreground bg-muted/40 border-r border-border/50 select-none'>
@@ -355,7 +347,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                       <input
                         type='text'
                         inputMode='numeric'
-                        aria-label={`Tarif Dasar Pokok ${role.name}`}
+                        aria-label={`Gaji Pokok ${role.name}`}
                         value={values.hourlyRate.toLocaleString('id-ID')}
                         onChange={(e) => handleRateChange(role.id, 'hourlyRate', e.target.value)}
                         disabled={isLoading || isSaving}
@@ -367,10 +359,10 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                     </div>
                   </div>
 
-                  {/* Tarif Pengganti / Lembur */}
+                  {/* Uang Lembur / Jam */}
                   <div className='flex items-center justify-between gap-3 p-2.5 rounded-lg border border-border/60 bg-muted/20'>
                     <span className='text-xs font-medium text-foreground whitespace-nowrap'>
-                      Tarif Pengganti / Lembur
+                      Uang Lembur / Jam
                     </span>
                     <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 shrink-0 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
                       <span className='px-2.5 h-full flex items-center text-[11px] font-semibold text-muted-foreground bg-muted/40 border-r border-border/50 select-none'>
@@ -379,7 +371,7 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
                       <input
                         type='text'
                         inputMode='numeric'
-                        aria-label={`Tarif Pengganti atau Lembur ${role.name}`}
+                        aria-label={`Uang Lembur ${role.name}`}
                         value={values.overtimeHourlyRate.toLocaleString('id-ID')}
                         onChange={(e) =>
                           handleRateChange(role.id, 'overtimeHourlyRate', e.target.value)
@@ -440,14 +432,13 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
           <DrawerHeader className='shrink-0 text-left pb-3 border-b border-border/50 px-4 pt-3 flex flex-row items-center justify-between gap-2'>
             <div className='space-y-0.5 min-w-0 flex-1'>
               <DrawerTitle className='text-base font-bold text-foreground tracking-tight flex items-center gap-2'>
-                <span>Standar Tarif Kompensasi</span>
+                <span>Tarif Gaji Jabatan</span>
                 {isLoading && (
                   <Icons.spinner className='size-3.5 animate-spin text-primary shrink-0' />
                 )}
               </DrawerTitle>
               <DrawerDescription className='text-xs text-muted-foreground max-w-md leading-normal'>
-                Kelola tarif dasar pokok dan insentif pengganti dinas per jam kerja berdasarkan
-                peran staf.
+                Tentukan bayaran per jam untuk setiap jabatan staf.
               </DrawerDescription>
             </div>
             {addRoleDropdown}
@@ -477,18 +468,17 @@ export function PayrollRatesConfigModal({ isOpen, onClose }: PayrollRatesConfigM
         <div className='shrink-0 pb-3 border-b border-border/50 flex items-start justify-between gap-3'>
           <div className='space-y-0.5 min-w-0 flex-1'>
             <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight flex items-center gap-2'>
-              <span>Standar Tarif Kompensasi</span>
+              <span>Tarif Gaji Jabatan</span>
               {isLoading && (
                 <Icons.spinner className='size-3.5 animate-spin text-primary shrink-0' />
               )}
             </h3>
             <p className='text-xs text-muted-foreground font-medium'>
-              Kelola tarif dasar pokok dan insentif pengganti dinas per jam kerja berdasarkan peran
-              staf.
+              Tentukan bayaran per jam untuk setiap jabatan staf.
             </p>
           </div>
 
-          {/* Tombol Tambah Tarif Peran di Header */}
+          {/* Tombol Tambah Tarif Jabatan di Header */}
           {addRoleDropdown}
         </div>
 

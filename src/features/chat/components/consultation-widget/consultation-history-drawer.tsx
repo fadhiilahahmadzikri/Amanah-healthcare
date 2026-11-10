@@ -59,27 +59,29 @@ export function ConsultationHistoryDrawer({
         className
       )}
     >
-      {/* Sidebar Header */}
-      <div className='p-3 sm:p-3.5 border-b border-border/50 flex items-center justify-between shrink-0 bg-card/90'>
-        <div className='flex items-center gap-2 min-w-0'>
-          <Icons.history className='size-4 text-primary shrink-0' />
-          <h4 className='text-xs font-bold text-foreground truncate'>
-            {isAdmin ? 'Kotak Masuk Pasien' : 'Riwayat Percakapan'}
-          </h4>
+      {/* Sidebar Header (Hidden for admin to keep UI compact) */}
+      {!isAdmin && (
+        <div className='p-3 sm:p-3.5 border-b border-border/50 flex items-center justify-between shrink-0 bg-card/90'>
+          <div className='flex items-center gap-2 min-w-0'>
+            <Icons.history className='size-4 text-primary shrink-0' />
+            <h4 className='text-xs font-bold text-foreground truncate'>
+              Riwayat Percakapan
+            </h4>
+          </div>
+          {onClose && (
+            <Button
+              type='button'
+              variant='ghost'
+              size='icon'
+              onClick={onClose}
+              className='size-7 rounded-lg text-muted-foreground hover:text-foreground sm:hidden'
+              aria-label='Tutup'
+            >
+              <Icons.close className='size-3.5' />
+            </Button>
+          )}
         </div>
-        {onClose && (
-          <Button
-            type='button'
-            variant='ghost'
-            size='icon'
-            onClick={onClose}
-            className='size-7 rounded-lg text-muted-foreground hover:text-foreground sm:hidden'
-            aria-label='Tutup'
-          >
-            <Icons.close className='size-3.5' />
-          </Button>
-        )}
-      </div>
+      )}
 
       {/* Conversations List */}
       <div className='flex-1 overflow-y-auto p-2 space-y-1.5 text-xs'>

@@ -51,6 +51,13 @@ import {
   RegulerFormTemplate,
   type ClinicalFormFlow
 } from './clinical-document';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
 import { FLOW_NAMES } from '../constants/medical-appointment-types';
 
 export interface AppointmentFormInspectorProps {
@@ -58,13 +65,15 @@ export interface AppointmentFormInspectorProps {
   onClose?: () => void;
   hideHeader?: boolean;
   readOnly?: boolean;
+  showBottomActions?: boolean;
 }
 
 export function AppointmentFormInspector({
   appointment,
   onClose,
   hideHeader = false,
-  readOnly
+  readOnly,
+  showBottomActions = false
 }: AppointmentFormInspectorProps) {
   const isTerminal = isAppointmentTerminal(appointment.status);
   const isPresentInClinic = isPatientPresentInClinic(appointment.status);
@@ -334,6 +343,68 @@ export function AppointmentFormInspector({
           onCancel={handleCancelEdit}
           onSave={() => handleSaveEdit(isDirty)}
         />
+      )}
+
+      {!isEditing && showBottomActions && (
+        <div className='pt-3 border-t border-border/40 flex items-center justify-between gap-2 shrink-0 select-none'>
+          <div className='flex items-center gap-1.5'>
+            {/* Download Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type='button'
+                  variant='outline'
+                  size='icon-sm'
+                  shape='rounded'
+                  disabled={isExporting}
+                  isLoading={isExporting}
+                  className='size-8 text-foreground/80 hover:text-foreground cursor-pointer rounded-xl'
+                  title='Unduh Formulir (Multi-Format)'
+                  aria-label='Unduh Formulir'
+                >
+                  <Icons.download className='size-4' />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align='start' side='top' className='w-48 text-xs font-medium'>
+                <DropdownMenuItem onClick={() => handleDownload('docx')} className='gap-2 cursor-pointer'>
+                  <Icons.fileTypeDoc className='size-3.5 text-blue-600 dark:text-blue-400' />
+                  <span>Word (.docx)</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleDownload('xlsx')} className='gap-2 cursor-pointer'>
+                  <Icons.fileTypeXls className='size-3.5 text-emerald-600 dark:text-emerald-400' />
+                  <span>Excel (.xlsx)</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Expand / Reader Button */}
+            <Button
+              type='button'
+              variant='outline'
+              size='icon-sm'
+              shape='rounded'
+              onClick={() => setIsReaderOpen(true)}
+              className='size-8 text-foreground/80 hover:text-foreground cursor-pointer rounded-xl'
+              title='Buka Layar Penuh (Reader)'
+              aria-label='Buka Layar Penuh'
+            >
+              <Icons.maximize className='size-4' />
+            </Button>
+          </div>
+
+          {onClose && (
+            <Button
+              type='button'
+              variant='outline'
+              shape='pill'
+              size='sm'
+              onClick={onClose}
+              className='text-xs font-semibold px-4 h-8 cursor-pointer'
+            >
+              Kembali
+            </Button>
+          )}
+        </div>
       )}
 
       {!isEditing && (

@@ -12,7 +12,7 @@ export function ReplacementDetailTimeSection({
   timeDisplay
 }: ReplacementDetailTimeSectionProps) {
   return (
-    <div className='bg-muted/30 p-3 rounded-xl space-y-2 text-xs'>
+    <div className='bg-card border border-border/60 p-3.5 rounded-xl space-y-2 text-xs shadow-2xs'>
       <div className='text-xs font-semibold text-foreground'>Waktu & sesi pelayanan</div>
       <div className='grid grid-cols-1 sm:grid-cols-2 gap-2'>
         <div>

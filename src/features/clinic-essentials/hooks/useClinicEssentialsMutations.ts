@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { clinicEssentialsApi } from '../api/clinic-essentials.api';
 import { clinicEssentialsKeys } from '../api/query-keys';
+import { promotionsApi } from '@/features/promotions';
 import type { FacilityResource } from '../types/clinic-essentials.types';
 
 export interface DeletingState {
@@ -51,11 +52,21 @@ export function useClinicEssentialsMutations() {
         case 'occupations':
           await clinicEssentialsApi.deleteOccupation(item.id);
           break;
+        case 'facilities':
+          await clinicEssentialsApi.deleteFacility(item.id);
+          break;
+        case 'faqs':
+          await clinicEssentialsApi.deleteFaq(item.id);
+          break;
+        case 'promotions':
+          await promotionsApi.deletePromotion(item.id);
+          break;
       }
     },
     onSuccess: (_, item) => {
       toast.success(`${item.name} berhasil dihapus permanen.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'promotions'] });
       setDeletingItem(null);
     },
     onError: (err: unknown) => {
@@ -96,11 +107,18 @@ export function useClinicEssentialsMutations() {
           return clinicEssentialsApi.updateReligion(id, { isActive });
         case 'occupations':
           return clinicEssentialsApi.updateOccupation(id, { isActive });
+        case 'facilities':
+          return clinicEssentialsApi.updateFacility(id, { isPublished: isActive });
+        case 'faqs':
+          return clinicEssentialsApi.updateFaq(id, { isPublished: isActive });
+        case 'promotions':
+          return promotionsApi.updatePromotion(id, { isPublished: isActive });
       }
     },
     onSuccess: (_, vars) => {
       toast.success(`Status berhasil diubah menjadi ${vars.isActive ? 'Aktif' : 'Nonaktif'}.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'promotions'] });
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Gagal mengubah status item';

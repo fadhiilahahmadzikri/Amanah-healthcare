@@ -141,6 +141,7 @@ export function DoctorScheduleCard({
         </div>
       }
       avatarUrl={doctor.avatar}
+      avatarShape='rounded'
       trailingImage={
         showTrailingAvatar ? <DoctorCardImage src={doctor.avatar} alt={doctor.fullName} /> : null
       }

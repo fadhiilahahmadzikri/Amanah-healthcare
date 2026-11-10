@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { AppError } from '@/core/errors/app-error';
-import type { ProblemDetails } from '@/core/errors/problem-details';
+import { ErrorCodes } from '@/core/errors/error-codes';
 import type { ServiceCardItem } from '@/features/public-site/pages/services/types';
 import {
   patientAffiliationService,
@@ -659,26 +659,24 @@ export function useAppointmentModal({
       setActiveMedicalFlow(null);
       formRequirementGuard.clearActiveRequirement();
     } catch (err: unknown) {
-      const isOvercapacityConsentRequired =
-        (err as any)?.problemDetails?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
-        (err as any)?.code === 'OVERCAPACITY_CONSENT_REQUIRED' ||
-        (typeof (err as any)?.message === 'string' &&
-          (err as any).message.includes('OVERCAPACITY_CONSENT_REQUIRED'));
-
-      if (isOvercapacityConsentRequired && !isConsent) {
+      if (
+        err instanceof AppError &&
+        err.code === ErrorCodes.OVERCAPACITY_CONSENT_REQUIRED &&
+        !isConsent
+      ) {
         setOvercapacityDialog({
           isOpen: true,
-          message:
-            (err as any)?.problemDetails?.detail ||
-            (err as any)?.message ||
-            'Estimasi pelayanan melewati batas jam operasional sesi klinik.'
+          message: err.message
         });
         return;
       }
 
-      const activeTicket = (
-        (err as any)?.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined
-      )?.activeTicket;
+      const activeTicket =
+        err instanceof AppError
+          ? (err.problemDetails as { activeTicket?: ActiveTicketConflictInfo } | undefined)
+              ?.activeTicket
+          : undefined;
+
       if (activeTicket) {
         setActiveTicketConflict(activeTicket);
         toast.warning(
