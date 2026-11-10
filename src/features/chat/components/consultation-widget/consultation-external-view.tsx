@@ -15,7 +15,6 @@ import { getClientSocketUrl } from '@/core/config/env.client';
 import { chatApiService } from '../../api/chat-api-service';
 import { CHAT_SENDER_ROLE, type ChatMessage, type Conversation } from '../../utils/types';
 import { ConsultationGuestForm } from './consultation-guest-form';
-import { ConsultationHistoryDrawer } from './consultation-history-drawer';
 import { ConsultationMessageItem } from './consultation-message-item';
 import { AutoWebPushSync } from '@/features/notifications';
 import { toast } from 'sonner';
@@ -40,14 +39,11 @@ export function ConsultationExternalView({
   onClose
 }: ConsultationExternalViewProps) {
   const viewer = useViewer();
-  const [showDrawer, setShowDrawer] = useState(false);
   const [guestInfo, setGuestInfo] = useState<GuestStorageData | null>(null);
   const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [adminOnline, setAdminOnline] = useState(false);
   const [isAdminTyping, setIsAdminTyping] = useState(false);
@@ -134,28 +130,7 @@ export function ConsultationExternalView({
     loadActiveChat();
   }, [loadActiveChat]);
 
-  // 4. Fetch conversation history when drawer opened
-  useEffect(() => {
-    if (!showDrawer || (!viewer.viewer?.id && !effectiveGuestId)) return;
-    let active = true;
-    const fetchHistory = async () => {
-      setIsHistoryLoading(true);
-      try {
-        const list = await chatApiService.getCustomerConversations(effectiveGuestId);
-        if (active) setConversations(list ?? []);
-      } catch {
-        // ignore
-      } finally {
-        if (active) setIsHistoryLoading(false);
-      }
-    };
-    fetchHistory();
-    return () => {
-      active = false;
-    };
-  }, [showDrawer, viewer.viewer?.id, effectiveGuestId]);
-
-  // 5. Real-time WebSocket connection
+  // 4. Real-time WebSocket connection
   useEffect(() => {
     if (!conversation?.id) {
       if (socketRef.current) {
@@ -256,24 +231,6 @@ export function ConsultationExternalView({
     setGuestInfo(payload);
   };
 
-  const handleSelectSession = async (convId: string) => {
-    setShowDrawer(false);
-    setIsLoading(true);
-    try {
-      const msgs = await chatApiService.getPatientMessages(convId, {
-        guestId: effectiveGuestId
-      });
-      const selected = conversations.find((c) => c.id === convId);
-      if (selected) setConversation(selected);
-      setMessages(msgs.data ?? []);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
-      toast.error(`Gagal memuat sesi: ${msg}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInputText(e.target.value);
     if (socketRef.current?.connected && conversation?.id) {
@@ -305,8 +262,8 @@ export function ConsultationExternalView({
     try {
       let targetConvId = conversation?.id;
 
-      // If no active session or current is closed, seamlessly obtain/create an active session
-      if (!targetConvId || conversation?.status === 'closed') {
+      // If no active session, seamlessly obtain/create an active session
+      if (!targetConvId) {
         const freshConv = await chatApiService.getOrCreateConversation({
           guestId: effectiveGuestId,
           name: viewer.viewer?.name || guestInfo?.name,
@@ -349,35 +306,17 @@ export function ConsultationExternalView({
       {/* 1. Header */}
       <div className='px-4 sm:px-5 py-3 border-b border-border/50 bg-card/95 backdrop-blur-md flex items-center justify-between shrink-0 relative z-20'>
         <div className='flex items-center gap-2.5 min-w-0'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type='button'
-                variant={showDrawer ? 'secondary' : 'ghost'}
-                size='icon'
-                onClick={() => setShowDrawer((prev) => !prev)}
-                className='size-8 rounded-lg shrink-0'
-              >
-                <Icons.panelLeft className='size-4' />
-                <span className='sr-only'>Riwayat</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side='bottom' className='text-xs'>
-              Riwayat Percakapan
-            </TooltipContent>
-          </Tooltip>
-
           <div className='relative shrink-0'>
             <Avatar className='size-8 rounded-full ring-1 ring-border/40 overflow-hidden'>
               <AvatarImage
                 src={DEFAULT_AVATAR_PATH}
-                alt='Gary'
+                alt='Admin Klinik'
                 className='size-full object-cover aspect-square rounded-full'
               />
               <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
                 <Image
                   src={DEFAULT_AVATAR_PATH}
-                  alt='Gary'
+                  alt='Admin Klinik'
                   width={32}
                   height={32}
                   unoptimized
@@ -391,7 +330,7 @@ export function ConsultationExternalView({
           </div>
 
           <div className='min-w-0'>
-            <h3 className='text-sm font-bold text-foreground tracking-tight'>Gary</h3>
+            <h3 className='text-sm font-bold text-foreground tracking-tight'>Admin Klinik</h3>
             <div className='flex items-center gap-1.5 mt-0.5 text-[11px]'>
               <span className='text-muted-foreground truncate'>
                 {adminOnline ? 'Staf Medis Online' : 'Klinik Offline'}
@@ -455,25 +394,7 @@ export function ConsultationExternalView({
         </div>
       </div>
 
-      {/* 2. Full-Height Sidebar Drawer */}
-      {showDrawer && (
-        <>
-          <div
-            onClick={() => setShowDrawer(false)}
-            className='absolute inset-0 z-25 bg-background/40 backdrop-blur-[2px] animate-in fade-in duration-200 cursor-pointer'
-          />
-          <ConsultationHistoryDrawer
-            conversations={conversations}
-            activeConversationId={conversation?.id}
-            onSelectSession={handleSelectSession}
-            onClose={() => setShowDrawer(false)}
-            isLoading={isHistoryLoading}
-            isAdmin={false}
-          />
-        </>
-      )}
-
-      {/* 3. Body: Guest Onboarding OR Messages Stream */}
+      {/* 2. Body: Guest Onboarding OR Messages Stream */}
       {!viewer.viewer?.id && !guestInfo ? (
         <ConsultationGuestForm onStart={handleStartGuestChat} isLoading={isLoading} />
       ) : (

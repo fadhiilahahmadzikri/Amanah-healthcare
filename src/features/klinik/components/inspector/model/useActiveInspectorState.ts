@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { Appointment } from '../../../api/types';
+import type { ChildImmunizationResponse } from '../../../api/kia-intake-service';
 import type {
   UnifiedInspectorData,
   EditableMaternalData,
@@ -235,8 +236,8 @@ export function useActiveInspectorState({
       complaint: isPregnancy
         ? formData.currentComplaints || parsedData.complaint
         : regularFormData.complaint || parsedData.complaint,
-      maternal: activeMaternityIntake as any,
-      child: activeChildIntake as any
+      maternal: activeMaternityIntake || undefined,
+      child: (activeChildIntake || undefined) as ChildImmunizationResponse | undefined
     };
   }, [
     parsedData,
@@ -269,11 +270,11 @@ export function useActiveInspectorState({
   const handleMaternityFieldChange = React.useCallback(
     (field: keyof MaternityIntake, val: any) => {
       if (field === 'previousPregnancies') {
-        handleFieldChange('previousPregnancies' as any, val);
+        handleFieldChange('previousPregnancies', val);
       } else if (field === 'contraceptiveHistories') {
-        handleFieldChange('contraceptiveHistories' as any, val);
+        handleFieldChange('contraceptiveHistories', val);
       } else if (field === 'conditionResponses') {
-        handleFieldChange('conditionResponses' as any, val);
+        handleFieldChange('conditionResponses', val);
         val.forEach((cond: any) => {
           handleDiseaseChange(
             cond.conditionCode,
@@ -282,7 +283,7 @@ export function useActiveInspectorState({
           );
         });
       } else {
-        handleFieldChange(field as any, val);
+        handleFieldChange(field as keyof EditableMaternalData, val);
       }
     },
     [handleFieldChange, handleDiseaseChange]
@@ -290,13 +291,13 @@ export function useActiveInspectorState({
 
   const handleHusbandFieldChange = React.useCallback(
     (field: keyof MaternalHusbandProfile, val: any) => {
-      if (field === 'fullName') handleFieldChange('partnerName' as any, val);
-      else if (field === 'nik') handleFieldChange('partnerNik' as any, val);
-      else if (field === 'birthDate') handleFieldChange('partnerBirthDate' as any, val);
-      else if (field === 'job') handleFieldChange('partnerJob' as any, val);
-      else if (field === 'education') handleFieldChange('partnerEducation' as any, val);
-      else if (field === 'bloodType') handleFieldChange('partnerBloodType' as any, val);
-      else if (field === 'phoneNumber') handleFieldChange('partnerPhone' as any, val);
+      if (field === 'fullName') handleFieldChange('partnerName', val);
+      else if (field === 'nik') handleFieldChange('partnerNik', val);
+      else if (field === 'birthDate') handleFieldChange('partnerBirthDate', val);
+      else if (field === 'job') handleFieldChange('partnerJob', val);
+      else if (field === 'education') handleFieldChange('partnerEducation', val);
+      else if (field === 'bloodType') handleFieldChange('partnerBloodType', val);
+      else if (field === 'phoneNumber') handleFieldChange('partnerPhone', val);
     },
     [handleFieldChange]
   );
@@ -319,7 +320,7 @@ export function useActiveInspectorState({
   const handleMaternalRegionChange = React.useCallback(
     (updates: Partial<PatientRegionValues>) => {
       Object.entries(updates).forEach(([key, val]) => {
-        handleFieldChange(key as any, val);
+        handleFieldChange(key as keyof EditableMaternalData, val);
       });
       const merged = { ...maternalRegionValues, ...updates };
       const parts = [

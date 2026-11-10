@@ -2,8 +2,7 @@ import { create } from 'zustand';
 import {
   CHAT_SENDER_ROLE,
   type ChatMessage,
-  type Conversation,
-  type ConversationStatus
+  type Conversation
 } from './types';
 
 interface ChatState {
@@ -21,7 +20,6 @@ interface ChatState {
   setAdminOnline: (online: boolean) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  updateConversationStatus: (id: string, status: ConversationStatus) => void;
   upsertConversation: (conversation: Conversation) => void;
   getTotalUnreadCount: () => number;
   getActiveConversation: () => Conversation | undefined;
@@ -95,11 +93,6 @@ export const useChatStore = create<ChatState>()((set, get) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   setError: (error) => set({ error }),
-
-  updateConversationStatus: (id, status) =>
-    set((state) => ({
-      conversations: state.conversations.map((c) => (c.id === id ? { ...c, status } : c))
-    })),
 
   upsertConversation: (conversation) =>
     set((state) => {

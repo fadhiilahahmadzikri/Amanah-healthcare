@@ -208,7 +208,7 @@ export async function saveMaternalAction({
     });
     if (created && typeof created === 'object' && 'id' in created && created.id) {
       if (!parsedData.maternal) {
-        parsedData.maternal = created as any;
+        parsedData.maternal = created;
       } else {
         parsedData.maternal.id = created.id;
       }

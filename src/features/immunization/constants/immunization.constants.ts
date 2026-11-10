@@ -113,6 +113,13 @@ export const CANONICAL_IMMUNIZATION_ROWS: CanonicalMilestoneDefinition[] = [
   }
 ];
 
+export const VACCINE_STATUS = {
+  GIVEN: 'GIVEN',
+  NOT_GIVEN: 'NOT_GIVEN',
+  POSTPONED: 'POSTPONED',
+  CONTRAINDICATED: 'CONTRAINDICATED'
+} as const;
+
 export const DEFAULT_SUBJECTIVE_PLACEHOLDERS = ['Demam :', 'Batuk :', 'Pilek :'];
 export const DEFAULT_OBJECTIVE_PLACEHOLDERS = ['BB / PB :', 'LK / S :'];
 

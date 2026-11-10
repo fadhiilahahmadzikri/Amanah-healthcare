@@ -126,11 +126,11 @@ export default function AppSidebar() {
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton tooltip={item.title} isActive={itemIsActive}>
                             <SidebarItemIcon icon={item.icon} fallback={<Icons.logo />} />
-                            <span>{item.title}</span>
-                            {hasChatSubItem && (
-                              <ChatUnreadBadge size='sm' className='ml-auto mr-1' />
-                            )}
-                            <Icons.chevronRight className={cn('transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90', !hasChatSubItem && 'ml-auto')} />
+                            <span className='min-w-0 flex-1 truncate'>{item.title}</span>
+                            <div className='ml-auto flex items-center gap-1.5 shrink-0'>
+                              {hasChatSubItem && <ChatUnreadBadge size='sm' />}
+                              <Icons.chevronRight className='size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
+                            </div>
                           </SidebarMenuButton>
                         </CollapsibleTrigger>
                         <CollapsibleContent>

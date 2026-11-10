@@ -50,11 +50,15 @@ export function ChatInboxSidebar({
   onOpenSettings
 }: ChatInboxSidebarProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<'all' | 'awaiting' | 'closed'>('all');
+  const [activeTab, setActiveTab] = useState<'all' | 'awaiting'>('all');
   const [isNewChatOpen, setIsNewChatOpen] = useState(false);
 
+  const messagedConversations = useMemo(() => {
+    return conversations.filter((c) => Boolean(c.lastMessageAt || c.lastMessagePreview));
+  }, [conversations]);
+
   const filteredConversations = useMemo(() => {
-    return conversations.filter((c) => {
+    return messagedConversations.filter((c) => {
       const q = searchQuery.toLowerCase().trim();
       if (q) {
         const searchableFields = [
@@ -69,14 +73,13 @@ export function ChatInboxSidebar({
         if (!matchSearch) return false;
       }
 
-      if (activeTab === 'awaiting') return c.status === 'open' && c.awaitingReply;
-      if (activeTab === 'closed') return c.status === 'closed';
+      if (activeTab === 'awaiting') return c.awaitingReply;
       return true;
     });
-  }, [conversations, searchQuery, activeTab]);
+  }, [messagedConversations, searchQuery, activeTab]);
 
-  const totalCount = conversations.length;
-  const awaitingCount = conversations.filter((c) => c.status === 'open' && c.awaitingReply).length;
+  const totalCount = messagedConversations.length;
+  const awaitingCount = messagedConversations.filter((c) => c.awaitingReply).length;
 
   return (
     <aside
@@ -219,20 +222,6 @@ export function ChatInboxSidebar({
             </span>
           )}
         </button>
-
-        {/* Filter: Selesai */}
-        <button
-          type='button'
-          onClick={() => setActiveTab('closed')}
-          className={cn(
-            'h-7.5 px-3 rounded-lg text-xs transition-all shrink-0 flex items-center gap-1.5 border-0 outline-none cursor-pointer',
-            activeTab === 'closed'
-              ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
-              : 'bg-muted/70 text-muted-foreground hover:bg-muted hover:text-foreground font-medium'
-          )}
-        >
-          <span>Selesai</span>
-        </button>
       </div>
 
       {/* 4. Conversation Threads List */}
@@ -313,15 +302,10 @@ export function ChatInboxSidebar({
                           : 'text-muted-foreground'
                       )}
                     >
-                      {c.lastMessagePreview || 'Belum ada pesan'}
+                      {c.lastMessagePreview || ''}
                     </p>
 
                     <div className='shrink-0 flex items-center gap-1'>
-                      {c.status === 'closed' && !hasUnread && (
-                        <span className='inline-flex items-center px-1.5 py-0.2 rounded-full text-[8.5px] font-medium bg-muted text-muted-foreground'>
-                          Selesai
-                        </span>
-                      )}
                       <ChatUnreadBadge count={c.unreadCount} size='sm' />
                     </div>
                   </div>

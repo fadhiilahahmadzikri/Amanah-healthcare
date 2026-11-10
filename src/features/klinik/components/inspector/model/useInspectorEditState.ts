@@ -18,6 +18,7 @@ import {
 } from '../../../validations/inspector-form.schema';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
+import { FLOW_NAMES } from '../../../constants/medical-appointment-types';
 import { calculateAgeInYears, calculateBmi } from '../../../utils/medical-appointment';
 import {
   calculateEddFromLmp,
@@ -73,10 +74,10 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
 
   const isDirty = React.useMemo(() => {
     const isRegularDirty = JSON.stringify(regularFormData) !== JSON.stringify(initialRegular);
-    if (parsedData.flow === 'pregnancy') {
+    if (parsedData.flow === FLOW_NAMES.PREGNANCY) {
       return isRegularDirty || JSON.stringify(formData) !== JSON.stringify(initialMaternal);
     }
-    if (parsedData.flow === 'immunization') {
+    if (parsedData.flow === FLOW_NAMES.IMMUNIZATION) {
       return isRegularDirty || JSON.stringify(immunizationFormData) !== JSON.stringify(initialImmunization);
     }
     return isRegularDirty;
@@ -308,17 +309,18 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
       value: any
     ) => {
       setFormData((prev) => {
-        const currentList = [...(prev[key] as any[])];
-        if (currentList[index]) {
-          currentList[index] = {
-            ...currentList[index],
-            [field]: value
-          };
+        if (key === 'previousPregnancies') {
+          const list = [...prev.previousPregnancies];
+          if (list[index]) {
+            list[index] = { ...list[index], [field]: value };
+          }
+          return { ...prev, previousPregnancies: list };
         }
-        return {
-          ...prev,
-          [key]: currentList
-        };
+        const list = [...prev.contraceptiveHistories];
+        if (list[index]) {
+          list[index] = { ...list[index], [field]: value };
+        }
+        return { ...prev, contraceptiveHistories: list };
       });
     },
     []
@@ -326,10 +328,11 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
 
   const handleAddNestedItem = React.useCallback(
     (key: 'previousPregnancies' | 'contraceptiveHistories', defaultItem: any) => {
-      setFormData((prev) => ({
-        ...prev,
-        [key]: [...(prev[key] as any[]), defaultItem]
-      }));
+      setFormData((prev) =>
+        key === 'previousPregnancies'
+          ? { ...prev, previousPregnancies: [...prev.previousPregnancies, defaultItem] }
+          : { ...prev, contraceptiveHistories: [...prev.contraceptiveHistories, defaultItem] }
+      );
     },
     []
   );
@@ -337,11 +340,15 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
   const handleRemoveNestedItem = React.useCallback(
     (key: 'previousPregnancies' | 'contraceptiveHistories', index: number) => {
       setFormData((prev) => {
-        const currentList = [...(prev[key] as any[])];
-        currentList.splice(index, 1);
+        if (key === 'previousPregnancies') {
+          return {
+            ...prev,
+            previousPregnancies: prev.previousPregnancies.filter((_, i) => i !== index)
+          };
+        }
         return {
           ...prev,
-          [key]: currentList
+          contraceptiveHistories: prev.contraceptiveHistories.filter((_, i) => i !== index)
         };
       });
     },

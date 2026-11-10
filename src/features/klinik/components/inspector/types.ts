@@ -1,4 +1,5 @@
 import type { Appointment } from '../../api/types';
+import type { FlowName } from '../../constants/medical-appointment-types';
 import type {
   MaternalIntakeResponse,
   ChildImmunizationResponse
@@ -224,7 +225,7 @@ export interface EditableRegularData {
   categoryName?: string;
   serviceId?: string;
   serviceName?: string;
-  medicalFlow?: 'pregnancy' | 'immunization' | null;
+  medicalFlow?: FlowName | null;
   allergyHistory?: string;
   heightCm?: string | number;
   weightKg?: string | number;

@@ -1,6 +1,6 @@
 import type * as React from 'react';
 import { toast } from 'sonner';
-import { kiaIntakeService } from '../../../api/kia-intake-service';
+import { kiaIntakeService, type UnifiedIntakeResponse } from '../../../api/kia-intake-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
 import type { Appointment } from '../../../api/types';
 import type { UnifiedInspectorData, EditableRegularData } from '../types';
@@ -8,11 +8,12 @@ import { validateRegularForm } from '../../../validations/inspector-form.schema'
 import { buildInitialRegularData } from './inspector-initial-state';
 import { getRegularPatientDiff } from './patient-diff-helper';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
+import { INTAKE_TYPES } from '../../../constants/medical-appointment-types';
 import { toNullableString } from './inspector-save-utils';
 
 export interface SaveRegularParams {
   regularFormData: EditableRegularData;
-  serverIntake: any;
+  serverIntake?: UnifiedIntakeResponse | null;
   parsedData: UnifiedInspectorData;
   appointment: Appointment;
   setValidationErrors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
@@ -33,7 +34,7 @@ export async function saveRegularAction({
   }
   setValidationErrors({});
 
-  const targetId = (serverIntake as any)?.data?.id ?? (serverIntake as any)?.id;
+  const targetId = serverIntake?.data?.id;
 
   const newNik = regularFormData.nik?.trim();
   const originalNik = parsedData.patient?.nik?.trim();
@@ -59,7 +60,7 @@ export async function saveRegularAction({
     }
   }
 
-  if (targetId && (serverIntake as any)?.type === 'regular') {
+  if (targetId && serverIntake?.type === INTAKE_TYPES.REGULAR) {
     await kiaIntakeService.updateGenericIntake(targetId, complaintPayload);
   }
   appointment.complaint = regularFormData.complaint.trim() || '';

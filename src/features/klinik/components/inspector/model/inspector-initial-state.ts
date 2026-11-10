@@ -1,10 +1,14 @@
 import type { Appointment } from '../../../api/types';
+import type { FlowName } from '../../../constants/medical-appointment-types';
 import type {
   UnifiedInspectorData,
   EditableMaternalData,
   EditableImmunizationData,
-  EditableRegularData
+  EditableRegularData,
+  DiseaseHistoryMap
 } from '../types';
+import type { MaternalConditionResponse } from '@/features/maternity/types/maternity.types';
+import { VACCINE_STATUS } from '@/features/immunization';
 import {
   calculateChildAge,
   calculateAgeInYears,
@@ -19,10 +23,27 @@ import {
 export function buildInitialMaternalData(parsedData: UnifiedInspectorData): EditableMaternalData {
   const m = parsedData.maternal;
 
-  const conditions = Array.isArray(m?.conditionResponses) ? m.conditionResponses : [];
-  const diseaseHistory: Record<string, any> = {};
+  const conditions: MaternalConditionResponse[] = Array.isArray(m?.conditionResponses)
+    ? m.conditionResponses
+    : [];
+  const diseaseHistory: DiseaseHistoryMap = {
+    hasHypertensionHistory: false,
+    hasHeartDiseaseHistory: false,
+    hasThyroidDiseaseHistory: false,
+    hasAutoimmuneHistory: false,
+    hasDiabetesHistory: false,
+    hasAsthmaHistory: false,
+    hasTuberculosisHistory: false,
+    hasHepatitisBHistory: false,
+    hasHivOrSyphilisHistory: false,
+    hasMentalHealthHistory: false,
+    hasTwinPregnancyHistory: false,
+    hasCystMyomaTumorHistory: false,
+    hasSurgeryHistory: false,
+    hasOtherDiseaseHistory: false
+  };
 
-  conditions.forEach((c: any) => {
+  conditions.forEach((c) => {
     if (c.conditionCode) {
       diseaseHistory[c.conditionCode] = Boolean(c.hasCondition);
       if (c.diagnosisYear) {
@@ -134,10 +155,10 @@ export function buildInitialMaternalData(parsedData: UnifiedInspectorData): Edit
     allergyInfo: m?.allergyInfo || '',
     otherNotes: m?.otherNotes || '',
 
-    diseaseHistory: diseaseHistory as any,
+    diseaseHistory,
     previousPregnancies: prevPregnancies,
     contraceptiveHistories: kbList,
-    conditionResponses: conditions as any
+    conditionResponses: conditions
   };
 }
 
@@ -153,7 +174,7 @@ export function buildInitialImmunizationData(
       const code = e.vaccineCode;
       if (code) {
         vaccineValues[`vaccine_${code}_status`] =
-          e.status === 'GIVEN' ? 'Sudah' : e.status === 'NOT_GIVEN' ? 'Belum' : 'Tidak tahu';
+          e.status === VACCINE_STATUS.GIVEN ? 'Sudah' : e.status === VACCINE_STATUS.NOT_GIVEN ? 'Belum' : 'Tidak tahu';
         if (e.givenDate) {
           vaccineValues[`vaccine_${code}_date`] = e.givenDate;
         }
@@ -182,7 +203,7 @@ export function buildInitialImmunizationData(
     childName: c?.childName || parsedData.patient?.fullName || '',
     childNik: c?.childNik || parsedData.patient?.nik || '',
     childBirthDate: birthDate,
-    childSex: c?.childSex || (parsedData.patient?.gender as any) || '',
+    childSex: c?.childSex || parsedData.patient?.gender || '',
     childAgeFormatted: childAge,
     parentPhone: c?.parentPhone || parsedData.patient?.phone || '',
     fatherName: c?.fatherName || '',
@@ -219,7 +240,7 @@ export function buildInitialRegularData(
     categoryName: parsedData.categoryName ?? '',
     serviceId: parsedData.serviceId ?? '',
     serviceName: parsedData.serviceName ?? '',
-    medicalFlow: (parsedData.flow as 'pregnancy' | 'immunization') ?? (appointment.medical_flow as 'pregnancy' | 'immunization') ?? null,
+    medicalFlow: (parsedData.flow as FlowName) ?? (appointment.medical_flow as FlowName) ?? null,
     medicalRecordNumber: p?.medicalRecordNumber || '',
     nik: p?.nik || '',
     fullName: p?.fullName || appointment.patient_name || '',

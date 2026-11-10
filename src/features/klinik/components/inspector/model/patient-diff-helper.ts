@@ -1,6 +1,17 @@
-import type { PatientMutationPayload } from '@/features/data-pasien/api/types';
-import type { Gender } from '@/constants/gender.constants';
+import type {
+  PatientMutationPayload,
+  PatientGender,
+  PatientBloodType
+} from '@/features/data-pasien/api/types';
 import type { EditableMaternalData, EditableImmunizationData, EditableRegularData } from '../types';
+
+type StringPatientKey = NonNullable<
+  {
+    [K in keyof PatientMutationPayload]: PatientMutationPayload[K] extends string | null | undefined
+      ? K
+      : never;
+  }[keyof PatientMutationPayload]
+>;
 
 function getCleanDiffValue(
   newVal: string | null | undefined,
@@ -19,13 +30,13 @@ export function getMaternalPatientDiff(
   const diffPayload: Partial<PatientMutationPayload> = {};
 
   const check = (
-    key: keyof PatientMutationPayload,
+    key: StringPatientKey,
     newVal: string | null | undefined,
     oldVal: string | null | undefined
   ) => {
     const val = getCleanDiffValue(newVal, oldVal);
     if (val !== undefined) {
-      diffPayload[key] = val as any;
+      (diffPayload as Record<string, unknown>)[key] = val;
     }
   };
 
@@ -51,7 +62,7 @@ export function getMaternalPatientDiff(
   check('village_code', formData.villageCode, initialMaternal.villageCode);
 
   if (formData.motherBloodType !== initialMaternal.motherBloodType) {
-    diffPayload.blood_type = (formData.motherBloodType as any) || '';
+    diffPayload.blood_type = (formData.motherBloodType as PatientBloodType) || undefined;
   }
 
   return diffPayload;
@@ -64,13 +75,13 @@ export function getImmunizationPatientDiff(
   const diffPayload: Partial<PatientMutationPayload> = {};
 
   const check = (
-    key: keyof PatientMutationPayload,
+    key: StringPatientKey,
     newVal: string | null | undefined,
     oldVal: string | null | undefined
   ) => {
     const val = getCleanDiffValue(newVal, oldVal);
     if (val !== undefined) {
-      diffPayload[key] = val as any;
+      (diffPayload as Record<string, unknown>)[key] = val;
     }
   };
 
@@ -96,7 +107,7 @@ export function getImmunizationPatientDiff(
   check('village_code', formData.villageCode, initialChild.villageCode);
 
   if (formData.childSex !== initialChild.childSex) {
-    diffPayload.gender = (formData.childSex as Gender) || '';
+    diffPayload.gender = (formData.childSex as PatientGender) || undefined;
   }
 
   return diffPayload;
@@ -109,13 +120,13 @@ export function getRegularPatientDiff(
   const diffPayload: Partial<PatientMutationPayload> = {};
 
   const check = (
-    key: keyof PatientMutationPayload,
+    key: StringPatientKey,
     newVal: string | null | undefined,
     oldVal: string | null | undefined
   ) => {
     const val = getCleanDiffValue(newVal, oldVal);
     if (val !== undefined) {
-      diffPayload[key] = val as any;
+      (diffPayload as Record<string, unknown>)[key] = val;
     }
   };
 
@@ -148,10 +159,10 @@ export function getRegularPatientDiff(
   );
 
   if (formData.gender !== initialRegular.gender) {
-    diffPayload.gender = (formData.gender as any) || '';
+    diffPayload.gender = (formData.gender as PatientGender) || undefined;
   }
   if (formData.bloodType !== initialRegular.bloodType) {
-    diffPayload.blood_type = (formData.bloodType as any) || '';
+    diffPayload.blood_type = (formData.bloodType as PatientBloodType) || undefined;
   }
   if (formData.emergencyContactPhone !== initialRegular.emergencyContactPhone) {
     diffPayload.emergency_contact = formData.emergencyContactPhone?.trim() || '';

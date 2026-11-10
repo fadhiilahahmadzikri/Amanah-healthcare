@@ -46,7 +46,7 @@ export function ConsultationMessageItem({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const senderDisplayName = message.senderName || (isAdmin ? 'Pasien' : 'Gary • Admin Klinik');
+  const senderDisplayName = message.senderName || (isAdmin ? 'Pasien' : 'Admin Klinik');
 
   return (
     <div

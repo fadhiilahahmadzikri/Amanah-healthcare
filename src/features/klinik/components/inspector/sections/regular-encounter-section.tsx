@@ -15,6 +15,7 @@ import { ChangeDoctorModal } from '@/features/appointment-pasien/components/chan
 import { ChangeRoomModal } from '@/features/appointment-pasien/components/change-room-modal';
 import { klinikKeys } from '../../../api/query-keys';
 import type { Appointment } from '../../../api/types';
+import type { FlowName } from '../../../constants/medical-appointment-types';
 import type { EditableRegularData, UnifiedInspectorData } from '../types';
 
 export interface RegularEncounterSectionProps {
@@ -99,7 +100,7 @@ export function RegularEncounterSection({
     const selectedService = services.find((s) => s.id === item.id);
     onRegularFieldChange(
       'medicalFlow',
-      (selectedService?.intakeFormCode as 'pregnancy' | 'immunization') || null
+      (selectedService?.intakeFormCode as FlowName) || null
     );
   };
 

@@ -7,7 +7,6 @@ import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { DEFAULT_AVATAR_PATH } from '@/constants/avatar.constants';
@@ -15,7 +14,6 @@ import { useViewer } from '@/features/notifications/hooks/use-viewer';
 import { emitAdminSocketEvent } from '@/features/notifications/hooks/use-notification-socket';
 import { chatApiService } from '../api/chat-api-service';
 import { CHAT_SENDER_ROLE, type ChatMessage, type Conversation } from '../utils/types';
-import { ConsultationHistoryDrawer } from './consultation-widget/consultation-history-drawer';
 import { ConsultationMessageItem } from './consultation-widget/consultation-message-item';
 
 export function PatientChatView() {
@@ -24,12 +22,9 @@ export function PatientChatView() {
   const queryConversationId = searchParams?.get('conversationId') || searchParams?.get('id');
 
   const [conversation, setConversation] = useState<Conversation | null>(null);
-  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
-  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [adminOnline, setAdminOnline] = useState(false);
   const [isAdminTyping, setIsAdminTyping] = useState(false);
@@ -65,7 +60,6 @@ export function PatientChatView() {
       let activeConv: Conversation | null = null;
       if (queryConversationId) {
         const historyList = await chatApiService.getCustomerConversations();
-        setConversations(historyList ?? []);
         activeConv = historyList.find((c) => c.id === queryConversationId) || null;
       }
 
@@ -98,28 +92,7 @@ export function PatientChatView() {
     initPatientChat();
   }, [initPatientChat]);
 
-  // 3. Fetch history list when history drawer is opened
-  useEffect(() => {
-    if (!showHistory || !viewer.viewer?.id) return;
-    let active = true;
-    const fetchHistory = async () => {
-      setIsHistoryLoading(true);
-      try {
-        const list = await chatApiService.getCustomerConversations();
-        if (active) setConversations(list ?? []);
-      } catch {
-        // ignore
-      } finally {
-        if (active) setIsHistoryLoading(false);
-      }
-    };
-    fetchHistory();
-    return () => {
-      active = false;
-    };
-  }, [showHistory, viewer.viewer?.id]);
-
-  // 4. Join conversation room on mount and leave on unmount
+  // 3. Join conversation room on mount and leave on unmount
   useEffect(() => {
     if (!conversation?.id) return;
 
@@ -253,7 +226,7 @@ export function PatientChatView() {
 
     try {
       let targetConvId = conversation?.id;
-      if (!targetConvId || conversation?.status === 'closed') {
+      if (!targetConvId) {
         const freshConv = await chatApiService.getOrCreateConversation({
           name: viewer.viewer?.name || undefined,
           email: viewer.viewer?.email || undefined
@@ -298,22 +271,6 @@ export function PatientChatView() {
     }
   };
 
-  const handleSelectSession = async (convId: string) => {
-    setShowHistory(false);
-    setIsLoading(true);
-    try {
-      const msgs = await chatApiService.getPatientMessages(convId);
-      const selected = conversations.find((c) => c.id === convId);
-      if (selected) setConversation(selected);
-      setMessages(msgs.data ?? []);
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Error';
-      toast.error(`Gagal memuat sesi: ${msg}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const patientName = viewer?.viewer?.name || 'Pasien';
 
   return (
@@ -321,24 +278,6 @@ export function PatientChatView() {
       {/* 1. Top Header */}
       <header className='h-[56px] px-4 sm:px-6 border-b border-border/60 bg-card/80 flex items-center justify-between shrink-0 relative z-20'>
         <div className='flex items-center gap-3 min-w-0'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type='button'
-                variant={showHistory ? 'secondary' : 'ghost'}
-                size='icon'
-                onClick={() => setShowHistory((prev) => !prev)}
-                className='size-8.5 rounded-lg shrink-0'
-              >
-                <Icons.panelLeft className='size-4' />
-                <span className='sr-only'>Riwayat</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side='bottom' className='text-xs'>
-              Riwayat Konsultasi
-            </TooltipContent>
-          </Tooltip>
-
           <Avatar className='size-9 rounded-full ring-1 ring-primary/20 overflow-hidden shrink-0'>
             <AvatarImage
               src={DEFAULT_AVATAR_PATH}
@@ -364,7 +303,7 @@ export function PatientChatView() {
               <span
                 className={cn(
                   'size-1.5 rounded-full shrink-0',
-                  adminOnline ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-400'
+                  adminOnline ? 'bg-emerald-500' : 'bg-zinc-400'
                 )}
               />
               <span
@@ -382,23 +321,6 @@ export function PatientChatView() {
         {/* Header Right Actions */}
         <div className='flex items-center gap-1.5' />
       </header>
-
-      {/* History Drawer with Backdrop */}
-      {showHistory && (
-        <>
-          <div
-            onClick={() => setShowHistory(false)}
-            className='absolute inset-0 z-25 bg-background/30 backdrop-blur-[1.5px] animate-in fade-in duration-200 cursor-pointer'
-          />
-          <ConsultationHistoryDrawer
-            conversations={conversations}
-            activeConversationId={conversation?.id}
-            onSelectSession={handleSelectSession}
-            onClose={() => setShowHistory(false)}
-            isLoading={isHistoryLoading}
-          />
-        </>
-      )}
 
       {/* 2. Messages Stream */}
       <div ref={scrollRef} className='flex-1 overflow-y-auto p-4 sm:p-6 space-y-3 bg-background/50'>

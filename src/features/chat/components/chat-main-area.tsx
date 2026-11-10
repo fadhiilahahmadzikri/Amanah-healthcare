@@ -162,7 +162,7 @@ export function ChatMainArea({
             <span
               className={cn(
                 'absolute bottom-0 right-0 size-2 rounded-full ring-1.5 ring-background',
-                conversation.status === 'open' ? 'bg-emerald-500' : 'bg-zinc-400'
+                conversation.isOnline ? 'bg-emerald-500' : 'bg-zinc-400'
               )}
             />
           </div>
@@ -171,10 +171,9 @@ export function ChatMainArea({
             <div className='text-xs font-bold text-foreground truncate'>
               {conversation.customerName || 'Pasien'}
             </div>
-            {conversation.status === 'open' ? (
-              <div className='flex items-center gap-1.5 text-[10.5px] font-medium text-emerald-600 dark:text-emerald-400 leading-tight'>
-                <span className='size-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0' />
-                <span>Online</span>
+            {conversation.isOnline ? (
+              <div className='text-[10.5px] font-medium text-emerald-600 dark:text-emerald-400 leading-tight'>
+                Online
               </div>
             ) : (
               <div className='text-[10px] text-muted-foreground leading-tight truncate'>
@@ -185,11 +184,6 @@ export function ChatMainArea({
         </div>
 
         <div className='flex items-center gap-1.5 shrink-0'>
-          {conversation.status === 'closed' && (
-            <span className='text-[10px] font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full'>
-              Percakapan Selesai
-            </span>
-          )}
           {onToggleProfile && (
             <Button
               type='button'
@@ -261,36 +255,28 @@ export function ChatMainArea({
           </div>
         )}
 
-        {conversation.status === 'open' ? (
-          <div className='min-h-[44px] border border-border/80 rounded-xl flex items-center px-3 bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 shadow-2xs transition-all gap-2'>
-            <input
-              type='text'
-              aria-label='Tulis pesan balasan untuk pasien'
-              value={inputText}
-              onChange={handleInputChange}
-              onKeyDown={handleKeyDown}
-              placeholder='Tulis pesan balasan untuk pasien...'
-              className='flex-1 h-9 text-xs sm:text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
-            />
+        <div className='min-h-[44px] border border-border/80 rounded-xl flex items-center px-3 bg-background focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 shadow-2xs transition-all gap-2'>
+          <input
+            type='text'
+            aria-label='Tulis pesan balasan untuk pasien'
+            value={inputText}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
+            placeholder='Tulis pesan balasan untuk pasien...'
+            className='flex-1 h-9 text-xs sm:text-[13px] text-foreground placeholder:text-muted-foreground focus:outline-none bg-transparent'
+          />
 
-            <Button
-              type='button'
-              size='sm'
-              onClick={handleSend}
-              disabled={!inputText.trim()}
-              className='h-8 px-3 rounded-lg text-xs font-semibold gap-1.5 shadow-2xs shrink-0 cursor-pointer'
-            >
-              <span>Kirim</span>
-              <Icons.arrowRight className='size-3.5' />
-            </Button>
-          </div>
-        ) : (
-          <div className='text-center py-2'>
-            <span className='text-xs text-muted-foreground'>
-              Percakapan ini telah ditutup. Buka percakapan baru untuk mengirim pesan.
-            </span>
-          </div>
-        )}
+          <Button
+            type='button'
+            size='sm'
+            onClick={handleSend}
+            disabled={!inputText.trim()}
+            className='h-8 px-3 rounded-lg text-xs font-semibold gap-1.5 shadow-2xs shrink-0 cursor-pointer'
+          >
+            <span>Kirim</span>
+            <Icons.arrowRight className='size-3.5' />
+          </Button>
+        </div>
       </div>
     </main>
   );

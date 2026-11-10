@@ -68,7 +68,9 @@ export function ConsultationWidget() {
             : 'w-14 h-14 rounded-2xl p-0 cursor-pointer ring-2 ring-primary/20 text-white'
           : isExpanded
             ? 'w-[calc(100vw-2rem)] sm:w-[min(1080px,calc(100vw-3rem))] h-[min(820px,calc(100vh-4rem))] rounded-[28px] p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
-            : 'w-[calc(100vw-2rem)] sm:w-[480px] md:w-[540px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
+            : isAdmin
+              ? 'w-[calc(100vw-2rem)] sm:w-[720px] md:w-[780px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
+              : 'w-[calc(100vw-2rem)] sm:w-[480px] md:w-[540px] h-[640px] max-h-[calc(100vh-5rem)] rounded-3xl p-0 border-border/70 bg-card/98 text-card-foreground shadow-2xl backdrop-blur-2xl'
       )}
     >
       {/* Collapsed Pill Button */}
@@ -95,7 +97,6 @@ export function ConsultationWidget() {
           </div>
           {!isHovered && (
             <span className='absolute top-1 right-1 flex size-2.5 pointer-events-none z-10'>
-              <span className='animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-80' />
               <span className='relative inline-flex rounded-full size-2.5 bg-emerald-400 ring-2 ring-white/80' />
             </span>
           )}

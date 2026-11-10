@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
-import { Separator } from '@/components/ui/separator';
 import { Icons } from '@/components/icons';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -14,7 +13,6 @@ import type { Conversation } from '../utils/types';
 
 interface PatientCrmSidebarProps {
   conversation?: Conversation;
-  onCloseConversation?: (conversationId: string) => void;
   onCloseProfile?: () => void;
 }
 
@@ -25,7 +23,6 @@ function copyToClipboard(text: string, label: string) {
 
 export function PatientCrmSidebar({
   conversation,
-  onCloseConversation,
   onCloseProfile
 }: PatientCrmSidebarProps) {
   if (!conversation) {
@@ -42,7 +39,6 @@ export function PatientCrmSidebar({
   }
 
   const isGuest = !conversation.userId && Boolean(conversation.guestId);
-  const isOpen = conversation.status === 'open';
 
   return (
     <aside className='w-[280px] bg-card flex flex-col justify-between overflow-y-auto p-4 shrink-0 select-none border-l border-border/60'>
@@ -94,17 +90,9 @@ export function PatientCrmSidebar({
           {conversation.customerName || 'Pasien'}
         </h3>
 
-        {/* Clean plain-text with pipeline separator */}
-        <div className='mt-1.5 flex items-center justify-center gap-2 text-[11px] text-muted-foreground font-medium'>
+        {/* Clean plain-text with contact type */}
+        <div className='mt-1.5 flex items-center justify-center text-[11px] text-muted-foreground font-medium'>
           <span>{isGuest ? 'Tamu Publik' : 'Pasien Terdaftar'}</span>
-          <Separator orientation='vertical' className='h-3 bg-border/80' />
-          <span
-            className={cn(
-              isOpen ? 'text-emerald-600 dark:text-emerald-400 font-semibold' : 'text-muted-foreground'
-            )}
-          >
-            {isOpen ? 'Aktif' : 'Selesai'}
-          </span>
         </div>
 
         {/* Contact Information Cards */}
@@ -161,21 +149,6 @@ export function PatientCrmSidebar({
           )}
         </div>
       </div>
-
-      {/* Action footer */}
-      {isOpen && onCloseConversation && (
-        <div className='pt-4 border-t border-border/60'>
-          <Button
-            variant='outline'
-            size='sm'
-            onClick={() => onCloseConversation(conversation.id)}
-            className='w-full text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/20 h-8 font-medium'
-          >
-            <Icons.check className='size-3.5 mr-1' />
-            <span>Tandai Selesai</span>
-          </Button>
-        </div>
-      )}
     </aside>
   );
 }

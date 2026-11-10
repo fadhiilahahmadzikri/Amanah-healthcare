@@ -24,7 +24,7 @@ function ChatParamSync() {
 
 export default function ChatViewPage() {
   useChatFaviconSync();
-  const { sendMessage, closeConversation, isClientTyping, sendTyping } = useAdminChat();
+  const { sendMessage, isClientTyping, sendTyping } = useAdminChat();
 
   return (
     <PageContainer scrollable={false}>
@@ -36,7 +36,6 @@ export default function ChatViewPage() {
           isClientTyping={isClientTyping}
           onSendMessage={sendMessage}
           onTyping={sendTyping}
-          onCloseConversation={closeConversation}
         />
       </div>
     </PageContainer>

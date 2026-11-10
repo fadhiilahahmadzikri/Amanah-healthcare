@@ -16,7 +16,6 @@ export function useAdminChat() {
     setConversations,
     setMessages,
     appendMessage,
-    updateConversationStatus,
     setLoading,
     setError
   } = useChatStore();
@@ -48,11 +47,16 @@ export function useAdminChat() {
     setLoading(isLoadingConversations);
   }, [isLoadingConversations, setLoading]);
 
-  // 2. Join conversation room on selection, leave on deselect/unmount
+  // 2. Join conversation room on selection, mark as read, leave on deselect/unmount
   useEffect(() => {
     if (!selectedConversationId) return;
 
     emitAdminSocketEvent('chat:join', { conversationId: selectedConversationId });
+
+    // Mark as read immediately on selection (WhatsApp model)
+    void chatApiService.markAdminConversationAsRead(selectedConversationId).then(() => {
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'chat', 'unread-count'] });
+    });
 
     return () => {
       emitAdminSocketEvent('chat:leave', { conversationId: selectedConversationId });
@@ -61,7 +65,7 @@ export function useAdminChat() {
         clearTimeout(clientTypingTimeoutRef.current);
       }
     };
-  }, [selectedConversationId]);
+  }, [selectedConversationId, queryClient]);
 
   // 3. Listen for real-time incoming chat messages via Event-Driven Architecture (zero polling)
   useEffect(() => {
@@ -73,8 +77,10 @@ export function useAdminChat() {
 
       appendMessage(message.conversationId, message);
       void queryClient.invalidateQueries({ queryKey: ['admin', 'chat', 'conversations'] });
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'chat', 'unread-count'] });
 
       if (message.conversationId === selectedConversationId) {
+        void chatApiService.markAdminConversationAsRead(message.conversationId);
         setIsClientTyping(false);
         if (clientTypingTimeoutRef.current) {
           clearTimeout(clientTypingTimeoutRef.current);
@@ -180,6 +186,7 @@ export function useAdminChat() {
     onSuccess: (savedMessage: ChatMessage) => {
       appendMessage(savedMessage.conversationId, savedMessage);
       queryClient.invalidateQueries({ queryKey: ['admin', 'chat', 'conversations'] });
+      queryClient.invalidateQueries({ queryKey: ['admin', 'chat', 'unread-count'] });
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Terjadi kesalahan';
@@ -197,29 +204,6 @@ export function useAdminChat() {
     [selectedConversationId, sendMutation, sendTyping]
   );
 
-  // 8. Close conversation mutation
-  const closeMutation = useMutation({
-    mutationFn: async (conversationId: string) => {
-      return chatApiService.closeConversation(conversationId);
-    },
-    onSuccess: (_, conversationId) => {
-      updateConversationStatus(conversationId, 'closed');
-      toast.success('Percakapan berhasil ditutup.');
-      queryClient.invalidateQueries({ queryKey: ['admin', 'chat', 'conversations'] });
-    },
-    onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Terjadi kesalahan';
-      toast.error(`Gagal menutup percakapan: ${msg}`);
-    }
-  });
-
-  const handleCloseConversation = useCallback(
-    (conversationId: string) => {
-      closeMutation.mutate(conversationId);
-    },
-    [closeMutation]
-  );
-
   return {
     conversations,
     selectedConversationId,
@@ -227,7 +211,6 @@ export function useAdminChat() {
     isClientTyping,
     sendMessage: handleSendMessage,
     sendTyping,
-    closeConversation: handleCloseConversation,
     refetchConversations
   };
 }

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Icons } from '@/components/icons';
 import { clinicEssentialsApi } from '@/features/clinic-essentials/api/clinic-essentials.api';
 import type { Appointment } from '../api/types';
+import type { EditableImmunizationData } from './inspector/types';
 import {
   useInspectorData,
   useInspectorEditState,
@@ -15,7 +16,10 @@ import {
 import { InspectorHeader } from './inspector/organisms/inspector-header';
 import { InspectorFooter } from './inspector/organisms/inspector-footer';
 import { MaternityAdminInspector } from '@/features/maternity';
-import { ImmunizationAdminInspector } from '@/features/immunization';
+import {
+  ImmunizationAdminInspector,
+  type ImmunizationIntakeRecord
+} from '@/features/immunization';
 import {
   RegularIdentitySection,
   RegularEncounterSection
@@ -70,13 +74,7 @@ export function AppointmentFormInspector({
 
   const references = usePatientFormReferences();
 
-  const {
-    serverIntake,
-    isLoading,
-    parsedData,
-    isPregnancy: _baseIsPregnancy,
-    isImmunization: baseIsImmunization
-  } = useInspectorData(appointment);
+  const { serverIntake, isLoading, parsedData } = useInspectorData(appointment);
 
   const {
     isEditing,
@@ -100,8 +98,7 @@ export function AppointmentFormInspector({
       ? regularFormData.medicalFlow
       : parsedData.flow;
   const isPregnancy = activeFlow === FLOW_NAMES.PREGNANCY;
-  const isImmunization =
-    activeFlow === FLOW_NAMES.IMMUNIZATION || (!isEditing && baseIsImmunization);
+  const isImmunization = activeFlow === FLOW_NAMES.IMMUNIZATION;
 
   const { isSaving, handleSaveEdit } = useInspectorSave({
     appointment,
@@ -313,14 +310,14 @@ export function AppointmentFormInspector({
 
             {isImmunization && (
               <ImmunizationAdminInspector
-                intake={activeChildIntake as any}
-                entries={(activeChildIntake?.entries || immunizationFormData?.entries || []) as any}
+                intake={activeChildIntake as ImmunizationIntakeRecord | null}
+                entries={activeChildIntake?.entries || immunizationFormData?.entries || []}
                 isEditing={isEditing}
                 onIntakeFieldChange={(field, val) =>
-                  handleImmunizationFieldChange(field as any, val)
+                  handleImmunizationFieldChange(field as keyof EditableImmunizationData, val)
                 }
                 onEntriesChange={(updatedEntries) =>
-                  handleImmunizationFieldChange('entries' as any, updatedEntries)
+                  handleImmunizationFieldChange('entries', updatedEntries)
                 }
                 validationErrors={validationErrors}
                 onClearError={handleClearError}

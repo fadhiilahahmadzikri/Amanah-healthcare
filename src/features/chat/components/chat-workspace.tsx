@@ -14,14 +14,12 @@ interface UnifiedChatWorkspaceProps {
   isClientTyping?: boolean;
   onSendMessage?: (text: string) => void;
   onTyping?: (isTyping: boolean) => void;
-  onCloseConversation?: (conversationId: string) => void;
 }
 
 export function UnifiedChatWorkspace({
   isClientTyping,
   onSendMessage,
-  onTyping,
-  onCloseConversation
+  onTyping
 }: UnifiedChatWorkspaceProps) {
   const searchParams = useSearchParams();
   const initialConversationId = searchParams?.get('conversationId') || searchParams?.get('id');
@@ -115,7 +113,6 @@ export function UnifiedChatWorkspace({
         <div className='hidden lg:block shrink-0'>
           <PatientCrmSidebar
             conversation={activeConversation}
-            onCloseConversation={onCloseConversation}
             onCloseProfile={() => setIsRightSidebarOpen(false)}
           />
         </div>
@@ -144,7 +141,6 @@ export function UnifiedChatWorkspace({
             </button>
             <PatientCrmSidebar
               conversation={activeConversation}
-              onCloseConversation={onCloseConversation}
               onCloseProfile={() => setShowMobileProfile(false)}
             />
           </div>

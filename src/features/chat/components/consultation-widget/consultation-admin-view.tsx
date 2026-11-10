@@ -26,7 +26,7 @@ export function ConsultationAdminView({
   onToggleExpand,
   onClose
 }: ConsultationAdminViewProps) {
-  const [showDrawer, setShowDrawer] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [inputText, setInputText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -76,72 +76,91 @@ export function ConsultationAdminView({
     : 'Admin Inbox';
 
   return (
-    <div className='size-full flex flex-col overflow-hidden animate-in fade-in duration-300 relative'>
-      {/* 1. Header */}
-      <div className='px-4 sm:px-5 py-3 border-b border-border/50 bg-card/95 backdrop-blur-md flex items-center justify-between shrink-0 relative z-20'>
-        <div className='flex items-center gap-2.5 min-w-0'>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type='button'
-                variant={showDrawer ? 'secondary' : 'ghost'}
-                size='icon'
-                onClick={() => setShowDrawer((prev) => !prev)}
-                className='size-8 rounded-lg shrink-0'
-              >
-                <Icons.panelLeft className='size-4' />
-                <span className='sr-only'>Daftar Pasien</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side='bottom' className='text-xs'>
-              Daftar Pasien
-            </TooltipContent>
-          </Tooltip>
+    <div className='size-full flex flex-row overflow-hidden animate-in fade-in duration-300 relative'>
+      {/* 1. Persistent Sidebar for Admin (Mini Panel matching Full Chat Page) */}
+      <ConsultationHistoryDrawer
+        conversations={conversations}
+        activeConversationId={selectedConversationId ?? undefined}
+        onSelectSession={(id) => {
+          selectConversation(id);
+          setShowMobileSidebar(false);
+        }}
+        onClose={() => setShowMobileSidebar(false)}
+        isLoading={isLoading}
+        isAdmin={true}
+        className={cn(
+          'transition-all duration-300',
+          showMobileSidebar ? 'flex absolute inset-0 z-40 sm:relative sm:z-10 w-full sm:w-64 md:w-72' : 'hidden sm:flex'
+        )}
+      />
 
-          {activeConversation && (
-            <div className='relative shrink-0'>
-              <Avatar className='size-8 rounded-full ring-1 ring-border/40 overflow-hidden'>
-                <AvatarImage
-                  src={
-                    activeConversation.userId
-                      ? `/api/v1/users/${activeConversation.userId}/avatar`
-                      : DEFAULT_AVATAR_PATH
-                  }
-                  alt={recipientTitle}
-                  className='size-full object-cover aspect-square rounded-full'
-                />
-                <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
-                  <Image
-                    src={DEFAULT_AVATAR_PATH}
+      {/* 2. Main Chat Area */}
+      <div className='flex-1 flex flex-col min-w-0 h-full overflow-hidden relative'>
+        {/* Header */}
+        <div className='px-4 sm:px-5 py-3 border-b border-border/50 bg-card/95 backdrop-blur-md flex items-center justify-between shrink-0 relative z-20'>
+          <div className='flex items-center gap-2.5 min-w-0'>
+            {/* Mobile Sidebar Toggle Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type='button'
+                  variant={showMobileSidebar ? 'secondary' : 'ghost'}
+                  size='icon'
+                  onClick={() => setShowMobileSidebar((prev) => !prev)}
+                  className='size-8 rounded-lg shrink-0 sm:hidden'
+                >
+                  <Icons.panelLeft className='size-4' />
+                  <span className='sr-only'>Daftar Pasien</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side='bottom' className='text-xs'>
+                Daftar Pasien
+              </TooltipContent>
+            </Tooltip>
+
+            {activeConversation && (
+              <div className='relative shrink-0'>
+                <Avatar className='size-8 rounded-full ring-1 ring-border/40 overflow-hidden'>
+                  <AvatarImage
+                    src={
+                      activeConversation.userId
+                        ? `/api/v1/users/${activeConversation.userId}/avatar`
+                        : DEFAULT_AVATAR_PATH
+                    }
                     alt={recipientTitle}
-                    width={32}
-                    height={32}
-                    unoptimized
-                    className='size-full object-cover rounded-full aspect-square'
+                    className='size-full object-cover aspect-square rounded-full'
                   />
-                </AvatarFallback>
-              </Avatar>
-              <span
-                className={cn(
-                  'absolute bottom-0 right-0 size-2 rounded-full ring-1.5 ring-background',
-                  activeConversation.status === 'open' ? 'bg-emerald-500' : 'bg-zinc-400'
-                )}
-              />
-            </div>
-          )}
+                  <AvatarFallback className='p-0 bg-transparent overflow-hidden'>
+                    <Image
+                      src={DEFAULT_AVATAR_PATH}
+                      alt={recipientTitle}
+                      width={32}
+                      height={32}
+                      unoptimized
+                      className='size-full object-cover rounded-full aspect-square'
+                    />
+                  </AvatarFallback>
+                </Avatar>
+                <span
+                  className={cn(
+                    'absolute bottom-0 right-0 size-2 rounded-full ring-1.5 ring-background',
+                    activeConversation.isOnline ? 'bg-emerald-500' : 'bg-zinc-400'
+                  )}
+                />
+              </div>
+            )}
 
-          <div className='min-w-0'>
-            <div className='flex items-center gap-2'>
-              <h3 className='text-sm font-bold text-foreground tracking-tight truncate'>
-                {recipientTitle}
-              </h3>
-            </div>
-            <div className='flex items-center gap-1.5 mt-0.5 text-[11px]'>
-              <span className='size-1.5 rounded-full shrink-0 bg-emerald-500 animate-pulse' />
-              <span className='text-muted-foreground truncate'>Staf Medis Aktif</span>
+            <div className='min-w-0'>
+              <div className='flex items-center gap-2'>
+                <h3 className='text-sm font-bold text-foreground tracking-tight truncate'>
+                  {recipientTitle}
+                </h3>
+              </div>
+              <div className='flex items-center gap-1.5 mt-0.5 text-[11px]'>
+                <span className='text-muted-foreground truncate'>Staf Medis Aktif</span>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* Header Controls */}
         <div className='flex items-center gap-1'>
@@ -198,25 +217,7 @@ export function ConsultationAdminView({
         </div>
       </div>
 
-      {/* 2. Full-Height Sidebar Drawer */}
-      {showDrawer && (
-        <>
-          <div
-            onClick={() => setShowDrawer(false)}
-            className='absolute inset-0 z-25 bg-background/40 backdrop-blur-[2px] animate-in fade-in duration-200 cursor-pointer'
-          />
-          <ConsultationHistoryDrawer
-            conversations={conversations}
-            activeConversationId={selectedConversationId ?? undefined}
-            onSelectSession={selectConversation}
-            onClose={() => setShowDrawer(false)}
-            isLoading={isLoading}
-            isAdmin={true}
-          />
-        </>
-      )}
-
-      {/* 3. Messages Stream */}
+      {/* 2. Messages Stream */}
       <div className='flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-gradient-to-b from-transparent via-background/40 to-background text-sm relative z-10 scroll-smooth'>
         {conversations.length === 0 ? (
           <EmptyState
@@ -298,6 +299,7 @@ export function ConsultationAdminView({
             Baris baru: <kbd className='font-mono'>Shift+Enter</kbd>
           </span>
         </div>
+      </div>
       </div>
     </div>
   );

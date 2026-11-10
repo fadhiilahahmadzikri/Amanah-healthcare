@@ -8,6 +8,7 @@ import { validateImmunizationForm, validateRegularForm } from '../../../validati
 import { buildInitialImmunizationData, buildInitialRegularData } from './inspector-initial-state';
 import { getImmunizationPatientDiff, getRegularPatientDiff } from './patient-diff-helper';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
+import { VACCINE_STATUS } from '@/features/immunization';
 import { toNullableString } from './inspector-save-utils';
 
 export interface SaveImmunizationParams {
@@ -63,7 +64,7 @@ export async function saveImmunizationAction({
     rowIndex: Number(e.rowIndex) || 0,
     vaccineName: e.vaccineName || undefined,
     vaccineCode: e.vaccineCode || undefined,
-    status: e.status || 'NOT_GIVEN',
+    status: e.status || VACCINE_STATUS.NOT_GIVEN,
     injectionDate: e.injectionDate || null,
     ageDisplay: e.ageDisplay || null,
     fever: e.fever || null,
@@ -81,7 +82,7 @@ export async function saveImmunizationAction({
   const resolvedBirthDate =
     immunizationFormData.childBirthDate?.trim() || parsedData.patient?.birthDate || '';
   const resolvedChildSex =
-    immunizationFormData.childSex?.trim() || (parsedData.patient?.gender as any) || '';
+    immunizationFormData.childSex?.trim() || parsedData.patient?.gender || '';
 
   const payload = {
     patientId: patientId || '',
@@ -126,15 +127,15 @@ export async function saveImmunizationAction({
   }
 
   if (targetId) {
-    const updatePayload = { ...payload };
-    if (!updatePayload.childBirthDate) delete (updatePayload as any).childBirthDate;
-    if (!updatePayload.childSex) delete (updatePayload as any).childSex;
+    const updatePayload: Partial<typeof payload> = { ...payload };
+    if (!updatePayload.childBirthDate) delete updatePayload.childBirthDate;
+    if (!updatePayload.childSex) delete updatePayload.childSex;
     await kiaIntakeService.updateImmunizationIntake(targetId, updatePayload);
   } else {
     const created = await kiaIntakeService.createImmunizationIntake(payload);
     if (created && typeof created === 'object' && 'id' in created && created.id) {
       if (!parsedData.child) {
-        parsedData.child = created as any;
+        parsedData.child = created;
       } else {
         parsedData.child.id = created.id;
       }

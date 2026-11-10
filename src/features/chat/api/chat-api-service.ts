@@ -2,6 +2,7 @@ import { clientFetch } from '@/lib/client-fetch';
 import type {
   ChatCandidateResponse,
   ChatMessage,
+  ChatUnreadSummary,
   Conversation,
   ConversationListResponse,
   MessageListResponse
@@ -61,10 +62,19 @@ export const chatApiService = {
     });
   },
 
-  async closeConversation(conversationId: string): Promise<Conversation> {
-    return clientFetch<Conversation>(`/api/v1/admin/chat/conversations/${conversationId}/close`, {
-      method: 'PATCH'
+  async getAdminUnreadSummary(): Promise<ChatUnreadSummary> {
+    return clientFetch<ChatUnreadSummary>('/api/v1/admin/chat/unread-count', {
+      method: 'GET'
     });
+  },
+
+  async markAdminConversationAsRead(conversationId: string): Promise<{ success: boolean }> {
+    return clientFetch<{ success: boolean }>(
+      `/api/v1/admin/chat/conversations/${conversationId}/read`,
+      {
+        method: 'PATCH'
+      }
+    );
   },
 
   // --- Patient & Guest Endpoints ---

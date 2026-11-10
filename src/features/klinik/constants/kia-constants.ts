@@ -119,7 +119,8 @@ export const GENDER_CHOICE = {
 
 export const INTAKE_TYPES = {
   MATERNAL: 'maternal',
-  IMMUNIZATION: 'immunization'
+  IMMUNIZATION: 'immunization',
+  REGULAR: 'regular'
 } as const;
 
 export type IntakeType = (typeof INTAKE_TYPES)[keyof typeof INTAKE_TYPES];

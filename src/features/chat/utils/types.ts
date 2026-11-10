@@ -7,8 +7,6 @@ export const CHAT_SENDER_ROLE = {
 
 export type SenderRole = AudienceType;
 export type ChatSenderRole = SenderRole;
-export type ConversationStatus = 'open' | 'closed';
-
 export interface ChatMessage {
   id: string;
   conversationId: string;
@@ -22,7 +20,6 @@ export interface ChatMessage {
 
 export interface Conversation {
   id: string;
-  status: ConversationStatus;
   userId?: string | null;
   patientId?: string | null;
   guestId?: string | null;
@@ -36,9 +33,14 @@ export interface Conversation {
   lastMessagePreview?: string | null;
   awaitingReply: boolean;
   unreadCount?: number;
+  isOnline?: boolean;
   messages?: ChatMessage[];
   createdAt?: string;
-  closedAt?: string | null;
+}
+
+export interface ChatUnreadSummary {
+  totalUnread: number;
+  awaitingReplyCount: number;
 }
 
 export interface ConversationListResponse {
