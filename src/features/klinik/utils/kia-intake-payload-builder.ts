@@ -18,7 +18,8 @@ export function buildMaternityIntakePayload(
   patientId: string,
   submittedValues: MedicalAppointmentValues,
   patientName?: string,
-  complaint?: string
+  complaint?: string,
+  selectedPatient?: { nik?: string | null; fullName?: string | null; birthDate?: string | null } | null
 ): CreateMaternityIntakePayload {
   const previousPregnancies = [];
   let pIdx = 1;
@@ -263,9 +264,9 @@ export function buildMaternityIntakePayload(
 
   return {
     patientId,
-    motherNik: submittedValues.motherNik || '',
-    motherName: submittedValues.motherName ? submittedValues.motherName : (patientName ?? ''),
-    motherBirthDate: submittedValues.motherBirthDate || null,
+    motherNik: submittedValues.motherNik || selectedPatient?.nik || '',
+    motherName: submittedValues.motherName ? submittedValues.motherName : (patientName ?? selectedPatient?.fullName ?? ''),
+    motherBirthDate: submittedValues.motherBirthDate || selectedPatient?.birthDate || null,
     motherAge: parsePureInteger(submittedValues.motherAge),
     marriageOrder: parsePureInteger(submittedValues.marriageOrder) || 1,
     marriageDate: submittedValues.marriageDate || null,
@@ -340,19 +341,38 @@ export function buildChildImmunizationIntakePayload(
   patientId: string,
   submittedValues: MedicalAppointmentValues,
   patientName?: string,
-  patientContact?: string
+  patientContact?: string,
+  selectedPatient?: {
+    nik?: string | null;
+    fullName?: string | null;
+    birthDate?: string | null;
+    gender?: string | null;
+    motherName?: string | null;
+    address?: string | null;
+  } | null
 ): CreateChildImmunizationPayload {
+  const childBirthDate =
+    submittedValues.childBirthDate || selectedPatient?.birthDate || '';
+  const childSex =
+    submittedValues.childSex || selectedPatient?.gender || '';
+  const childNik =
+    submittedValues.childNik || selectedPatient?.nik || '';
+
   return {
     patientId,
-    childName: submittedValues.childName ? submittedValues.childName : (patientName ?? ''),
-    childNik: submittedValues.childNik || '',
-    childBirthDate: submittedValues.childBirthDate || '',
-    childSex: submittedValues.childSex || '',
+    childName: submittedValues.childName
+      ? submittedValues.childName
+      : (patientName ?? selectedPatient?.fullName ?? ''),
+    childNik,
+    childBirthDate,
+    childSex,
     childAgeFormatted: submittedValues.childAgeFormatted || null,
-    parentPhone: submittedValues.parentPhone ? submittedValues.parentPhone : (patientContact ?? ''),
+    parentPhone: submittedValues.parentPhone
+      ? submittedValues.parentPhone
+      : (patientContact ?? ''),
     fatherName: submittedValues.fatherName || null,
-    motherName: submittedValues.motherName || null,
-    childAddress: submittedValues.childAddress || null,
+    motherName: submittedValues.motherName || selectedPatient?.motherName || null,
+    childAddress: submittedValues.childAddress || selectedPatient?.address || null,
     previousVaccineHistory: submittedValues.previousVaccineHistory || null,
     childAllergyHistory: submittedValues.childAllergyHistory || null
   };

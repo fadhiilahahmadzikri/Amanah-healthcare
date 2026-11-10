@@ -104,7 +104,8 @@ export function useMedicalAppointmentSubmit({
                 resolvedPatientId,
                 submittedValues,
                 resolvedPatientName,
-                complaint
+                complaint,
+                selectedPatient
               );
               const intakeRes = await kiaIntakeService.createMaternityIntake(maternityPayload);
               sourceIntakeId = intakeRes?.id;
@@ -113,7 +114,8 @@ export function useMedicalAppointmentSubmit({
                 resolvedPatientId,
                 submittedValues,
                 resolvedPatientName,
-                patientContact
+                patientContact,
+                selectedPatient
               );
               const intakeRes =
                 await kiaIntakeService.createImmunizationIntake(immunizationPayload);
@@ -235,7 +237,8 @@ export function useMedicalAppointmentSubmit({
                   patientId,
                   submittedValues,
                   patientName,
-                  complaint
+                  complaint,
+                  selectedPatient
                 );
                 await kiaIntakeService.createMaternityIntake(maternityPayload);
               } else if (definition.flow === FLOW_NAMES.IMMUNIZATION) {
@@ -243,7 +246,8 @@ export function useMedicalAppointmentSubmit({
                   patientId,
                   submittedValues,
                   patientName,
-                  patientContact
+                  patientContact,
+                  selectedPatient
                 );
                 await kiaIntakeService.createImmunizationIntake(immunizationPayload);
               }
