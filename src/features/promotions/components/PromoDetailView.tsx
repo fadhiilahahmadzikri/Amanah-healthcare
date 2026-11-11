@@ -128,7 +128,7 @@ export function PromoDetailView({ promo, otherPromos = [] }: PromoDetailViewProp
               {/* Action Buttons */}
               <div className='space-y-3 pt-1'>
                 <Link
-                  href={promo.cta?.href || ROUTES.clinicAppointments}
+                  href={promo.cta?.href || ROUTES.clinicNewAppointment}
                   target={promo.cta?.href?.startsWith('http') ? '_blank' : undefined}
                   rel={promo.cta?.href?.startsWith('http') ? 'noopener noreferrer' : undefined}
                   className='w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-xs hover:bg-primary/90 active:scale-98 transition-all'

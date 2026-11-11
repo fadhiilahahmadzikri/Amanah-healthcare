@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Image from 'next/image';
 import React, { useRef } from 'react';
+import { ROUTES } from '@/core/routes';
 import {
   HealthcareHeading,
   HealthcareText,
@@ -266,7 +267,7 @@ export function TrustHighlights() {
                 />
               ))}
             </div>
-            <TextCtaLink href='/kontak'>Daftar Segera</TextCtaLink>
+            <TextCtaLink href={ROUTES.clinicNewAppointment}>Daftar Segera</TextCtaLink>
           </div>
         </div>
 

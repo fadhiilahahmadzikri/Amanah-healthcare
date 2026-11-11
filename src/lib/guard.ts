@@ -61,7 +61,8 @@ export async function requireRouteAccess(pathname: string): Promise<SessionType>
     (session?.user as { audience?: AudienceType })?.audience ?? AUDIENCE.INTERNAL;
   const permissions = (session?.user as { permissions?: string[] })?.permissions ?? [];
 
-  const authResult = isRouteAuthorized(pathname, {
+  const [cleanPathname] = pathname.split('?');
+  const authResult = isRouteAuthorized(cleanPathname, {
     audience,
     permissions,
     role: session?.user?.role
@@ -74,7 +75,7 @@ export async function requireRouteAccess(pathname: string): Promise<SessionType>
 
     if (authResult.reason === 'forbidden') {
       const destination = getRoleLandingPath(audience);
-      if (pathname !== destination) {
+      if (cleanPathname !== destination) {
         redirect(destination);
       }
     }

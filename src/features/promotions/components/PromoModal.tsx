@@ -13,7 +13,7 @@ interface PromoModalProps {
   excludePaths?: string[];
 }
 
-const DEFAULT_EXCLUDE_PATHS = ['/booking', '/login', '/auth', '/admin'];
+const DEFAULT_EXCLUDE_PATHS = ['/klinik', '/login', '/auth', '/admin'];
 
 export function PromoModal({
   excludePaths = DEFAULT_EXCLUDE_PATHS,

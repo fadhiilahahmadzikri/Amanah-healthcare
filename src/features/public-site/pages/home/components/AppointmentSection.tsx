@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { ROUTES } from '@/core/routes';
 import {
   ArrowCtaButton,
   PixelMeshBackground,
@@ -90,7 +91,7 @@ export function AppointmentSection() {
                   sm:mt-10
                 '
                 >
-                  <ArrowCtaButton href='/kontak'>Buat Janji Temu</ArrowCtaButton>
+                  <ArrowCtaButton href={ROUTES.clinicNewAppointment}>Buat Janji Temu</ArrowCtaButton>
                 </div>
               }
             />

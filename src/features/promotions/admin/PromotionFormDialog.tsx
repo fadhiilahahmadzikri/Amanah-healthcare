@@ -2,11 +2,14 @@
 
 import * as React from 'react';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
 import { CLINIC_WHATSAPP_CONFIG } from '@/config/whatsapp.config';
 import type { ClinicService } from '@/features/clinic-essentials/types/clinic-essentials.types';
+import { roleManagementApi } from '@/features/role-management/api/role-management.api';
+import type { ApplicationPage } from '@/features/role-management/types/role.types';
 import { promotionsApi } from '../api/promotions.api';
 import { buildPromoWhatsAppUrl, isSafeHref } from '../lib/cta';
 import { formatWibPeriod } from '../lib/schedule';
@@ -57,9 +60,48 @@ export function PromotionFormDialog({
   const [urlTestStatus, setUrlTestStatus] = React.useState<'idle' | 'testing' | 'valid' | 'invalid'>('idle');
 
   // CTA Settings
-  const [ctaType, setCtaType] = React.useState<'none' | 'whatsapp' | 'custom'>('whatsapp');
+  const [ctaType, setCtaType] = React.useState<'none' | 'whatsapp' | 'page' | 'custom'>('whatsapp');
   const [ctaLabel, setCtaLabel] = React.useState('Konsultasi WhatsApp');
   const [ctaUrl, setCtaUrl] = React.useState('');
+  const [targetPageId, setTargetPageId] = React.useState<string | null>(null);
+
+  // Fetch application pages tree for internal page picker
+  const { data: rawPagesTree = [] } = useQuery({
+    queryKey: ['admin-pages-tree', 'external'],
+    queryFn: () => roleManagementApi.getPageTree('external'),
+    enabled: isOpen,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const availablePages = React.useMemo(() => {
+    const result: Array<{
+      id: string;
+      name: string;
+      routePath: string;
+      customAlias?: string | null;
+      categoryName?: string;
+    }> = [];
+
+    const traverse = (pages: ApplicationPage[], currentCategory?: string) => {
+      for (const page of pages) {
+        if (page.routePath && page.routePath !== '#') {
+          result.push({
+            id: page.id,
+            name: page.name,
+            routePath: page.routePath,
+            customAlias: page.customAlias,
+            categoryName: currentCategory,
+          });
+        }
+        if (page.children && page.children.length > 0) {
+          traverse(page.children, page.routePath === '#' ? page.name : currentCategory);
+        }
+      }
+    };
+
+    traverse(rawPagesTree);
+    return result;
+  }, [rawPagesTree]);
 
   // Placements & Display
   const [showBanner, setShowBanner] = React.useState(true);
@@ -91,6 +133,7 @@ export function PromotionFormDialog({
       setBody(promotion.body ?? '');
       setCustomTermsNote(promotion.terms ?? '');
       setServiceId(promotion.serviceId ?? null);
+      setTargetPageId(promotion.targetPageId ?? null);
       setImageType(promotion.imageType);
       setImageValue(promotion.imageValue);
       setImageAlt(promotion.imageAlt);
@@ -99,6 +142,10 @@ export function PromotionFormDialog({
         setCtaType('none');
         setCtaLabel('');
         setCtaUrl('');
+      } else if (promotion.targetPageId) {
+        setCtaType('page');
+        setCtaLabel(promotion.ctaLabel ?? 'Lihat Detail');
+        setCtaUrl(promotion.ctaUrl);
       } else if (promotion.ctaUrl.includes('wa.me') || promotion.ctaUrl.includes('whatsapp.com')) {
         setCtaType('whatsapp');
         setCtaLabel(promotion.ctaLabel ?? 'Konsultasi WhatsApp');
@@ -132,6 +179,7 @@ export function PromotionFormDialog({
       setBody('');
       setCustomTermsNote('');
       setServiceId(null);
+      setTargetPageId(null);
       setImageType('static');
       setImageValue('/promo/pemeriksaan-dokter-umum.webp');
       setImageAlt('Layanan Dokter Umum');
@@ -236,6 +284,7 @@ export function PromotionFormDialog({
       terms: combinedTerms || undefined,
       serviceId: serviceId || undefined,
       serviceName: selected ? selected.name : undefined,
+      targetPageId: targetPageId || undefined,
       image: {
         src: imageValue || '/promo/pemeriksaan-dokter-umum.webp',
         alt: imageAlt || title || 'Promosi Klinik',
@@ -283,6 +332,7 @@ export function PromotionFormDialog({
 
     const validationResult = PromotionFormSchema.safeParse({
       serviceId: serviceId || null,
+      targetPageId: ctaType === 'page' ? targetPageId : null,
       title: title.trim(),
       summary: summary.trim(),
       body: body.trim() ? body.trim() : null,
@@ -325,6 +375,7 @@ export function PromotionFormDialog({
 
     const payload: CreatePromotionPayload = {
       serviceId: serviceId || null,
+      targetPageId: ctaType === 'page' ? targetPageId : null,
       title: title.trim(),
       summary: summary.trim(),
       body: body.trim() ? body.trim() : null,
@@ -414,6 +465,15 @@ export function PromotionFormDialog({
                   serviceId={serviceId}
                   onServiceChange={handleServiceChange}
                   services={services}
+                  targetPageId={targetPageId}
+                  onTargetPageChange={(pageId, resolvedUrl, pageName) => {
+                    setTargetPageId(pageId);
+                    setCtaUrl(resolvedUrl);
+                    if (pageName && !ctaLabel) {
+                      setCtaLabel(`Lihat ${pageName}`);
+                    }
+                  }}
+                  availablePages={availablePages}
                   ctaType={ctaType}
                   setCtaType={setCtaType}
                   ctaLabel={ctaLabel}

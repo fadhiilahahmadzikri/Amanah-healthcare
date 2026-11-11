@@ -10,7 +10,9 @@ export type WorkShift = CanonicalAttendanceShift | (string & {});
 export const ATTENDANCE_ACTIONS = {
   CHECK_IN: 'check_in',
   MANUAL_CHECK_IN: 'manual_check_in',
-  CHECK_OUT: 'check_out'
+  CHECK_OUT: 'check_out',
+  ABSENCE_FINALIZED: 'absence_finalized',
+  RECONCILED: 'reconciled'
 } as const;
 
 export type AttendanceAction = (typeof ATTENDANCE_ACTIONS)[keyof typeof ATTENDANCE_ACTIONS];

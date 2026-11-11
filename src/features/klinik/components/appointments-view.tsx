@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo, type ComponentProps } from 'react';
+import { useState, useMemo, useEffect, useRef, type ComponentProps } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -27,13 +28,14 @@ import { type MyPendingProposal, useMyPendingProposals } from '../hooks/use-my-p
 import { AUDIENCE } from '@/core/auth/permissions.constants';
 import { useAuthContext } from '@/lib/rbac/auth-context';
 import { appointmentDraftService } from '../services/appointment-draft.service';
-import { useEffect } from 'react';
 
 type AppointmentModalSubmit = ComponentProps<typeof AppointmentModal>['onSubmit'];
 
 export function AppointmentsView() {
   const { user } = useAuthContext();
   const appointmentsView = useAppointmentsView();
+  const searchParams = useSearchParams();
+  const hasAutoOpenedRef = useRef(false);
   const [hasDraft, setHasDraft] = useState(false);
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
   const [isProposalInboxOpen, setIsProposalInboxOpen] = useState(false);
@@ -42,6 +44,15 @@ export function AppointmentsView() {
   );
   const { proposals = [] } = useMyPendingProposals();
   const { serviceOptions = [] } = useClinicFilterOptions();
+
+  // Auto-open appointment modal when triggered via query param (e.g. from Landing Page CTA)
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'new' && !hasAutoOpenedRef.current) {
+      hasAutoOpenedRef.current = true;
+      appointmentsView.actions.openCreateModal();
+    }
+  }, [searchParams, appointmentsView.actions]);
 
   useEffect(() => {
     if (user?.id) {

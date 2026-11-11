@@ -25,12 +25,19 @@ export interface PresentAttendanceModalParams {
  * choreographed notification modal, avoiding code duplication across socket & mutations.
  */
 export function presentAttendanceModal(params: PresentAttendanceModalParams) {
+  // Tripwire Guard: Passive system evaluations (absence, leave) must never present celebratory modals
+  if (
+    params.status === CANONICAL_ATTENDANCE_STATUS.ABSENT ||
+    params.status === CANONICAL_ATTENDANCE_STATUS.MISSED ||
+    params.status === CANONICAL_ATTENDANCE_STATUS.LEAVE ||
+    params.action === ATTENDANCE_ACTIONS.ABSENCE_FINALIZED
+  ) {
+    return;
+  }
+
   const isEarly = Boolean(params.isEarlyDeparture);
   const isCheckOut = params.action === ATTENDANCE_ACTIONS.CHECK_OUT;
-  const isLate =
-    params.status === CANONICAL_ATTENDANCE_STATUS.LATE ||
-    params.status === 'late' ||
-    params.status === 'Terlambat';
+  const isLate = params.status === CANONICAL_ATTENDANCE_STATUS.LATE;
   const isReplacement = Boolean(params.isReplacement);
 
   let time = params.waktu_presensi ?? 'hari ini';

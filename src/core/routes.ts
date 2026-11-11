@@ -24,6 +24,7 @@ export const ROUTES = {
   // Clinic / Patient Portal
   clinicQueue: '/klinik/antrean',
   clinicAppointments: '/klinik/janji-temu',
+  clinicNewAppointment: '/klinik/janji-temu?action=new',
   clinicHistory: '/klinik/history',
   clinicChat: '/klinik/chat',
   clinicGuide: '/klinik/panduan',

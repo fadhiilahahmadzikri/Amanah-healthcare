@@ -14,7 +14,12 @@ import { replacementKeys } from '@/features/peluang-pengganti/api/query-keys';
 import { attendanceKeys } from '@/features/kehadiran-pegawai/api/queries';
 import { staffManagementKeys } from '@/features/staff-management/api/query-keys';
 import { roleManagementKeys } from '@/features/role-management/api/query-keys';
-import type { AttendanceAction, StaffAttendance } from '@/features/kehadiran-pegawai/api/types';
+import {
+  ATTENDANCE_ACTIONS,
+  type AttendanceAction,
+  type StaffAttendance
+} from '@/features/kehadiran-pegawai/api/types';
+import { CANONICAL_ATTENDANCE_STATUS } from '@/features/kehadiran-pegawai/constants/attendance-status.constants';
 import { presentAttendanceModal } from '@/components/feedback/choreographed-modal';
 import { getClientSocketUrl } from '@/core/config/env.client';
 import { clientFetch } from '@/lib/client-fetch';
@@ -517,6 +522,17 @@ export function useNotificationSocket(callbacks?: {
           })
         | undefined;
       if (!item?.nama_staf) return;
+
+      // Interactive presence guard: Only active presence actions (check-in, check-out, early departure)
+      // trigger choreographed celebratory feedback modals. Background system absence or leave never trigger them.
+      if (
+        item.status === CANONICAL_ATTENDANCE_STATUS.ABSENT ||
+        item.status === CANONICAL_ATTENDANCE_STATUS.MISSED ||
+        item.status === CANONICAL_ATTENDANCE_STATUS.LEAVE ||
+        item.action === ATTENDANCE_ACTIONS.ABSENCE_FINALIZED
+      ) {
+        return;
+      }
 
       presentAttendanceModal({
         id: item.id,

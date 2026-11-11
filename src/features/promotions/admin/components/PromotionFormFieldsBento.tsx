@@ -7,6 +7,14 @@ import { PatientSearchableSelect } from '@/features/data-pasien/components/regis
 import type { ClinicService } from '@/features/clinic-essentials/types/clinic-essentials.types';
 import { cn } from '@/lib/utils';
 
+export interface PromotionPageOption {
+  id: string;
+  name: string;
+  routePath: string;
+  customAlias?: string | null;
+  categoryName?: string;
+}
+
 export interface PromotionFormFieldsBentoProps {
   title: string;
   setTitle: (val: string) => void;
@@ -17,8 +25,11 @@ export interface PromotionFormFieldsBentoProps {
   serviceId: string | null;
   onServiceChange: (id: string | null, selected?: ClinicService | null) => void;
   services: ClinicService[];
-  ctaType: 'none' | 'whatsapp' | 'custom';
-  setCtaType: (val: 'none' | 'whatsapp' | 'custom') => void;
+  targetPageId: string | null;
+  onTargetPageChange: (pageId: string | null, resolvedUrl: string, pageName?: string) => void;
+  availablePages: PromotionPageOption[];
+  ctaType: 'none' | 'whatsapp' | 'page' | 'custom';
+  setCtaType: (val: 'none' | 'whatsapp' | 'page' | 'custom') => void;
   ctaLabel: string;
   setCtaLabel: (val: string) => void;
   ctaUrl: string;
@@ -36,6 +47,9 @@ export function PromotionFormFieldsBento({
   serviceId,
   onServiceChange,
   services,
+  targetPageId,
+  onTargetPageChange,
+  availablePages,
   ctaType,
   setCtaType,
   ctaLabel,
@@ -64,6 +78,25 @@ export function PromotionFormFieldsBento({
     const found = services.find((s) => s.id === serviceId);
     return found ? found.name : '';
   }, [services, serviceId]);
+
+  const pageOptions = React.useMemo(() => {
+    return availablePages.map((p) => {
+      const displayPath = p.customAlias ? `${p.customAlias} (${p.routePath})` : p.routePath;
+      return {
+        id: p.id,
+        name: `${p.name} — ${displayPath}`,
+        description: p.categoryName || undefined,
+      };
+    });
+  }, [availablePages]);
+
+  const activePageLabel = React.useMemo(() => {
+    if (!targetPageId) return '';
+    const found = availablePages.find((p) => p.id === targetPageId);
+    if (!found) return '';
+    const displayPath = found.customAlias ? `${found.customAlias} (${found.routePath})` : found.routePath;
+    return `${found.name} — ${displayPath}`;
+  }, [availablePages, targetPageId]);
 
   return (
     <div
@@ -163,47 +196,72 @@ export function PromotionFormFieldsBento({
             Tombol Aksi Pasien (CTA)
           </span>
 
-          <div className='grid grid-cols-1 sm:grid-cols-3 gap-2'>
+          <div className='grid grid-cols-2 sm:grid-cols-4 gap-2'>
             <button
               type='button'
-              onClick={() => setCtaType('whatsapp')}
+              onClick={() => {
+                setCtaType('whatsapp');
+                onTargetPageChange(null, '');
+              }}
               className={cn(
-                'rounded-xl border p-2.5 text-left transition-all cursor-pointer',
+                'rounded-xl border p-2 text-left transition-all cursor-pointer',
                 ctaType === 'whatsapp'
                   ? 'border-primary bg-primary/10 text-primary shadow-2xs font-semibold'
                   : 'border-border/60 bg-card/50 text-muted-foreground hover:bg-muted'
               )}
             >
-              <div className='text-xs font-semibold text-foreground'>WhatsApp Chat</div>
-              <div className='text-[10px] text-muted-foreground mt-0.5'>Langsung ke admin klinik</div>
+              <div className='text-xs font-semibold text-foreground'>WhatsApp</div>
+              <div className='text-[10px] text-muted-foreground mt-0.5'>Chat admin</div>
             </button>
 
             <button
               type='button'
-              onClick={() => setCtaType('custom')}
+              onClick={() => setCtaType('page')}
               className={cn(
-                'rounded-xl border p-2.5 text-left transition-all cursor-pointer',
+                'rounded-xl border p-2 text-left transition-all cursor-pointer',
+                ctaType === 'page'
+                  ? 'border-primary bg-primary/10 text-primary shadow-2xs font-semibold'
+                  : 'border-border/60 bg-card/50 text-muted-foreground hover:bg-muted'
+              )}
+            >
+              <div className='text-xs font-semibold text-foreground'>Halaman Internal</div>
+              <div className='text-[10px] text-muted-foreground mt-0.5'>Dari registri</div>
+            </button>
+
+            <button
+              type='button'
+              onClick={() => {
+                setCtaType('custom');
+                onTargetPageChange(null, '');
+              }}
+              className={cn(
+                'rounded-xl border p-2 text-left transition-all cursor-pointer',
                 ctaType === 'custom'
                   ? 'border-primary bg-primary/10 text-primary shadow-2xs font-semibold'
                   : 'border-border/60 bg-card/50 text-muted-foreground hover:bg-muted'
               )}
             >
-              <div className='text-xs font-semibold text-foreground'>Tautan Kustom</div>
-              <div className='text-[10px] text-muted-foreground mt-0.5'>URL web atau booking</div>
+              <div className='text-xs font-semibold text-foreground'>Tautan Luar</div>
+              <div className='text-[10px] text-muted-foreground mt-0.5'>URL eksternal</div>
             </button>
 
             <button
               type='button'
-              onClick={() => setCtaType('none')}
+              onClick={() => {
+                setCtaType('none');
+                onTargetPageChange(null, '');
+                setCtaLabel('');
+                setCtaUrl('');
+              }}
               className={cn(
-                'rounded-xl border p-2.5 text-left transition-all cursor-pointer',
+                'rounded-xl border p-2 text-left transition-all cursor-pointer',
                 ctaType === 'none'
                   ? 'border-primary bg-primary/10 text-primary shadow-2xs font-semibold'
                   : 'border-border/60 bg-card/50 text-muted-foreground hover:bg-muted'
               )}
             >
               <div className='text-xs font-semibold text-foreground'>Tanpa Tombol</div>
-              <div className='text-[10px] text-muted-foreground mt-0.5'>Pengumuman visual murni</div>
+              <div className='text-[10px] text-muted-foreground mt-0.5'>Poster murni</div>
             </button>
           </div>
 
@@ -211,26 +269,64 @@ export function PromotionFormFieldsBento({
             <div className='space-y-3 pt-1'>
               <PatientLineInput
                 id='promo_cta_label'
-                label='Label Tombol CTA'
+                label='Label Tombol CTA *'
                 placeholder='Contoh: Konsultasi Sekarang'
                 value={ctaLabel}
                 onChange={setCtaLabel}
                 maxLength={30}
+                required
                 autoComplete='off'
               />
 
-              <PatientLineInput
-                id='promo_cta_url'
-                label={ctaType === 'whatsapp' ? 'Pesan Awal WhatsApp' : 'URL Tujuan'}
-                placeholder={
-                  ctaType === 'whatsapp'
-                    ? 'Halo Amanah Healthcare, saya tertarik...'
-                    : 'https://amanahhealthcare.com'
-                }
-                value={ctaUrl}
-                onChange={setCtaUrl}
-                autoComplete='off'
-              />
+              {ctaType === 'page' ? (
+                <div className='space-y-2'>
+                  <PatientSearchableSelect
+                    id='promo_target_page_picker'
+                    label='Pilih Halaman Tujuan (Dari Registri Halaman) *'
+                    placeholder='Pilih halaman landing page atau portal klinik...'
+                    value={activePageLabel}
+                    options={pageOptions}
+                    onSelect={(item) => {
+                      const found = availablePages.find((p) => p.id === item.id);
+                      if (found) {
+                        const resolvedUrl = found.customAlias || found.routePath;
+                        onTargetPageChange(found.id, resolvedUrl, found.name);
+                        if (!ctaLabel) {
+                          setCtaLabel(`Lihat ${found.name}`);
+                        }
+                      } else {
+                        onTargetPageChange(null, '');
+                      }
+                    }}
+                    searchPlaceholder='Cari halaman (contoh: Janji Temu, Fasilitas, Kalkulator)...'
+                  />
+
+                  {ctaUrl ? (
+                    <div className='flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-card/60 border border-border/50 text-[11px] text-muted-foreground font-mono'>
+                      <span className='font-sans font-semibold text-foreground'>Rute Terpaut:</span>
+                      <span className='text-primary font-bold'>{ctaUrl}</span>
+                    </div>
+                  ) : null}
+                </div>
+              ) : ctaType === 'whatsapp' ? (
+                <PatientLineInput
+                  id='promo_cta_url'
+                  label='Pesan Awal WhatsApp'
+                  placeholder='Halo Amanah Healthcare, saya tertarik...'
+                  value={ctaUrl}
+                  onChange={setCtaUrl}
+                  autoComplete='off'
+                />
+              ) : (
+                <PatientLineInput
+                  id='promo_cta_url'
+                  label='URL Tujuan Eksternal *'
+                  placeholder='https://amanahhealthcare.com/registrasi-event'
+                  value={ctaUrl}
+                  onChange={setCtaUrl}
+                  autoComplete='off'
+                />
+              )}
             </div>
           ) : null}
         </div>
@@ -242,7 +338,7 @@ export function PromotionFormFieldsBento({
           {activeServiceName ? `Layanan: ${activeServiceName}` : 'Promosi Umum Klinik'}
         </span>
         <span className='font-mono text-[10px] bg-muted/60 px-2 py-0.5 rounded-md'>
-          CTA: {ctaType === 'whatsapp' ? 'WhatsApp' : ctaType === 'custom' ? 'Kustom' : 'Nonaktif'}
+          CTA: {ctaType === 'whatsapp' ? 'WhatsApp' : ctaType === 'page' ? 'Halaman' : ctaType === 'custom' ? 'Kustom' : 'Nonaktif'}
         </span>
       </div>
     </div>

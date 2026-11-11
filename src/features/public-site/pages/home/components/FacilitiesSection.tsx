@@ -3,6 +3,7 @@
 import { ArrowUpRightIcon, BadgeCheckIcon } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { ROUTES } from '@/core/routes';
 import {
   HealthcareText,
   SectionContainer,
@@ -78,7 +79,7 @@ export function FacilitiesSection() {
               <div className='flex flex-col gap-2'>
                 <HealthcareText className='italic'>Terverifikasi SATUSEHAT</HealthcareText>
                 <Link
-                  href='/kontak'
+                  href={ROUTES.clinicNewAppointment}
                   className='
                     inline-flex w-fit amanah-type-body items-center gap-2
                     border-b border-line pb-1 font-semibold text-primary

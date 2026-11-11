@@ -91,4 +91,33 @@ describe('PromotionFormSchema', () => {
     });
     expect(result.success).toBe(true);
   });
+
+  it('validates a promotion with targetPageId referencing an internal page', () => {
+    const result = PromotionFormSchema.safeParse({
+      ...validData,
+      ctaType: 'page',
+      targetPageId: '8f68a1a6-8333-47d0-97a6-387a8e219683',
+      ctaLabel: 'Lihat Fasilitas',
+      ctaUrl: '/fasilitas',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.targetPageId).toBe('8f68a1a6-8333-47d0-97a6-387a8e219683');
+      expect(result.data.ctaUrl).toBe('/fasilitas');
+    }
+  });
+
+  it('rejects invalid UUID for targetPageId', () => {
+    const result = PromotionFormSchema.safeParse({
+      ...validData,
+      ctaType: 'page',
+      targetPageId: 'not-a-valid-uuid',
+      ctaLabel: 'Lihat Fasilitas',
+      ctaUrl: '/fasilitas',
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0]?.message).toContain('UUID yang valid');
+    }
+  });
 });

@@ -3,7 +3,7 @@ import { buildPromoWhatsAppUrl, isSafeHref } from '../cta';
 
 describe('isSafeHref', () => {
   it('allows safe relative paths', () => {
-    expect(isSafeHref('/booking')).toBe(true);
+    expect(isSafeHref('/klinik/janji-temu')).toBe(true);
     expect(isSafeHref('/layanan/usg')).toBe(true);
   });
 

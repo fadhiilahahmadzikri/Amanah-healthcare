@@ -32,6 +32,13 @@ export interface PublicPromotion {
   terms?: string;
   serviceId?: string;
   serviceName?: string;
+  targetPageId?: string;
+  targetPage?: {
+    id: string;
+    name: string;
+    routePath: string;
+    customAlias?: string | null;
+  };
   image: {
     src: string;
     alt: string;
@@ -57,6 +64,13 @@ export interface AdminPromotion {
   serviceId?: string | null;
   serviceName?: string | null;
   serviceCode?: string | null;
+  targetPageId?: string | null;
+  targetPage?: {
+    id: string;
+    name: string;
+    routePath: string;
+    customAlias?: string | null;
+  } | null;
   title: string;
   summary: string;
   body?: string | null;
@@ -98,6 +112,7 @@ export interface QueryAdminPromotionsParams {
 
 export interface CreatePromotionPayload {
   serviceId?: string | null;
+  targetPageId?: string | null;
   title: string;
   summary: string;
   body?: string | null;

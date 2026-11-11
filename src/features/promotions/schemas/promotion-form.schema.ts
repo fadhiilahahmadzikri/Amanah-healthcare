@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const PromotionFormSchema = z
   .object({
     serviceId: z.string().uuid('ID layanan harus berupa UUID yang valid').nullable().optional(),
+    targetPageId: z.string().uuid('ID halaman target harus berupa UUID yang valid').nullable().optional(),
     title: z
       .string()
       .trim()
@@ -36,7 +37,7 @@ export const PromotionFormSchema = z
       .trim()
       .min(1, 'Teks alternatif gambar wajib diisi')
       .max(150, 'Teks alternatif maksimal 150 karakter'),
-    ctaType: z.enum(['none', 'whatsapp', 'custom']).default('whatsapp'),
+    ctaType: z.enum(['none', 'whatsapp', 'page', 'custom']).default('whatsapp'),
     ctaLabel: z
       .string()
       .trim()

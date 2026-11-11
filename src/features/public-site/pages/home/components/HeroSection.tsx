@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import { ROUTES } from '@/core/routes';
 import {
   AmanahScriptText,
   ArrowCtaButton,
@@ -153,7 +154,7 @@ export function HeroSection() {
                   md:mt-10
                 '
               >
-                <ArrowCtaButton href='/kontak'>Buat Janji Temu</ArrowCtaButton>
+                <ArrowCtaButton href={ROUTES.clinicNewAppointment}>Buat Janji Temu</ArrowCtaButton>
               </div>
 
               <HeroMetricsRail
