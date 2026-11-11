@@ -404,6 +404,7 @@ export type CheckInQrResponseDto = CheckInQrResponse;
 export interface PerformCheckInPayload {
   token?: string;
   manualCode?: string;
+  method?: 'qr' | 'manual';
   appointmentId?: string;
 }
 

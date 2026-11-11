@@ -20,7 +20,7 @@ export function ImmunizationParentInfoSection({
   onClearError
 }: ImmunizationParentInfoSectionProps) {
   return (
-    <div className='rounded-2xl border border-border/70 p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-4 font-sans'>
+    <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-4 font-sans'>
       <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
         Informasi Tambahan Orang Tua
       </span>

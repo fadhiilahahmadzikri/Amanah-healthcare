@@ -66,7 +66,7 @@ export function useClinicEssentialsMutations() {
     onSuccess: (_, item) => {
       toast.success(`${item.name} berhasil dihapus permanen.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'promotions'] });
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.promotions() });
       setDeletingItem(null);
     },
     onError: (err: unknown) => {
@@ -118,7 +118,7 @@ export function useClinicEssentialsMutations() {
     onSuccess: (_, vars) => {
       toast.success(`Status berhasil diubah menjadi ${vars.isActive ? 'Aktif' : 'Nonaktif'}.`);
       queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['admin', 'promotions'] });
+      queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.promotions() });
     },
     onError: (err: unknown) => {
       const msg = err instanceof Error ? err.message : 'Gagal mengubah status item';

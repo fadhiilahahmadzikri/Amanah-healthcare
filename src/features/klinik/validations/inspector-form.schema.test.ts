@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import {
+  validatePatientIdentityForm,
   validateRegularForm,
   validateMaternalForm,
   validateImmunizationForm,
@@ -83,6 +84,36 @@ describe('Inspector Form Zod Validation', () => {
       });
       expect(res.isValid).toBe(true);
       expect(Object.keys(res.errors).length).toBe(0);
+    });
+  });
+
+  describe('validatePatientIdentityForm', () => {
+    it('should pass even when complaint is empty string', () => {
+      const res = validatePatientIdentityForm({
+        fullName: 'Budi Santoso',
+        complaint: '',
+        nik: '3201234567890001'
+      });
+      expect(res.isValid).toBe(true);
+      expect(Object.keys(res.errors).length).toBe(0);
+    });
+
+    it('should reject empty fullName', () => {
+      const res = validatePatientIdentityForm({
+        fullName: '',
+        nik: '3201234567890001'
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.fullName).toBe('Nama lengkap wajib diisi');
+    });
+
+    it('should reject invalid 18-digit NIK', () => {
+      const res = validatePatientIdentityForm({
+        fullName: 'Budi Santoso',
+        nik: '123456789012345678'
+      });
+      expect(res.isValid).toBe(false);
+      expect(res.errors.nik).toBe('NIK harus berupa 16 digit angka');
     });
   });
 

@@ -61,11 +61,14 @@ export function InspectorHeader({
             <Button
               type='button'
               variant='outline'
-              size='sm'
+              size='icon-sm'
+              shape='rounded'
               onClick={onStartEdit}
-              className='h-7.5 text-xs font-semibold gap-1.5'
+              className='size-8 text-foreground/80 hover:text-foreground hover:bg-muted'
+              title='Edit Formulir'
+              aria-label='Edit Formulir'
             >
-              <Icons.edit className='size-3.5 text-primary' /> Edit Data
+              <Icons.edit className='size-4 text-primary' />
             </Button>
           ) : null}
         </div>
@@ -132,13 +135,14 @@ export function InspectorHeader({
           <Button
             type='button'
             variant='outline'
-            size='sm'
+            size='icon-sm'
+            shape='rounded'
             onClick={onStartEdit}
-            className='h-8 text-xs font-semibold gap-1.5 text-foreground hover:bg-muted'
-            title='Edit Data Intake Medis'
+            className='size-8 text-foreground/80 hover:text-foreground hover:bg-muted'
+            title='Edit Formulir'
+            aria-label='Edit Formulir'
           >
-            <Icons.edit className='size-3.5 text-primary' />
-            <span className='hidden sm:inline'>Edit Intake</span>
+            <Icons.edit className='size-4 text-primary' />
           </Button>
         )}
 

@@ -12,10 +12,10 @@ export interface TokenPair {
 }
 
 export function authCookieOptions(maxAgeSeconds: number) {
-  const isProduction = serverEnv.NODE_ENV === 'production';
+  const isSecure = serverEnv.AUTH_COOKIE_SECURE;
   return {
     httpOnly: true,
-    secure: isProduction,
+    secure: isSecure,
     sameSite: 'lax' as const,
     path: '/',
     maxAge: maxAgeSeconds

@@ -14,6 +14,7 @@ import {
 import {
   validateMaternalForm,
   validateRegularForm,
+  validatePatientIdentityForm,
   validateImmunizationForm
 } from '../../../validations/inspector-form.schema';
 import { appointmentDraftService } from '../../../services/appointment-draft.service';
@@ -428,8 +429,36 @@ export function useInspectorEditState({ parsedData, appointment }: UseInspectorE
           [field]: value
         };
 
-        const validation = validateRegularForm(next);
-        setValidationErrors(validation.errors);
+        const validation =
+          field === 'complaint'
+            ? validateRegularForm(next)
+            : validatePatientIdentityForm(next);
+
+        setValidationErrors((prevErrors) => {
+          const updated = { ...prevErrors };
+          const fieldKey = field as string;
+
+          if (validation.errors[fieldKey]) {
+            updated[fieldKey] = validation.errors[fieldKey];
+          } else {
+            delete updated[fieldKey];
+          }
+
+          if (
+            fieldKey === 'emergencyContactName' ||
+            fieldKey === 'emergencyContactPhone'
+          ) {
+            ['emergencyContactName', 'emergencyContactPhone'].forEach((k) => {
+              if (validation.errors[k]) {
+                updated[k] = validation.errors[k];
+              } else {
+                delete updated[k];
+              }
+            });
+          }
+
+          return updated;
+        });
 
         return next;
       });

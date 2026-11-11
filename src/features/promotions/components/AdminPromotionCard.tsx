@@ -11,7 +11,7 @@ import { useCardBulkingSlide } from '@/hooks/use-card-bulking-slide';
 import { cn } from '@/lib/utils';
 import type { AdminPromotion } from '../types/promotions.types';
 import { PromoImage } from './PromoImage';
-import { formatSchedulePeriod } from '../lib/schedule';
+import { formatWibPeriod } from '../lib/schedule';
 
 export interface AdminPromotionCardProps {
   promo: AdminPromotion;
@@ -44,7 +44,7 @@ export function AdminPromotionCard({
 }: AdminPromotionCardProps) {
   const isPublished = promo.isPublished !== false;
   const { wrapperRef, containerProps } = useCardBulkingSlide({ selected, isBulkingActive });
-  const scheduleText = formatSchedulePeriod(promo.startsAt, promo.endsAt);
+  const scheduleText = formatWibPeriod(promo.startsAt, promo.endsAt);
 
   const handleCardClick = React.useCallback(() => {
     if (onCardClick) {

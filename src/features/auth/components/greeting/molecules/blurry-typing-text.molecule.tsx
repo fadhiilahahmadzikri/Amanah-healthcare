@@ -23,8 +23,14 @@ export function BlurryTypingText({
   const containerRef = React.useRef<HTMLSpanElement>(null);
   const charRefs = React.useRef<(HTMLSpanElement | null)[]>([]);
 
-  // Split text into characters
-  const characters = React.useMemo(() => text.split(''), [text]);
+  // Split text into grapheme clusters for multi-script rendering fidelity (e.g. Thai, Hindi, Vietnamese)
+  const characters = React.useMemo(() => {
+    if (typeof Intl !== 'undefined' && 'Segmenter' in Intl) {
+      const segmenter = new Intl.Segmenter(undefined, { granularity: 'grapheme' });
+      return Array.from(segmenter.segment(text), (s) => s.segment);
+    }
+    return text.split('');
+  }, [text]);
 
   // Reset refs when text changes
   charRefs.current = [];

@@ -13,7 +13,7 @@ export type CheckInTabMode = 'scan' | 'manual';
 
 const CHECK_IN_OUTCOMES: Record<string, { type: CheckInOutcomeType; title: string }> = {
   INVALID_CHECK_IN_CODE: { type: 'invalid_code', title: 'Kode Check-In Tidak Valid' },
-  INVALID_CHECK_IN_QR: { type: 'invalid_qr', title: 'Kode QR Tidak Valid' },
+  INVALID_CHECK_IN_QR: { type: 'invalid_qr', title: 'Kode Barcode / QR Tidak Valid' },
   CHECK_IN_ALREADY_USED: { type: 'already_checked_in', title: 'Sudah Pernah Digunakan' },
   CHECK_IN_EXPIRED: { type: 'out_of_window', title: 'Kredensial Kedaluwarsa' },
   CHECK_IN_WINDOW_TOO_EARLY: { type: 'out_of_window', title: 'Waktu Check-In Belum Dibuka' },
@@ -43,7 +43,7 @@ export interface UsePatientCheckInResult {
     setManualCode: (code: string) => void;
     setIsManualDrawerOpen: (open: boolean) => void;
     handleManualSubmit: (e: React.FormEvent) => Promise<void>;
-    handleCheckIn: (payload: { token?: string; manualCode?: string }) => Promise<void>;
+    handleCheckIn: (payload: { token?: string; manualCode?: string; method?: 'qr' | 'manual' }) => Promise<void>;
     handleScan: (rawDecoded: string) => Promise<void>;
     handleScannerError: (error: string) => void;
     clearCameraError: () => void;
@@ -71,7 +71,7 @@ export function usePatientCheckIn({
   const isCooldownRef = useRef(false);
 
   const handleCheckIn = useCallback(
-    async (payload: { token?: string; manualCode?: string }) => {
+    async (payload: { token?: string; manualCode?: string; method?: 'qr' | 'manual' }) => {
       if (isSubmitting) return;
       setIsSubmitting(true);
 
@@ -96,11 +96,11 @@ export function usePatientCheckIn({
       } catch (err: unknown) {
         const rawMsg = err instanceof Error ? err.message : String(err);
         const errorCode = err instanceof AppError ? String(err.code) : '';
-        const isManual = Boolean(payload.manualCode);
+        const isManual = payload.method === 'manual';
 
         const outcome = CHECK_IN_OUTCOMES[errorCode] ?? {
           type: isManual ? 'invalid_code' : 'invalid_qr',
-          title: isManual ? 'Kode Check-In Tidak Valid' : 'Kode QR Tidak Valid'
+          title: isManual ? 'Kode Check-In Tidak Valid' : 'Kode Barcode / QR Tidak Valid'
         };
 
         setResultPayload({
@@ -125,22 +125,20 @@ export function usePatientCheckIn({
 
       const trimmed = rawDecoded.trim();
 
+      // 1. JSON payload from QR generator
       if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
         try {
           const parsed = JSON.parse(trimmed) as { token?: string; code?: string };
-          await handleCheckIn({ token: parsed.token, manualCode: parsed.code });
+          const tokenValue = parsed.token || parsed.code || trimmed;
+          await handleCheckIn({ token: tokenValue, method: 'qr' });
           return;
         } catch {
           // If JSON parsing fails, continue to raw payload below
         }
       }
 
-      // Raw token or manual code scan
-      if (trimmed.length === 6 && /^[A-Z0-9]+$/i.test(trimmed)) {
-        await handleCheckIn({ manualCode: trimmed.toUpperCase() });
-      } else {
-        await handleCheckIn({ token: trimmed });
-      }
+      // 2. Raw token UUID or scanned code: Always send as QR scan
+      await handleCheckIn({ token: trimmed, method: 'qr' });
     },
     [isSubmitting, isResultDrawerOpen, isManualDrawerOpen, handleCheckIn]
   );
@@ -204,7 +202,7 @@ export function usePatientCheckIn({
     }
 
     setIsManualDrawerOpen(false);
-    await handleCheckIn({ manualCode: clean });
+    await handleCheckIn({ manualCode: clean, method: 'manual' });
   };
 
   const handleClose = useCallback(() => {

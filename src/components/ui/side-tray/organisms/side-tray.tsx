@@ -222,7 +222,7 @@ export function SideTray<T extends string = string>({
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       className={cn(
-        'relative shrink-0 flex items-start select-none transition-[width] duration-300 ease-out z-20 sticky top-0 self-start',
+        'relative shrink-0 flex flex-col h-full select-none transition-[width] duration-300 ease-out z-20',
         className
       )}
       style={{ width: isExpanded ? trayWidth : '0px' }}
@@ -243,7 +243,7 @@ export function SideTray<T extends string = string>({
         ref={traySurfaceRef}
         aria-label={title}
         className={cn(
-          'relative z-20 max-h-[calc(100vh-160px)] flex flex-col bg-card/95 text-card-foreground border border-border/70 rounded-2xl shadow-lg backdrop-blur-md overflow-hidden transition-all duration-300 ease-out',
+          'relative z-20 h-full flex flex-col min-h-0 bg-card/95 text-card-foreground border border-border/70 rounded-2xl shadow-lg backdrop-blur-md overflow-hidden transition-all duration-300 ease-out',
           isExpanded
             ? 'opacity-100 visible w-full pointer-events-auto'
             : 'opacity-0 invisible w-0 pointer-events-none'

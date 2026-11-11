@@ -37,7 +37,11 @@ export function MaternityScreeningSection({
 
   if (isEditing && onIntakeFieldChange) {
     return (
-      <div className='space-y-5 pt-1 font-sans'>
+      <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-5 font-sans'>
+        <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
+          Skrining Kesehatan & Riwayat Penyakit Ibu
+        </span>
+
         {/* 14 Kondisi Checklist */}
         <MaternalConditionChecklist
           conditions={conditionResponses}
@@ -198,7 +202,11 @@ export function MaternityScreeningSection({
 
   // READ ONLY MODE
   return (
-    <div className='space-y-5 pt-1 pointer-events-none select-text font-sans'>
+    <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-5 pointer-events-none select-text font-sans'>
+      <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
+        Skrining Kesehatan & Riwayat Penyakit Ibu
+      </span>
+
       {/* 14 Kondisi Checklist */}
       <MaternalConditionChecklist
         conditions={conditionResponses}
@@ -226,27 +234,27 @@ export function MaternityScreeningSection({
             </span>
             <div className='flex flex-wrap gap-1.5'>
               {intake?.irregularDietBeforePregnancy && (
-                <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+                <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-amber-500/15 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300'>
                   Pola Makan Berisiko
                 </span>
               )}
               {intake?.reducedPhysicalActivityBeforePregnancy && (
-                <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+                <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-sky-500/15 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300'>
                   Aktivitas Fisik Berkurang
                 </span>
               )}
               {intake?.unprescribedMedicationBeforePregnancy && (
-                <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+                <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-rose-500/15 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'>
                   Obat Tanpa Resep
                 </span>
               )}
               {intake?.concerningCosmeticUseBeforePregnancy && (
-                <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+                <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-purple-500/15 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'>
                   Kosmetik Berbahaya
                 </span>
               )}
               {intake?.alcoholBeforePregnancy && (
-                <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+                <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-red-500/15 text-red-700 dark:bg-red-500/20 dark:text-red-300'>
                   Alkohol
                 </span>
               )}
@@ -272,17 +280,17 @@ export function MaternityScreeningSection({
 
         <div className='flex flex-wrap gap-1.5'>
           {intake?.smokeExposureBeforePregnancy && (
-            <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+            <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-orange-500/15 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300'>
               Paparan Asap Rokok (Pasif)
             </span>
           )}
           {intake?.pesticideExposureBeforePregnancy && (
-            <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+            <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-emerald-500/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'>
               Paparan Pestisida
             </span>
           )}
           {intake?.chemicalExposureBeforePregnancy && (
-            <span className='text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium'>
+            <span className='text-[11px] font-semibold tracking-tight px-2.5 py-0.5 rounded-md border-0 bg-indigo-500/15 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300'>
               Paparan Zat Kimia
             </span>
           )}

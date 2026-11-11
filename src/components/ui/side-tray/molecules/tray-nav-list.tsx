@@ -59,7 +59,7 @@ export function TrayNavList<T extends string = string>({
       tabIndex={0}
       onKeyDown={handleKeyDown}
       className={cn(
-        'flex-1 overflow-y-auto p-2.5 space-y-1.5 focus:outline-none scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent',
+        'flex-1 min-h-0 overflow-y-auto p-2.5 pb-6 space-y-1.5 focus:outline-none scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent',
         className
       )}
     >

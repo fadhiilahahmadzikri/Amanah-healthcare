@@ -63,6 +63,11 @@ export const PREDEFINED_SERVICE_IMAGES: PredefinedServiceImage[] = [
     category: 'Kebidanan'
   },
   {
+    path: '/assets/services/persalinan-ibu-anak.png',
+    label: 'Persalinan & Rawat Inap Ibu Buah Hati',
+    category: 'Kebidanan'
+  },
+  {
     path: '/assets/services/asset-perawatannifas.webp',
     label: 'Perawatan Nifas & Menyusui',
     category: 'Kebidanan'
@@ -70,6 +75,11 @@ export const PREDEFINED_SERVICE_IMAGES: PredefinedServiceImage[] = [
   {
     path: '/assets/services/asset-index-6.webp',
     label: 'USG Kandungan / Ultrasonografi',
+    category: 'Kebidanan'
+  },
+  {
+    path: '/assets/services/usg.jpg',
+    label: 'Pemeriksaan USG Spesialis',
     category: 'Kebidanan'
   },
   {
@@ -85,8 +95,18 @@ export const PREDEFINED_SERVICE_IMAGES: PredefinedServiceImage[] = [
 
   // Anak & Imunisasi
   {
+    path: '/assets/services/konsultasi-anak.png',
+    label: 'Konsultasi Spesialis Anak',
+    category: 'Anak'
+  },
+  {
     path: '/assets/services/asset_imunisasi.webp',
     label: 'Imunisasi Dasar & Lanjutan',
+    category: 'Anak'
+  },
+  {
+    path: '/assets/services/imunasi-anak.jpg',
+    label: 'Vaksinasi & Booster Anak',
     category: 'Anak'
   },
   {

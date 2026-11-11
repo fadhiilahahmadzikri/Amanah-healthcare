@@ -114,6 +114,9 @@ export function ClinicEssentialsView() {
     editItem: null,
   });
 
+  // Dynamic Promotion Dialog trigger state
+  const [isPromoCreateOpen, setIsPromoCreateOpen] = React.useState(false);
+
   // Orchestrated Data Hook
   const {
     unitTypes,
@@ -126,10 +129,6 @@ export function ClinicEssentialsView() {
     promotions,
     forms,
     relationships,
-    bloodTypes,
-    educationLevels,
-    religions,
-    occupations,
     isLoadingUnitTypes,
     isLoadingUnits,
     isLoadingRooms,
@@ -163,6 +162,7 @@ export function ClinicEssentialsView() {
     searchQuery,
     setSearchQuery,
     statusFilter,
+    currentConfig,
     isFiltered,
     activeFilterCount,
     handleResetAll,
@@ -171,6 +171,50 @@ export function ClinicEssentialsView() {
     isAnyRefetching,
     handleRefreshAll,
   } = useClinicEssentialsData(activeTab, setActiveTab, isCompact);
+
+  // Dynamic Primary Action callback triggered by active tab toolbar button
+  const handlePrimaryAction = React.useCallback(() => {
+    switch (activeTab) {
+      case 'unit-types':
+        setActiveModal({ type: 'unit-type', editItem: null });
+        break;
+      case 'units':
+        setActiveModal({ type: 'unit', editItem: null });
+        break;
+      case 'rooms':
+        setActiveModal({ type: 'room', editItem: null });
+        break;
+      case 'categories':
+        setActiveModal({ type: 'category', editItem: null });
+        break;
+      case 'services':
+        setActiveModal({ type: 'service', editItem: null });
+        break;
+      case 'facilities':
+        setFacilityModal({ open: true, editItem: null });
+        break;
+      case 'faqs':
+        setFaqModal({ open: true, editItem: null });
+        break;
+      case 'promotions':
+        setIsPromoCreateOpen(true);
+        break;
+      case 'relationships':
+        setActiveModal({ type: 'relationship', editItem: null });
+        break;
+      case 'blood-types':
+      case 'education-levels':
+      case 'religions':
+      case 'occupations':
+        setDemographicModal({
+          open: true,
+          type: activeTab,
+          label: currentConfig.createButtonLabel.replace('Tambah ', ''),
+          editItem: null,
+        });
+        break;
+    }
+  }, [activeTab, currentConfig]);
 
   // Current tab items computation for bulk select
   const currentTabItems = React.useMemo(() => {
@@ -379,7 +423,6 @@ export function ClinicEssentialsView() {
       rooms,
       categories,
       services,
-      forms,
       relationships,
       isUnitsLocked,
       isRoomsLocked,
@@ -413,7 +456,7 @@ export function ClinicEssentialsView() {
         onClose={searchEngine.close}
       />
 
-      {/* Header Toolbar */}
+      {/* Dynamic Header Toolbar */}
       <ClinicEssentialsHeader
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
@@ -431,14 +474,18 @@ export function ClinicEssentialsView() {
         isAnyRefetching={isAnyRefetching}
         isPerformingAction={isPerformingAction}
         activeTab={activeTab}
+        currentConfig={currentConfig}
         unitsCount={units.length}
         categoriesCount={categories.length}
+        unitTypesCount={unitTypes.length}
+        onPrimaryAction={handlePrimaryAction}
         onOpenModal={(type) => setActiveModal({ type, editItem: null })}
         onOpenDemographicModal={(type, label) =>
           setDemographicModal({ open: true, type, label, editItem: null })
         }
         onOpenFacilityModal={() => setFacilityModal({ open: true, editItem: null })}
         onOpenFaqModal={() => setFaqModal({ open: true, editItem: null })}
+        onOpenPromotionModal={() => setIsPromoCreateOpen(true)}
       />
 
       {/* Tabs Layout with Master SideTray Navigation */}
@@ -462,6 +509,7 @@ export function ClinicEssentialsView() {
               title='Bagian Fasilitas'
               isExpanded={isTrayActive}
               onExpandedChange={setIsTrayActive}
+              className='h-full'
             />
           }
           className='flex-1 min-h-0 h-full'
@@ -671,6 +719,9 @@ export function ClinicEssentialsView() {
           {/* 4.5. Tab Promotions */}
           <TabsContent value='promotions' className='mt-0'>
             <PromotionsManagementTab
+              promotions={filteredPromotions}
+              totalCount={promotions.length}
+              isLoading={isLoadingPromotions}
               services={services}
               canManage={canManage}
               selectedIds={selectedIds}
@@ -687,6 +738,10 @@ export function ClinicEssentialsView() {
               onDelete={(promo) =>
                 setDeletingItem({ type: 'promotions', id: promo.id, name: promo.title })
               }
+              onOpenCreate={() => setIsPromoCreateOpen(true)}
+              onResetFilter={handleResetAll}
+              isCreateOpen={isPromoCreateOpen}
+              onResetCreateOpen={() => setIsPromoCreateOpen(false)}
               cardGridClassName={cardGridClassName}
             />
           </TabsContent>
@@ -972,6 +1027,7 @@ export function ClinicEssentialsView() {
         editItem={faqModal.editItem}
         services={services}
         categories={categories}
+        allFaqs={faqs}
         onSubmit={async (payload, id) => {
           if (id) {
             await clinicEssentialsApi.updateFaq(id, payload as UpdateSupportFaqPayload);

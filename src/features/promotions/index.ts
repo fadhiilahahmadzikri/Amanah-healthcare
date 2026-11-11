@@ -16,3 +16,6 @@ export * from './components/PromoSection';
 export * from './components/PromotionServicePicker';
 export * from './admin/PromotionFormDialog';
 export * from './admin/PromotionsManagementTab';
+export * from './admin/components/PromotionFormFieldsBento';
+export * from './admin/components/PromotionVisualBento';
+export * from './admin/components/PromotionPreviewBento';

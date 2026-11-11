@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 import { MilestoneStatusBadge } from '../../atoms/milestone-status-badge';
 import { MilestoneRowEditor } from '../../molecules/milestone-row-editor';
 import { CANONICAL_IMMUNIZATION_ROWS } from '../../../constants/immunization.constants';
-import { formatClinicDate } from '@/lib/date-format';
 import { validateImmunizationDateEntry } from '@/features/klinik/schemas/medical-appointment-validation';
 import type { ImmunizationClinicalEntry } from '../../../types/immunization.types';
 
@@ -89,8 +88,13 @@ export function ImmunizationMilestoneTrajectorySection({
   };
 
   return (
-    <div className='w-full min-h-0 flex flex-col space-y-2.5 pb-4 pt-1 font-sans'>
-      {CANONICAL_IMMUNIZATION_ROWS.map((milestone) => {
+    <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-4 font-sans'>
+      <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
+        Jadwal & Trajektori Imunisasi Anak
+      </span>
+
+      <div className='w-full min-h-0 flex flex-col space-y-2.5 pb-1 font-sans'>
+        {CANONICAL_IMMUNIZATION_ROWS.map((milestone) => {
         const entry: ImmunizationClinicalEntry = entriesMap.get(milestone.rowIndex) || {
           rowIndex: milestone.rowIndex,
           vaccineName: milestone.vaccineName,
@@ -191,6 +195,7 @@ export function ImmunizationMilestoneTrajectorySection({
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

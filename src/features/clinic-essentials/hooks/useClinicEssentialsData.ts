@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Building2 } from 'lucide-react';
+import { Building2, HelpCircle, Tag } from 'lucide-react';
 import { Icons } from '@/components/icons';
 import type { FacetGroupDefinition } from '@/shared/ui/responsive-facet-toolbox';
 import type { SearchEngineResultItem } from '@/components/search-engine';
@@ -12,10 +12,28 @@ import { clinicEssentialsKeys } from '../api/query-keys';
 import type { FacilityResource } from '../types/clinic-essentials.types';
 import { buildClinicEssentialsSearchIndex } from '../utils/clinic-essentials-search-index';
 import { promotionsApi } from '@/features/promotions';
+import {
+  CLINIC_ESSENTIALS_TOOLBAR_REGISTRY,
+  type ResourceToolbarConfig
+} from '../config/clinic-essentials-toolbar.config';
+
+export interface TabFilterState {
+  searchQuery: string;
+  unitFilter: string;
+  statusFilter: string;
+  categoryFilter: string;
+}
+
+const DEFAULT_TAB_FILTER_STATE: TabFilterState = {
+  searchQuery: '',
+  unitFilter: 'all',
+  statusFilter: 'all',
+  categoryFilter: 'all',
+};
 
 function filterDemographicMaster<
   T extends { name: string; description?: string | null; isActive: boolean }
->(items: T[], statusFilter: 'all' | 'active' | 'inactive', query: string): T[] {
+>(items: T[], statusFilter: string, query: string): T[] {
   return (Array.isArray(items) ? items : []).filter((item) => {
     if (statusFilter === 'active' && !item.isActive) return false;
     if (statusFilter === 'inactive' && item.isActive) return false;
@@ -34,62 +52,76 @@ export function useClinicEssentialsData(
 ) {
   const queryClient = useQueryClient();
 
-  // Master & Entity Queries
+  // Master & Entity Queries cached via TanStack Query
   const { data: unitTypes = [], isLoading: isLoadingUnitTypes, isRefetching: isRefetchingUnitTypes } = useQuery({
     queryKey: clinicEssentialsKeys.unitTypes(),
     queryFn: () => clinicEssentialsApi.getUnitTypes(),
+    staleTime: 300_000,
   });
   const { data: units = [], isLoading: isLoadingUnits, isRefetching: isRefetchingUnits } = useQuery({
     queryKey: clinicEssentialsKeys.units(),
     queryFn: () => clinicEssentialsApi.getUnits(),
+    staleTime: 300_000,
   });
   const { data: rooms = [], isLoading: isLoadingRooms, isRefetching: isRefetchingRooms } = useQuery({
     queryKey: clinicEssentialsKeys.rooms(),
     queryFn: () => clinicEssentialsApi.getRooms(),
+    staleTime: 300_000,
   });
   const { data: categories = [], isLoading: isLoadingCategories, isRefetching: isRefetchingCategories } = useQuery({
     queryKey: clinicEssentialsKeys.categories(),
     queryFn: () => clinicEssentialsApi.getCategories(),
+    staleTime: 300_000,
   });
   const { data: services = [], isLoading: isLoadingServices, isRefetching: isRefetchingServices } = useQuery({
     queryKey: clinicEssentialsKeys.services(),
     queryFn: () => clinicEssentialsApi.getServices(),
+    staleTime: 300_000,
   });
   const { data: facilities = [], isLoading: isLoadingFacilities, isRefetching: isRefetchingFacilities } = useQuery({
     queryKey: clinicEssentialsKeys.facilities(),
     queryFn: () => clinicEssentialsApi.getFacilities(),
+    staleTime: 300_000,
   });
   const { data: faqs = [], isLoading: isLoadingFaqs, isRefetching: isRefetchingFaqs } = useQuery({
     queryKey: clinicEssentialsKeys.faqs(),
     queryFn: () => clinicEssentialsApi.getFaqs(),
+    staleTime: 300_000,
   });
-  const { data: forms = [], isLoading: isLoadingForms, isRefetching: isRefetchingForms } = useQuery({
+  const { data: forms = [], isRefetching: isRefetchingForms } = useQuery({
     queryKey: clinicEssentialsKeys.forms(),
     queryFn: () => clinicEssentialsApi.getForms(),
+    staleTime: 300_000,
   });
   const { data: relationships = [], isLoading: isLoadingRelationships, isRefetching: isRefetchingRelationships } = useQuery({
     queryKey: clinicEssentialsKeys.relationships(),
     queryFn: () => clinicEssentialsApi.getRelationships(),
+    staleTime: 300_000,
   });
   const { data: bloodTypes = [], isLoading: isLoadingBloodTypes, isRefetching: isRefetchingBloodTypes } = useQuery({
     queryKey: clinicEssentialsKeys.bloodTypes(),
     queryFn: () => clinicEssentialsApi.getBloodTypes(),
+    staleTime: 300_000,
   });
   const { data: educationLevels = [], isLoading: isLoadingEducationLevels, isRefetching: isRefetchingEducationLevels } = useQuery({
     queryKey: clinicEssentialsKeys.educationLevels(),
     queryFn: () => clinicEssentialsApi.getEducationLevels(),
+    staleTime: 300_000,
   });
   const { data: religions = [], isLoading: isLoadingReligions, isRefetching: isRefetchingReligions } = useQuery({
     queryKey: clinicEssentialsKeys.religions(),
     queryFn: () => clinicEssentialsApi.getReligions(),
+    staleTime: 300_000,
   });
   const { data: occupations = [], isLoading: isLoadingOccupations, isRefetching: isRefetchingOccupations } = useQuery({
     queryKey: clinicEssentialsKeys.occupations(),
     queryFn: () => clinicEssentialsApi.getOccupations(),
+    staleTime: 300_000,
   });
   const { data: promotions = [], isLoading: isLoadingPromotions, isRefetching: isRefetchingPromotions } = useQuery({
-    queryKey: ['admin', 'promotions'],
+    queryKey: clinicEssentialsKeys.promotions(),
     queryFn: () => promotionsApi.getAdminPromotions(),
+    staleTime: 300_000,
   });
 
   const isAnyRefetching = [
@@ -101,76 +133,147 @@ export function useClinicEssentialsData(
 
   const handleRefreshAll = React.useCallback(() => {
     queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.all });
+    queryClient.invalidateQueries({ queryKey: clinicEssentialsKeys.promotions() });
     toast.info('Memperbarui data fasilitas...');
   }, [queryClient]);
 
-  // Filter and search state
-  const [searchQuery, setSearchQuery] = React.useState('');
-  const [unitFilter, setUnitFilter] = React.useState('all');
-  const [statusFilter, setStatusFilter] = React.useState<'all' | 'active' | 'inactive'>('all');
+  // Contextual per-tab search and filter state
+  const [tabFilterStates, setTabFilterStates] = React.useState<Record<FacilityResource, TabFilterState>>({
+    'unit-types': { ...DEFAULT_TAB_FILTER_STATE },
+    'units': { ...DEFAULT_TAB_FILTER_STATE },
+    'rooms': { ...DEFAULT_TAB_FILTER_STATE },
+    'categories': { ...DEFAULT_TAB_FILTER_STATE },
+    'services': { ...DEFAULT_TAB_FILTER_STATE },
+    'facilities': { ...DEFAULT_TAB_FILTER_STATE },
+    'faqs': { ...DEFAULT_TAB_FILTER_STATE },
+    'promotions': { ...DEFAULT_TAB_FILTER_STATE },
+    'relationships': { ...DEFAULT_TAB_FILTER_STATE },
+    'blood-types': { ...DEFAULT_TAB_FILTER_STATE },
+    'education-levels': { ...DEFAULT_TAB_FILTER_STATE },
+    'religions': { ...DEFAULT_TAB_FILTER_STATE },
+    'occupations': { ...DEFAULT_TAB_FILTER_STATE },
+  });
 
-  const query = searchQuery.trim().toLowerCase();
+  const activeFilter = tabFilterStates[activeTab] || DEFAULT_TAB_FILTER_STATE;
+  const currentConfig: ResourceToolbarConfig = CLINIC_ESSENTIALS_TOOLBAR_REGISTRY[activeTab];
 
+  const setSearchQuery = React.useCallback((query: string) => {
+    setTabFilterStates((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...(prev[activeTab] || DEFAULT_TAB_FILTER_STATE),
+        searchQuery: query,
+      },
+    }));
+  }, [activeTab]);
+
+  const setUnitFilter = React.useCallback((unit: string) => {
+    setTabFilterStates((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...(prev[activeTab] || DEFAULT_TAB_FILTER_STATE),
+        unitFilter: unit,
+      },
+    }));
+  }, [activeTab]);
+
+  const setStatusFilter = React.useCallback((status: string) => {
+    setTabFilterStates((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...(prev[activeTab] || DEFAULT_TAB_FILTER_STATE),
+        statusFilter: status,
+      },
+    }));
+  }, [activeTab]);
+
+  const setCategoryFilter = React.useCallback((category: string) => {
+    setTabFilterStates((prev) => ({
+      ...prev,
+      [activeTab]: {
+        ...(prev[activeTab] || DEFAULT_TAB_FILTER_STATE),
+        categoryFilter: category,
+      },
+    }));
+  }, [activeTab]);
+
+  const handleResetAll = React.useCallback(() => {
+    setTabFilterStates((prev) => ({
+      ...prev,
+      [activeTab]: { ...DEFAULT_TAB_FILTER_STATE },
+    }));
+  }, [activeTab]);
+
+  // Tab-specific filtered data
   const filteredUnitTypes = React.useMemo(() => {
+    const { searchQuery, statusFilter } = tabFilterStates['unit-types'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(unitTypes) ? unitTypes : []).filter((ut) => {
       if (statusFilter === 'active' && !ut.isActive) return false;
       if (statusFilter === 'inactive' && ut.isActive) return false;
-      if (!query) return true;
+      if (!q) return true;
       return (
-        ut.name.toLowerCase().includes(query) ||
-        ut.code.toLowerCase().includes(query) ||
-        Boolean(ut.description?.toLowerCase().includes(query))
+        ut.name.toLowerCase().includes(q) ||
+        ut.code.toLowerCase().includes(q) ||
+        Boolean(ut.description?.toLowerCase().includes(q))
       );
     });
-  }, [unitTypes, statusFilter, query]);
+  }, [unitTypes, tabFilterStates]);
 
   const filteredUnits = React.useMemo(() => {
+    const { searchQuery, statusFilter } = tabFilterStates['units'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(units) ? units : []).filter((u) => {
-      if (unitFilter !== 'all' && u.id !== unitFilter) return false;
       if (statusFilter === 'active' && !u.isActive) return false;
       if (statusFilter === 'inactive' && u.isActive) return false;
-      if (!query) return true;
+      if (!q) return true;
       return (
-        u.name.toLowerCase().includes(query) ||
-        u.code.toLowerCase().includes(query) ||
-        Boolean(u.location?.toLowerCase().includes(query)) ||
-        Boolean(u.floor?.toLowerCase().includes(query)) ||
-        Boolean(u.queuePrefix?.toLowerCase().includes(query))
+        u.name.toLowerCase().includes(q) ||
+        u.code.toLowerCase().includes(q) ||
+        Boolean(u.location?.toLowerCase().includes(q)) ||
+        Boolean(u.floor?.toLowerCase().includes(q)) ||
+        Boolean(u.queuePrefix?.toLowerCase().includes(q))
       );
     });
-  }, [units, unitFilter, statusFilter, query]);
+  }, [units, tabFilterStates]);
 
   const filteredRooms = React.useMemo(() => {
+    const { searchQuery, statusFilter, unitFilter } = tabFilterStates['rooms'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(rooms) ? rooms : []).filter((r) => {
       if (unitFilter !== 'all' && r.unitId !== unitFilter) return false;
       if (statusFilter === 'active' && !r.isActive) return false;
       if (statusFilter === 'inactive' && r.isActive) return false;
-      if (!query) return true;
+      if (!q) return true;
       return (
-        r.name.toLowerCase().includes(query) ||
-        r.code.toLowerCase().includes(query) ||
-        Boolean(r.location?.toLowerCase().includes(query)) ||
-        Boolean(r.floor?.toLowerCase().includes(query))
+        r.name.toLowerCase().includes(q) ||
+        r.code.toLowerCase().includes(q) ||
+        Boolean(r.location?.toLowerCase().includes(q)) ||
+        Boolean(r.floor?.toLowerCase().includes(q))
       );
     });
-  }, [rooms, unitFilter, statusFilter, query]);
+  }, [rooms, tabFilterStates]);
 
   const filteredCategories = React.useMemo(() => {
+    const { searchQuery, statusFilter, unitFilter } = tabFilterStates['categories'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(categories) ? categories : []).filter((c) => {
       if (unitFilter !== 'all' && c.unitId && c.unitId !== unitFilter) return false;
       if (statusFilter === 'active' && !c.isActive) return false;
       if (statusFilter === 'inactive' && c.isActive) return false;
-      if (!query) return true;
+      if (!q) return true;
       return (
-        c.name.toLowerCase().includes(query) ||
-        c.code.toLowerCase().includes(query) ||
-        Boolean(c.codePrefix?.toLowerCase().includes(query)) ||
-        Boolean(c.description?.toLowerCase().includes(query))
+        c.name.toLowerCase().includes(q) ||
+        c.code.toLowerCase().includes(q) ||
+        Boolean(c.codePrefix?.toLowerCase().includes(q)) ||
+        Boolean(c.description?.toLowerCase().includes(q))
       );
     });
-  }, [categories, unitFilter, statusFilter, query]);
+  }, [categories, tabFilterStates]);
 
   const filteredServices = React.useMemo(() => {
+    const { searchQuery, statusFilter, unitFilter } = tabFilterStates['services'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(services) ? services : []).filter((s) => {
       const parentCat = categories.find((c) => c.id === s.serviceCategoryId);
       if (unitFilter !== 'all' && parentCat?.unitId && parentCat.unitId !== unitFilter) {
@@ -178,89 +281,97 @@ export function useClinicEssentialsData(
       }
       if (statusFilter === 'active' && !s.isActive) return false;
       if (statusFilter === 'inactive' && s.isActive) return false;
-      if (!query) return true;
+      if (!q) return true;
       return (
-        s.name.toLowerCase().includes(query) ||
-        s.code.toLowerCase().includes(query) ||
-        Boolean(s.codePrefix?.toLowerCase().includes(query)) ||
-        Boolean(s.shortName?.toLowerCase().includes(query)) ||
-        Boolean(s.description?.toLowerCase().includes(query))
+        s.name.toLowerCase().includes(q) ||
+        s.code.toLowerCase().includes(q) ||
+        Boolean(s.codePrefix?.toLowerCase().includes(q)) ||
+        Boolean(s.shortName?.toLowerCase().includes(q)) ||
+        Boolean(s.description?.toLowerCase().includes(q))
       );
     });
-  }, [services, categories, unitFilter, statusFilter, query]);
+  }, [services, categories, tabFilterStates]);
 
   const filteredFacilities = React.useMemo(() => {
+    const { searchQuery, statusFilter } = tabFilterStates['facilities'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(facilities) ? facilities : []).filter((f) => {
       if (statusFilter === 'active' && !f.isPublished) return false;
       if (statusFilter === 'inactive' && f.isPublished) return false;
-      if (!query) return true;
+      if (!q) return true;
       return (
-        f.title.toLowerCase().includes(query) ||
-        f.slug.toLowerCase().includes(query) ||
-        Boolean(f.summary?.toLowerCase().includes(query)) ||
-        Boolean(f.serviceName?.toLowerCase().includes(query))
+        f.title.toLowerCase().includes(q) ||
+        f.slug.toLowerCase().includes(q) ||
+        Boolean(f.summary?.toLowerCase().includes(q)) ||
+        Boolean(f.serviceName?.toLowerCase().includes(q))
       );
     });
-  }, [facilities, statusFilter, query]);
+  }, [facilities, tabFilterStates]);
 
   const filteredFaqs = React.useMemo(() => {
+    const { searchQuery, statusFilter, categoryFilter } = tabFilterStates['faqs'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(faqs) ? faqs : []).filter((f) => {
       if (statusFilter === 'active' && !f.isPublished) return false;
       if (statusFilter === 'inactive' && f.isPublished) return false;
-      if (!query) return true;
-      const matchTitle = f.title.toLowerCase().includes(query);
-      const matchCategory = f.category.toLowerCase().includes(query);
+      if (categoryFilter !== 'all' && f.category !== categoryFilter) return false;
+      if (!q) return true;
+      const matchTitle = f.title.toLowerCase().includes(q);
+      const matchCategory = f.category.toLowerCase().includes(q);
       const matchSteps = Array.isArray(f.solutionSteps)
-        ? f.solutionSteps.some((s) => s.toLowerCase().includes(query))
-        : String(f.solutionSteps).toLowerCase().includes(query);
+        ? f.solutionSteps.some((s) => s.toLowerCase().includes(q))
+        : String(f.solutionSteps).toLowerCase().includes(q);
       return matchTitle || matchCategory || matchSteps;
     });
-  }, [faqs, statusFilter, query]);
+  }, [faqs, tabFilterStates]);
 
   const filteredPromotions = React.useMemo(() => {
+    const { searchQuery, statusFilter } = tabFilterStates['promotions'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(promotions) ? promotions : []).filter((p) => {
-      if (statusFilter === 'active' && !p.isPublished) return false;
-      if (statusFilter === 'inactive' && p.isPublished) return false;
-      if (!query) return true;
+      if (statusFilter !== 'all' && p.status !== statusFilter) return false;
+      if (!q) return true;
       return (
-        p.title.toLowerCase().includes(query) ||
-        p.summary.toLowerCase().includes(query) ||
-        Boolean(p.serviceName?.toLowerCase().includes(query))
+        p.title.toLowerCase().includes(q) ||
+        (p.summary && p.summary.toLowerCase().includes(q)) ||
+        Boolean(p.serviceName?.toLowerCase().includes(q))
       );
     });
-  }, [promotions, statusFilter, query]);
+  }, [promotions, tabFilterStates]);
 
   const filteredRelationships = React.useMemo(() => {
+    const { searchQuery, statusFilter } = tabFilterStates['relationships'];
+    const q = searchQuery.trim().toLowerCase();
     return (Array.isArray(relationships) ? relationships : []).filter((r) => {
       if (statusFilter === 'active' && !r.isActive) return false;
       if (statusFilter === 'inactive' && r.isActive) return false;
-      if (!query) return true;
+      if (!q) return true;
       return (
-        r.name.toLowerCase().includes(query) ||
-        r.code.toLowerCase().includes(query) ||
-        Boolean(r.description?.toLowerCase().includes(query))
+        r.name.toLowerCase().includes(q) ||
+        r.code.toLowerCase().includes(q) ||
+        Boolean(r.description?.toLowerCase().includes(q))
       );
     });
-  }, [relationships, statusFilter, query]);
+  }, [relationships, tabFilterStates]);
 
   const filteredBloodTypes = React.useMemo(
-    () => filterDemographicMaster(bloodTypes, statusFilter, query),
-    [bloodTypes, statusFilter, query]
+    () => filterDemographicMaster(bloodTypes, tabFilterStates['blood-types'].statusFilter, tabFilterStates['blood-types'].searchQuery.trim().toLowerCase()),
+    [bloodTypes, tabFilterStates]
   );
 
   const filteredEducationLevels = React.useMemo(
-    () => filterDemographicMaster(educationLevels, statusFilter, query),
-    [educationLevels, statusFilter, query]
+    () => filterDemographicMaster(educationLevels, tabFilterStates['education-levels'].statusFilter, tabFilterStates['education-levels'].searchQuery.trim().toLowerCase()),
+    [educationLevels, tabFilterStates]
   );
 
   const filteredReligions = React.useMemo(
-    () => filterDemographicMaster(religions, statusFilter, query),
-    [religions, statusFilter, query]
+    () => filterDemographicMaster(religions, tabFilterStates['religions'].statusFilter, tabFilterStates['religions'].searchQuery.trim().toLowerCase()),
+    [religions, tabFilterStates]
   );
 
   const filteredOccupations = React.useMemo(
-    () => filterDemographicMaster(occupations, statusFilter, query),
-    [occupations, statusFilter, query]
+    () => filterDemographicMaster(occupations, tabFilterStates['occupations'].statusFilter, tabFilterStates['occupations'].searchQuery.trim().toLowerCase()),
+    [occupations, tabFilterStates]
   );
 
   // Hierarchical Lock Logic
@@ -282,52 +393,118 @@ export function useClinicEssentialsData(
     }
   }, [activeTab, isUnitsLocked, isRoomsLocked, isCategoriesLocked, isServicesLocked, setActiveTab]);
 
-  const facetGroups = React.useMemo<FacetGroupDefinition[]>(() => {
-    const unitOptions = units.map((u) => ({
-      label: u.name,
-      value: u.id,
-    }));
+  // Contextual Dynamic Facets for Active Tab
+  const dynamicFacets = React.useMemo<FacetGroupDefinition[]>(() => {
+    const facets: FacetGroupDefinition[] = [];
+    const supported = currentConfig.supportedFacets;
 
-    return [
-      {
+    // 1. Unit Induk Facet (Only if supported by activeTab, e.g. rooms, categories, services)
+    if (supported.includes('unit')) {
+      const unitOptions = units.map((u) => ({
+        label: u.name,
+        value: u.id,
+      }));
+
+      facets.push({
         id: 'unit',
         title: 'Unit Induk',
         icon: Building2,
         mode: 'single',
         options: unitOptions,
-        selectedValues: unitFilter !== 'all' ? [unitFilter] : [],
-        onSelect: (val) => setUnitFilter(val === unitFilter ? 'all' : val),
+        selectedValues: activeFilter.unitFilter !== 'all' ? [activeFilter.unitFilter] : [],
+        onSelect: (val) => setUnitFilter(val === activeFilter.unitFilter ? 'all' : val),
         onReset: () => setUnitFilter('all'),
         popoverWidth: 'w-56',
         resetLabel: 'Semua Unit',
-      },
-      {
+      });
+    }
+
+    // 2. Promotion Status Facet (Only for promotions tab)
+    if (supported.includes('promo-status')) {
+      facets.push({
+        id: 'promo-status',
+        title: 'Status Promosi',
+        icon: Tag,
+        mode: 'single',
+        options: [
+          { label: 'Live', value: 'live', dotColor: '#10b981' },
+          { label: 'Terjadwal', value: 'scheduled', dotColor: '#3b82f6' },
+          { label: 'Draf', value: 'draft', dotColor: '#f59e0b' },
+          { label: 'Kedaluwarsa', value: 'expired', dotColor: '#64748b' },
+          { label: 'Diarsipkan', value: 'archived', dotColor: '#ef4444' },
+        ],
+        selectedValues: activeFilter.statusFilter !== 'all' ? [activeFilter.statusFilter] : [],
+        onSelect: (val) => setStatusFilter(val === activeFilter.statusFilter ? 'all' : val),
+        onReset: () => setStatusFilter('all'),
+        popoverWidth: 'w-48',
+        resetLabel: 'Semua Status',
+      });
+    }
+
+    // 3. FAQ Category Facet (Only for faqs tab)
+    if (supported.includes('faq-category')) {
+      facets.push({
+        id: 'faq-category',
+        title: 'Kategori FAQ',
+        icon: HelpCircle,
+        mode: 'single',
+        options: [
+          { label: 'Umum', value: 'general' },
+          { label: 'Pendaftaran', value: 'registration' },
+          { label: 'Pelayanan Medis', value: 'medical' },
+          { label: 'Fasilitas', value: 'facility' },
+        ],
+        selectedValues: activeFilter.categoryFilter !== 'all' ? [activeFilter.categoryFilter] : [],
+        onSelect: (val) => setCategoryFilter(val === activeFilter.categoryFilter ? 'all' : val),
+        onReset: () => setCategoryFilter('all'),
+        popoverWidth: 'w-48',
+        resetLabel: 'Semua Kategori',
+      });
+    }
+
+    // 4. Standard Status Facet (Active/Inactive or Published/Draft)
+    if (supported.includes('status')) {
+      const isContentTab = activeTab === 'facilities' || activeTab === 'faqs';
+      facets.push({
         id: 'status',
         title: 'Status',
         icon: Icons.activity,
         mode: 'single',
         options: [
-          { label: 'Aktif', value: 'active', dotColor: '#10b981' },
-          { label: 'Nonaktif', value: 'inactive', dotColor: '#64748b' },
+          { label: isContentTab ? 'Tayang' : 'Aktif', value: 'active', dotColor: '#10b981' },
+          { label: isContentTab ? 'Draf' : 'Nonaktif', value: 'inactive', dotColor: '#64748b' },
         ],
-        selectedValues: statusFilter !== 'all' ? [statusFilter] : [],
-        onSelect: (val) =>
-          setStatusFilter(val === statusFilter ? 'all' : (val as 'active' | 'inactive')),
+        selectedValues: activeFilter.statusFilter !== 'all' ? [activeFilter.statusFilter] : [],
+        onSelect: (val) => setStatusFilter(val === activeFilter.statusFilter ? 'all' : val),
         onReset: () => setStatusFilter('all'),
         popoverWidth: 'w-44',
         resetLabel: 'Semua Status',
-      },
-    ];
-  }, [units, unitFilter, statusFilter]);
+      });
+    }
 
-  const isFiltered = Boolean(searchQuery.trim()) || unitFilter !== 'all' || statusFilter !== 'all';
-  const activeFilterCount = [unitFilter !== 'all', statusFilter !== 'all'].filter(Boolean).length;
+    return facets;
+  }, [
+    currentConfig,
+    activeTab,
+    units,
+    activeFilter.unitFilter,
+    activeFilter.statusFilter,
+    activeFilter.categoryFilter,
+    setUnitFilter,
+    setStatusFilter,
+    setCategoryFilter
+  ]);
 
-  const handleResetAll = React.useCallback(() => {
-    setSearchQuery('');
-    setUnitFilter('all');
-    setStatusFilter('all');
-  }, []);
+  const isFiltered = Boolean(activeFilter.searchQuery.trim()) ||
+    activeFilter.unitFilter !== 'all' ||
+    activeFilter.statusFilter !== 'all' ||
+    activeFilter.categoryFilter !== 'all';
+
+  const activeFilterCount = [
+    activeFilter.unitFilter !== 'all',
+    activeFilter.statusFilter !== 'all',
+    activeFilter.categoryFilter !== 'all',
+  ].filter(Boolean).length;
 
   const indexItems = React.useMemo<SearchEngineResultItem[]>(() => {
     return buildClinicEssentialsSearchIndex({
@@ -342,10 +519,10 @@ export function useClinicEssentialsData(
       setActiveTab,
       setSearchQuery,
     });
-  }, [unitTypes, units, rooms, categories, services, relationships, facilities, faqs, setActiveTab]);
+  }, [unitTypes, units, rooms, categories, services, relationships, facilities, faqs, setActiveTab, setSearchQuery]);
 
   const effectiveFacetGroups = React.useMemo<FacetGroupDefinition[]>(() => {
-    if (!isCompact) return facetGroups;
+    if (!isCompact) return dynamicFacets;
 
     const entityFacet: FacetGroupDefinition = {
       id: 'entityTab',
@@ -360,7 +537,12 @@ export function useClinicEssentialsData(
         { label: 'Service Medis', value: 'services', count: filteredServices.length },
         { label: 'Fasilitas Unggulan', value: 'facilities', count: filteredFacilities.length },
         { label: 'FAQ Landing Page', value: 'faqs', count: filteredFaqs.length },
+        { label: 'Promo & Pengumuman', value: 'promotions', count: filteredPromotions.length },
         { label: 'Relasi Pasien', value: 'relationships', count: filteredRelationships.length },
+        { label: 'Golongan Darah', value: 'blood-types', count: filteredBloodTypes.length },
+        { label: 'Pendidikan', value: 'education-levels', count: filteredEducationLevels.length },
+        { label: 'Agama', value: 'religions', count: filteredReligions.length },
+        { label: 'Pekerjaan', value: 'occupations', count: filteredOccupations.length },
       ],
       selectedValues: [activeTab],
       onSelect: (val) => {
@@ -375,10 +557,10 @@ export function useClinicEssentialsData(
       resetLabel: 'Poliklinik & Departemen',
     };
 
-    return [entityFacet, ...facetGroups];
+    return [entityFacet, ...dynamicFacets];
   }, [
     isCompact,
-    facetGroups,
+    dynamicFacets,
     activeTab,
     filteredUnitTypes.length,
     filteredUnits.length,
@@ -387,7 +569,12 @@ export function useClinicEssentialsData(
     filteredServices.length,
     filteredFacilities.length,
     filteredFaqs.length,
+    filteredPromotions.length,
     filteredRelationships.length,
+    filteredBloodTypes.length,
+    filteredEducationLevels.length,
+    filteredReligions.length,
+    filteredOccupations.length,
     setActiveTab,
   ]);
 
@@ -436,12 +623,15 @@ export function useClinicEssentialsData(
     isRoomsLocked,
     isCategoriesLocked,
     isServicesLocked,
-    searchQuery,
+    searchQuery: activeFilter.searchQuery,
     setSearchQuery,
-    unitFilter,
+    unitFilter: activeFilter.unitFilter,
     setUnitFilter,
-    statusFilter,
+    statusFilter: activeFilter.statusFilter,
     setStatusFilter,
+    categoryFilter: activeFilter.categoryFilter,
+    setCategoryFilter,
+    currentConfig,
     isFiltered,
     activeFilterCount,
     handleResetAll,

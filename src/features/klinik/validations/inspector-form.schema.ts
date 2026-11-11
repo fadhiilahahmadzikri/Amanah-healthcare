@@ -1,4 +1,6 @@
 export {
+  patientIdentityZodSchema,
+  validatePatientIdentityForm,
   regularFormZodSchema,
   validateRegularForm,
   type RegularValidationResult

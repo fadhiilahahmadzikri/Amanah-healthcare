@@ -18,7 +18,7 @@ export interface MaternalHusbandSectionProps {
 
 export function MaternalHusbandSection(props: MaternalHusbandSectionProps) {
   return (
-    <div className='rounded-2xl border border-border/70 p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs font-sans'>
+    <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs font-sans'>
       <MaternityPartnerIdentityFields {...props} />
     </div>
   );

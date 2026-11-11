@@ -4,7 +4,7 @@ import { kiaIntakeService } from '../../../api/kia-intake-service';
 import { updatePatient } from '@/features/data-pasien/api/service';
 import type { Appointment } from '../../../api/types';
 import type { UnifiedInspectorData, EditableImmunizationData, EditableRegularData } from '../types';
-import { validateImmunizationForm, validateRegularForm } from '../../../validations/inspector-form.schema';
+import { validateImmunizationForm, validatePatientIdentityForm } from '../../../validations/inspector-form.schema';
 import { buildInitialImmunizationData, buildInitialRegularData } from './inspector-initial-state';
 import { getImmunizationPatientDiff, getRegularPatientDiff } from './patient-diff-helper';
 import { patientAffiliationService } from '@/features/data-pasien/api/patient-affiliation-service';
@@ -27,7 +27,7 @@ export async function saveImmunizationAction({
   setValidationErrors
 }: SaveImmunizationParams): Promise<void> {
   if (regularFormData) {
-    const regValidation = validateRegularForm(regularFormData);
+    const regValidation = validatePatientIdentityForm(regularFormData);
     if (!regValidation.isValid) {
       setValidationErrors(regValidation.errors);
       toast.error('Periksa kembali isian identitas pasien yang ditandai merah.');

@@ -41,10 +41,10 @@ export function MaternityClinicalKbSection({
 
   if (isEditing && onIntakeFieldChange) {
     return (
-      <div className='flex-1 min-h-0 flex flex-col space-y-5 pt-1 font-sans h-full'>
-        {/* Pemeriksaan Fisik Awal Kehamilan */}
-        <div className='space-y-3 pt-2 shrink-0'>
-          <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+      <div className='flex-1 min-h-0 flex flex-col space-y-5 font-sans h-full'>
+        {/* Pemeriksaan Fisik Awal Card */}
+        <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-4 font-sans'>
+          <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
             Pemeriksaan Fisik & Antropometri Awal
           </span>
 
@@ -122,16 +122,21 @@ export function MaternityClinicalKbSection({
           </div>
         </div>
 
-        {/* Riwayat KB Table */}
-        <div className='pt-1 flex-1 min-h-0 flex flex-col'>
-          <ContraceptiveHistoryTable
-            items={contraceptiveHistories}
-            isEditing={isEditing}
-            onChange={onContraceptiveHistoriesChange}
-            validationErrors={validationErrors}
-            onClearError={onClearError}
-            motherBirthDate={intake?.motherBirthDate}
-          />
+        {/* Riwayat KB Table Card */}
+        <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-4 font-sans flex-1 min-h-0 flex flex-col'>
+          <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
+            Riwayat Kontrasepsi (KB)
+          </span>
+          <div className='pt-1 flex-1 min-h-0 flex flex-col'>
+            <ContraceptiveHistoryTable
+              items={contraceptiveHistories}
+              isEditing={isEditing}
+              onChange={onContraceptiveHistoriesChange}
+              validationErrors={validationErrors}
+              onClearError={onClearError}
+              motherBirthDate={intake?.motherBirthDate}
+            />
+          </div>
         </div>
       </div>
     );
@@ -139,10 +144,10 @@ export function MaternityClinicalKbSection({
 
   // READ ONLY MODE
   return (
-    <div className='flex-1 min-h-0 flex flex-col space-y-5 pt-1 pointer-events-none select-text font-sans h-full'>
-      {/* Pemeriksaan Fisik Awal Kehamilan */}
-      <div className='space-y-3 pt-2 shrink-0'>
-        <span className='text-xs font-semibold text-muted-foreground block pb-1 border-b border-border/40'>
+    <div className='flex-1 min-h-0 flex flex-col space-y-5 pointer-events-none select-text font-sans h-full'>
+      {/* Pemeriksaan Fisik Awal Card */}
+      <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-4 font-sans'>
+        <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
           Pemeriksaan Fisik & Antropometri Awal
         </span>
 
@@ -191,12 +196,17 @@ export function MaternityClinicalKbSection({
         </div>
       </div>
 
-      {/* Riwayat KB Table */}
-      <div className='pt-1 flex-1 min-h-0 flex flex-col'>
-        <ContraceptiveHistoryTable
-          items={contraceptiveHistories}
-          isEditing={false}
-        />
+      {/* Riwayat KB Table Card */}
+      <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 shadow-xs space-y-4 font-sans flex-1 min-h-0 flex flex-col'>
+        <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
+          Riwayat Kontrasepsi (KB)
+        </span>
+        <div className='pt-1 flex-1 min-h-0 flex flex-col'>
+          <ContraceptiveHistoryTable
+            items={contraceptiveHistories}
+            isEditing={false}
+          />
+        </div>
       </div>
     </div>
   );

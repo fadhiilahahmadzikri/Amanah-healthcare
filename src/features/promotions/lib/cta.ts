@@ -42,6 +42,3 @@ export function buildPromoWhatsAppUrl(
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(defaultText)}`;
 }
 
-export const isSafeCtaUrl = isSafeHref;
-export const buildWhatsAppUrl = buildPromoWhatsAppUrl;
-

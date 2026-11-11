@@ -1,34 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import {
-  Calendar,
-  Check,
-  ExternalLink,
-  Eye,
-  Info,
-  Layers,
-  Link as LinkIcon,
-  MessageSquare,
-  Radio,
-  Send,
-  Smartphone,
-  Sparkles,
-  Tag,
-  X,
-} from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { Icons } from '@/components/icons';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { CustomDatePicker } from '@/components/ui/custom-date-picker';
 import { CLINIC_WHATSAPP_CONFIG } from '@/config/whatsapp.config';
 import type { ClinicService } from '@/features/clinic-essentials/types/clinic-essentials.types';
-import { ServiceImagePicker } from '@/features/clinic-essentials/components/atoms/service-image-picker';
 import { promotionsApi } from '../api/promotions.api';
-import { buildWhatsAppUrl, isSafeCtaUrl } from '../lib/cta';
+import { buildPromoWhatsAppUrl, isSafeHref } from '../lib/cta';
 import { formatWibPeriod } from '../lib/schedule';
 import { normalizeImageUrl } from '../lib/image';
 import type {
@@ -39,11 +19,9 @@ import type {
   PublicPromotion,
 } from '../types/promotions.types';
 import { PromotionFormSchema } from '../schemas/promotion-form.schema';
-import { PromotionServicePicker } from '../components/PromotionServicePicker';
-import { PromoBanner } from '../components/PromoBanner';
-import { PromoCard } from '../components/PromoCard';
-import { PromoImage } from '../components/PromoImage';
-import { PromotionsProvider } from '../context/PromotionsContext';
+import { PromotionFormFieldsBento } from './components/PromotionFormFieldsBento';
+import { PromotionVisualBento } from './components/PromotionVisualBento';
+import { PromotionPreviewBento } from './components/PromotionPreviewBento';
 
 export interface PromotionFormDialogProps {
   isOpen: boolean;
@@ -102,8 +80,6 @@ export function PromotionFormDialog({
 
   // UI State
   const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState<'form' | 'preview'>('form');
-  const [previewViewport, setPreviewViewport] = React.useState<'desktop' | 'mobile'>('desktop');
 
   // Populate form on open/edit
   React.useEffect(() => {
@@ -145,8 +121,7 @@ export function PromotionFormDialog({
       setBroadcastToUsers(isDuplicate ? false : promotion.broadcastToUsers);
       setBroadcastInApp(promotion.broadcastChannels.includes('in_app'));
       setBroadcastPush(promotion.broadcastChannels.includes('push'));
-      setUrlTestStatus('idle');
-      setActiveTab('form');
+      setUrlTestStatus(promotion.imageType === 'url' ? 'valid' : 'idle');
     } else if (isOpen && !promotion) {
       // Default initial states
       setTitle('');
@@ -173,7 +148,6 @@ export function PromotionFormDialog({
       setBroadcastInApp(true);
       setBroadcastPush(true);
       setUrlTestStatus('idle');
-      setActiveTab('form');
     }
   }, [isOpen, promotion, isDuplicate]);
 
@@ -201,7 +175,7 @@ export function PromotionFormDialog({
         setImageAlt(`Layanan ${selected.name}`);
       }
       if (ctaType === 'whatsapp') {
-        const url = buildWhatsAppUrl(
+        const url = buildPromoWhatsAppUrl(
           CLINIC_WHATSAPP_CONFIG.phoneNumber,
           `Halo Amanah Healthcare, saya tertarik dengan informasi layanan ${selected.name}. Mohon info jadwal dan konsultasi.`
         );
@@ -212,12 +186,12 @@ export function PromotionFormDialog({
 
   // Test Image URL
   const testImageUrl = React.useCallback((url: string) => {
-    if (!url) {
+    if (!url.trim()) {
       setUrlTestStatus('idle');
       return;
     }
     setUrlTestStatus('testing');
-    const normalized = normalizeImageUrl(url);
+    const normalized = normalizeImageUrl(url.trim());
     const img = new Image();
     img.addEventListener('load', () => setUrlTestStatus('valid'), { once: true });
     img.addEventListener('error', () => setUrlTestStatus('invalid'), { once: true });
@@ -232,7 +206,7 @@ export function PromotionFormDialog({
       const serviceName = selected ? selected.name : title || 'Klinik Amanah';
       return (
         ctaUrl ||
-        buildWhatsAppUrl(
+        buildPromoWhatsAppUrl(
           CLINIC_WHATSAPP_CONFIG.phoneNumber,
           `Halo Amanah Healthcare, saya tertarik dengan informasi ${serviceName}. Mohon informasi lebih lanjut.`
         )
@@ -333,7 +307,7 @@ export function PromotionFormDialog({
       return;
     }
 
-    if (ctaType !== 'none' && ctaUrl && !isSafeCtaUrl(ctaUrl)) {
+    if (ctaType !== 'none' && ctaUrl && !isSafeHref(ctaUrl)) {
       toast.error('Protokol URL tidak aman (hanya https:, tel:, atau relatif yang diizinkan)');
       return;
     }
@@ -384,784 +358,147 @@ export function PromotionFormDialog({
     }
   };
 
+  if (!isOpen) return null;
+
   return (
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-4xl'
-      className='relative flex flex-col h-auto max-h-[88dvh] overflow-hidden rounded-2xl border border-border bg-card p-0 w-full my-auto shadow-2xl font-sans'
+      maxWidth='max-w-[95vw] w-[95vw]'
+      showCloseButton={false}
+      className='max-h-[90vh] h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl font-sans'
     >
-      {/* Header */}
-      <div className='flex items-center justify-between border-b border-border/70 px-5 py-4 sm:px-6 bg-card shrink-0'>
-        <div className='flex items-center gap-3'>
-          <div className='flex size-9 items-center justify-center rounded-xl bg-primary/10 text-primary'>
-            <Tag className='size-4.5' />
-          </div>
-          <div>
-            <h3 className='text-base sm:text-lg font-bold tracking-tight text-foreground'>
+      <div className='flex flex-col font-sans h-full min-h-0 flex-1'>
+        {/* Pinned Header (Format Form Reguler - Tanpa Header Icon) */}
+        <div className='shrink-0 pb-3 border-b border-border/40 flex items-start justify-between gap-3 min-w-0'>
+          <div className='space-y-0.5 min-w-0 flex-1'>
+            <h3 className='text-base sm:text-lg font-bold text-foreground tracking-tight'>
               {isEdit ? 'Edit Promosi' : isDuplicate ? 'Duplikasi Promosi' : 'Tambah Promosi'}
             </h3>
-            <p className='text-xs text-muted-foreground mt-0.5'>
-              Kelola penawaran layanan dan informasi promosi klinik
+            <p className='text-xs text-muted-foreground truncate font-medium'>
+              Kelola penawaran layanan dan informasi promosi klinik.
             </p>
-          </div>
-        </div>
-
-        {/* View Mode Toggle: Form vs Live Preview */}
-        <div className='flex items-center gap-2'>
-          <div className='flex items-center rounded-lg border border-border bg-muted/40 p-1'>
-            <button
-              type='button'
-              onClick={() => setActiveTab('form')}
-              className={cn(
-                'flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-colors cursor-pointer',
-                activeTab === 'form'
-                  ? 'bg-card text-foreground shadow-2xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Layers className='size-3.5' />
-              <span>Formulir</span>
-            </button>
-            <button
-              type='button'
-              onClick={() => setActiveTab('preview')}
-              className={cn(
-                'flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-semibold transition-colors cursor-pointer',
-                activeTab === 'preview'
-                  ? 'bg-card text-foreground shadow-2xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              )}
-            >
-              <Eye className='size-3.5' />
-              <span>Live Preview</span>
-            </button>
           </div>
 
           <button
             type='button'
             onClick={onClose}
-            aria-label='Tutup dialog'
-            className='flex size-8 items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
+            aria-label='Tutup modal'
+            className='rounded-full p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer'
           >
-            <X className='size-4' />
+            <Icons.close className='size-4' />
           </button>
         </div>
-      </div>
 
-      {/* Body */}
-      <div className='flex flex-1 min-h-0 overflow-hidden'>
-        {activeTab === 'form' ? (
-          <form
-            id='promo-form'
-            onSubmit={handleSubmit}
-            className='flex-1 overflow-y-auto p-5 sm:p-6 space-y-5 text-sm select-none'
-          >
-            {/* Section 1: Konten Utama */}
-            <div className='rounded-xl border border-border/70 bg-card p-4 sm:p-5 space-y-4 shadow-2xs'>
-              <div className='flex items-center justify-between border-b border-border/50 pb-2.5'>
-                <h4 className='font-semibold text-xs sm:text-sm text-foreground flex items-center gap-2'>
-                  <Info className='size-4 text-primary' />
-                  Konten & Informasi Utama
-                </h4>
-                <span className='text-[11px] text-muted-foreground'>* Wajib diisi</span>
-              </div>
-
-              {/* Judul & Counter */}
-              <div className='space-y-1.5'>
-                <div className='flex justify-between items-center'>
-                  <label htmlFor='promo-title' className='font-medium text-foreground text-xs'>
-                    Judul Promosi *
-                  </label>
-                  <span
-                    className={cn(
-                      'text-[11px]',
-                      title.length > 70 ? 'text-amber-500 font-semibold' : 'text-muted-foreground'
-                    )}
-                  >
-                    {title.length}/80
-                  </span>
-                </div>
-                <Input
-                  id='promo-title'
-                  type='text'
-                  aria-label='Judul Promosi'
-                  required
-                  maxLength={80}
-                  placeholder='Contoh: Paket Medical Check-Up Spesial Akhir Tahun'
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className='h-9 text-xs'
-                />
-              </div>
-
-              {/* Ringkasan & Counter */}
-              <div className='space-y-1.5'>
-                <div className='flex justify-between items-center'>
-                  <label htmlFor='promo-summary' className='font-medium text-foreground text-xs'>
-                    Ringkasan Singkat *
-                  </label>
-                  <span
-                    className={cn(
-                      'text-[11px]',
-                      summary.length > 140 ? 'text-amber-500 font-semibold' : 'text-muted-foreground'
-                    )}
-                  >
-                    {summary.length}/160
-                  </span>
-                </div>
-                <textarea
-                  id='promo-summary'
-                  aria-label='Ringkasan Singkat'
-                  required
-                  maxLength={160}
-                  rows={2}
-                  placeholder='Penjelasan 1-2 kalimat yang menarik minat pasien...'
-                  value={summary}
-                  onChange={(e) => setSummary(e.target.value)}
-                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary resize-none'
-                />
-              </div>
-
-              {/* Tautan Layanan Medis (No Snake Case!) */}
-              <div className='space-y-1.5'>
-                <span className='font-medium text-foreground text-xs flex items-center gap-1.5'>
-                  <Sparkles className='size-3.5 text-primary' />
-                  Tautan Layanan Medis
-                </span>
-                <PromotionServicePicker
+        {/* Scrollable / Bento Body (2 Columns Layout) */}
+        <div className='flex-1 min-h-0 py-4'>
+          <form id='promo-detail-form' onSubmit={handleSubmit} className='h-full'>
+            <div className='grid grid-cols-1 lg:grid-cols-12 gap-5 h-full min-h-0'>
+              {/* Kolom Kiri: Box 1 (Konten & Form Promosi) */}
+              <div className='col-span-12 lg:col-span-7 h-full min-h-0'>
+                <PromotionFormFieldsBento
+                  title={title}
+                  setTitle={setTitle}
+                  summary={summary}
+                  setSummary={setSummary}
+                  body={body}
+                  setBody={setBody}
+                  serviceId={serviceId}
+                  onServiceChange={handleServiceChange}
                   services={services}
-                  value={serviceId}
-                  onChange={handleServiceChange}
-                />
-                <p className='text-[11px] text-muted-foreground'>
-                  Jika ditautkan, badge nama layanan akan muncul otomatis pada banner & modal.
-                </p>
-              </div>
-
-              {/* Detail Body (Opsional untuk Modal) */}
-              <div className='space-y-1.5'>
-                <label htmlFor='promo-body' className='font-medium text-foreground text-xs'>
-                  Detail Tambahan (Ditampilkan pada Popup Modal)
-                </label>
-                <textarea
-                  id='promo-body'
-                  aria-label='Detail Tambahan Promosi'
-                  rows={3}
-                  maxLength={1000}
-                  placeholder='Rincian prosedur, dokter pemeriksa, atau fasilitas paket...'
-                  value={body}
-                  onChange={(e) => setBody(e.target.value)}
-                  className='w-full rounded-lg border border-input bg-background px-3 py-2 text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
-                />
-              </div>
-            </div>
-
-            {/* Section 2: Jadwal Tayang & Syarat Ketentuan */}
-            <div className='rounded-xl border border-border/70 bg-card p-4 sm:p-5 space-y-4 shadow-2xs'>
-              <div className='flex items-center justify-between border-b border-border/50 pb-2.5'>
-                <h4 className='font-semibold text-xs sm:text-sm text-foreground flex items-center gap-2'>
-                  <Calendar className='size-4 text-primary' />
-                  Jadwal Tayang & Syarat Ketentuan
-                </h4>
-                <span className='text-[11px] text-muted-foreground'>Metadata Otomatis</span>
-              </div>
-
-              {/* Schedule Pickers using CustomDatePicker */}
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-                <CustomDatePicker
-                  id='promo-start-date'
-                  label='Mulai Tayang'
-                  ariaLabel='Mulai Tayang'
-                  value={startDateStr}
-                  onChange={(val) => setStartDateStr(val)}
-                  placeholder='Pilih tanggal mulai'
-                />
-
-                <CustomDatePicker
-                  id='promo-end-date'
-                  label='Selesai Tayang'
-                  ariaLabel='Selesai Tayang'
-                  value={endDateStr}
-                  onChange={(val) => setEndDateStr(val)}
-                  placeholder='Pilih tanggal selesai'
+                  startDateStr={startDateStr}
+                  setStartDateStr={setStartDateStr}
+                  endDateStr={endDateStr}
+                  setEndDateStr={setEndDateStr}
+                  customTermsNote={customTermsNote}
+                  setCustomTermsNote={setCustomTermsNote}
+                  combinedTerms={combinedTerms}
+                  ctaType={ctaType}
+                  setCtaType={setCtaType}
+                  ctaLabel={ctaLabel}
+                  setCtaLabel={setCtaLabel}
+                  ctaUrl={ctaUrl}
+                  setCtaUrl={setCtaUrl}
+                  showBanner={showBanner}
+                  setShowBanner={setShowBanner}
+                  showModal={showModal}
+                  setShowModal={setShowModal}
+                  showSection={showSection}
+                  setShowSection={setShowSection}
+                  priority={priority}
+                  setPriority={setPriority}
+                  broadcastToUsers={broadcastToUsers}
+                  setBroadcastToUsers={setBroadcastToUsers}
+                  broadcastInApp={broadcastInApp}
+                  setBroadcastInApp={setBroadcastInApp}
+                  broadcastPush={broadcastPush}
+                  setBroadcastPush={setBroadcastPush}
+                  isPublished={isPublished}
+                  setIsPublished={setIsPublished}
                 />
               </div>
 
-              {/* Terms & Conditions Field */}
-              <div className='space-y-1.5 pt-1'>
-                <label htmlFor='promo-terms-note' className='font-medium text-foreground text-xs'>
-                  Catatan Ketentuan Khusus (Opsional)
-                </label>
-                <Input
-                  id='promo-terms-note'
-                  type='text'
-                  aria-label='Catatan Ketentuan Khusus'
-                  maxLength={300}
-                  placeholder='Contoh: Khusus pasien umum non-asuransi, maksimal 1 kupon per akun.'
-                  value={customTermsNote}
-                  onChange={(e) => setCustomTermsNote(e.target.value)}
-                  className='h-9 text-xs'
+              {/* Kolom Kanan: Box 2 (Visual) + Box 3 (Studio Pratinjau di bawahnya) */}
+              <div className='col-span-12 lg:col-span-5 flex flex-col gap-4 h-full min-h-0 overflow-y-auto pr-0.5 scrollbar-thin'>
+                <PromotionVisualBento
+                  imageType={imageType}
+                  setImageType={setImageType}
+                  imageValue={imageValue}
+                  setImageValue={(val) => {
+                    setImageValue(val);
+                    setUrlTestStatus('idle');
+                  }}
+                  imageAlt={imageAlt}
+                  setImageAlt={setImageAlt}
+                  urlTestStatus={urlTestStatus}
+                  onTestUrl={() => testImageUrl(imageValue)}
                 />
 
-                {combinedTerms ? (
-                  <div className='rounded-lg bg-muted/40 p-2.5 border border-border/60 text-[11px] text-muted-foreground'>
-                    <span className='font-semibold text-foreground'>Hasil Syarat & Ketentuan: </span>
-                    <span>{combinedTerms}</span>
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            {/* Section 3: Visual & Gambar */}
-            <div className='rounded-xl border border-border/70 bg-card p-4 sm:p-5 space-y-4 shadow-2xs'>
-              <div className='flex items-center justify-between border-b border-border/50 pb-2.5'>
-                <h4 className='font-semibold text-xs sm:text-sm text-foreground flex items-center gap-2'>
-                  <Tag className='size-4 text-primary' />
-                  Gambar & Visual Promosi
-                </h4>
-                <span className='text-[11px] text-muted-foreground'>Rasio 16:9 disarankan</span>
-              </div>
-
-              {/* Source Toggle */}
-              <div className='flex items-center gap-2.5'>
-                <button
-                  type='button'
-                  onClick={() => setImageType('static')}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer',
-                    imageType === 'static'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-card text-muted-foreground hover:bg-muted'
-                  )}
-                >
-                  <Layers className='size-3.5' />
-                  <span>Katalog Gambar Klinik</span>
-                </button>
-                <button
-                  type='button'
-                  onClick={() => setImageType('url')}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors cursor-pointer',
-                    imageType === 'url'
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-card text-muted-foreground hover:bg-muted'
-                  )}
-                >
-                  <LinkIcon className='size-3.5' />
-                  <span>Tautan URL Gambar</span>
-                </button>
-              </div>
-
-              {/* Static Picker using ServiceImagePicker */}
-              {imageType === 'static' ? (
-                <div className='flex items-center gap-3 p-3 rounded-xl border border-border/60 bg-muted/20'>
-                  <ServiceImagePicker
-                    value={imageValue}
-                    onChange={(url) => {
-                      if (url) {
-                        setImageValue(url);
-                        if (!imageAlt) {
-                          const baseName = url.split('/').pop()?.replace('.webp', '') || 'Gambar Layanan';
-                          setImageAlt(baseName);
-                        }
-                      }
-                    }}
-                  />
-                  <div className='min-w-0 flex-1'>
-                    <p className='text-xs font-semibold text-foreground truncate'>
-                      {imageValue ? imageValue.split('/').pop() : 'Belum ada gambar terpilih'}
-                    </p>
-                    <p className='text-[11px] text-muted-foreground'>
-                      Klik thumbnail untuk membuka popover katalog gambar klinik
-                    </p>
-                  </div>
-                </div>
-              ) : (
-                /* URL Input & Test */
-                <div className='space-y-2'>
-                  <div className='flex gap-2'>
-                    <Input
-                      type='url'
-                      aria-label='Tautan URL Gambar'
-                      placeholder='https://images.example.com/promo-banner.webp'
-                      value={imageValue}
-                      onChange={(e) => {
-                        setImageValue(e.target.value);
-                        setUrlTestStatus('idle');
-                      }}
-                      className='h-9 text-xs flex-1'
-                    />
-                    <Button
-                      type='button'
-                      variant='outline'
-                      size='sm'
-                      onClick={() => testImageUrl(imageValue)}
-                      disabled={!imageValue || urlTestStatus === 'testing'}
-                      className='text-xs h-9'
-                    >
-                      {urlTestStatus === 'testing' ? 'Memeriksa...' : 'Uji Muat'}
-                    </Button>
-                  </div>
-
-                  {urlTestStatus === 'valid' ? (
-                    <p className='text-xs text-primary font-medium flex items-center gap-1.5'>
-                      <Check className='size-3.5' /> Gambar valid dan berhasil dimuat.
-                    </p>
-                  ) : urlTestStatus === 'invalid' ? (
-                    <p className='text-xs text-destructive font-medium flex items-center gap-1.5'>
-                      <X className='size-3.5' /> Gambar gagal dimuat. Periksa tautan publik.
-                    </p>
-                  ) : null}
-                </div>
-              )}
-
-              {/* Alt Text */}
-              <div className='space-y-1.5'>
-                <label htmlFor='promo-alt' className='font-medium text-foreground text-xs'>
-                  Teks Alternatif Gambar (Alt Text)
-                </label>
-                <Input
-                  id='promo-alt'
-                  type='text'
-                  aria-label='Teks Alternatif Gambar'
-                  placeholder='Deskripsi visual singkat untuk aksesibilitas'
-                  value={imageAlt}
-                  onChange={(e) => setImageAlt(e.target.value)}
-                  className='h-9 text-xs'
-                />
-              </div>
-            </div>
-
-            {/* Section 4: Tombol Aksi Pasien (CTA) */}
-            <div className='rounded-xl border border-border/70 bg-card p-4 sm:p-5 space-y-4 shadow-2xs'>
-              <div className='flex items-center justify-between border-b border-border/50 pb-2.5'>
-                <h4 className='font-semibold text-xs sm:text-sm text-foreground flex items-center gap-2'>
-                  <ExternalLink className='size-4 text-primary' />
-                  Tombol Aksi Pasien (CTA)
-                </h4>
-              </div>
-
-              {/* CTA Type Buttons */}
-              <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-                <button
-                  type='button'
-                  onClick={() => setCtaType('whatsapp')}
-                  className={cn(
-                    'flex items-center gap-2 rounded-lg border p-3 text-left transition-colors cursor-pointer',
-                    ctaType === 'whatsapp'
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border hover:bg-muted'
-                  )}
-                >
-                  <MessageSquare className='size-4 text-primary shrink-0' />
-                  <div>
-                    <div className='text-xs font-semibold text-foreground'>WhatsApp Chat</div>
-                    <div className='text-[11px] text-muted-foreground'>Otomatis ke nomor klinik</div>
-                  </div>
-                </button>
-
-                <button
-                  type='button'
-                  onClick={() => setCtaType('custom')}
-                  className={cn(
-                    'flex items-center gap-2 rounded-lg border p-3 text-left transition-colors cursor-pointer',
-                    ctaType === 'custom'
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border hover:bg-muted'
-                  )}
-                >
-                  <LinkIcon className='size-4 text-primary shrink-0' />
-                  <div>
-                    <div className='text-xs font-semibold text-foreground'>Tautan Kustom</div>
-                    <div className='text-[11px] text-muted-foreground'>Halaman booking atau URL web</div>
-                  </div>
-                </button>
-
-                <button
-                  type='button'
-                  onClick={() => setCtaType('none')}
-                  className={cn(
-                    'flex items-center gap-2 rounded-lg border p-3 text-left transition-colors cursor-pointer',
-                    ctaType === 'none'
-                      ? 'border-primary bg-primary/5 ring-1 ring-primary'
-                      : 'border-border hover:bg-muted'
-                  )}
-                >
-                  <X className='size-4 text-muted-foreground shrink-0' />
-                  <div>
-                    <div className='text-xs font-semibold text-foreground'>Tanpa Tombol</div>
-                    <div className='text-[11px] text-muted-foreground'>Hanya pengumuman visual</div>
-                  </div>
-                </button>
-              </div>
-
-              {/* CTA Inputs */}
-              {ctaType !== 'none' ? (
-                <div className='grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1'>
-                  <div className='space-y-1.5'>
-                    <label htmlFor='promo-cta-label' className='font-medium text-foreground text-xs'>
-                      Label Tombol
-                    </label>
-                    <Input
-                      id='promo-cta-label'
-                      type='text'
-                      aria-label='Label Tombol'
-                      maxLength={30}
-                      value={ctaLabel}
-                      onChange={(e) => setCtaLabel(e.target.value)}
-                      placeholder='Contoh: Konsultasi Sekarang'
-                      className='h-9 text-xs'
-                    />
-                  </div>
-
-                  <div className='space-y-1.5'>
-                    <label htmlFor='promo-cta-url' className='font-medium text-foreground text-xs'>
-                      {ctaType === 'whatsapp' ? 'Pesan Awal WhatsApp' : 'URL Tujuan'}
-                    </label>
-                    <Input
-                      id='promo-cta-url'
-                      type='text'
-                      aria-label={ctaType === 'whatsapp' ? 'Pesan Awal WhatsApp' : 'URL Tujuan'}
-                      value={ctaUrl}
-                      onChange={(e) => setCtaUrl(e.target.value)}
-                      placeholder={
-                        ctaType === 'whatsapp'
-                          ? 'Halo Amanah Healthcare, saya tertarik...'
-                          : '/booking atau https://amanahhealthcare.com'
-                      }
-                      className='h-9 text-xs'
-                    />
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            {/* Section 5: Penempatan & Prioritas Tampil */}
-            <div className='rounded-xl border border-border/70 bg-card p-4 sm:p-5 space-y-4 shadow-2xs'>
-              <div className='flex items-center justify-between border-b border-border/50 pb-2.5'>
-                <h4 className='font-semibold text-xs sm:text-sm text-foreground flex items-center gap-2'>
-                  <Layers className='size-4 text-primary' />
-                  Penempatan & Prioritas Tampil
-                </h4>
-              </div>
-
-              <div className='grid grid-cols-1 sm:grid-cols-3 gap-3'>
-                <label className='flex items-center gap-2.5 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/40'>
-                  <input
-                    type='checkbox'
-                    aria-label='Tampilkan di Top Banner'
-                    checked={showBanner}
-                    onChange={(e) => setShowBanner(e.target.checked)}
-                    className='size-4 rounded accent-primary'
-                  />
-                  <div>
-                    <div className='text-xs font-semibold text-foreground'>Top Banner</div>
-                    <div className='text-[11px] text-muted-foreground'>Strip atas di seluruh halaman</div>
-                  </div>
-                </label>
-
-                <label className='flex items-center gap-2.5 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/40'>
-                  <input
-                    type='checkbox'
-                    aria-label='Tampilkan di Popup Modal'
-                    checked={showModal}
-                    onChange={(e) => setShowModal(e.target.checked)}
-                    className='size-4 rounded accent-primary'
-                  />
-                  <div>
-                    <div className='text-xs font-semibold text-foreground'>Popup Dialog Modal</div>
-                    <div className='text-[11px] text-muted-foreground'>Muncul saat pertama berkunjung</div>
-                  </div>
-                </label>
-
-                <label className='flex items-center gap-2.5 rounded-lg border border-border p-3 cursor-pointer hover:bg-muted/40'>
-                  <input
-                    type='checkbox'
-                    aria-label='Tampilkan di Home Section'
-                    checked={showSection}
-                    onChange={(e) => setShowSection(e.target.checked)}
-                    className='size-4 rounded accent-primary'
-                  />
-                  <div>
-                    <div className='text-xs font-semibold text-foreground'>Home Section</div>
-                    <div className='text-[11px] text-muted-foreground'>Kartu promo pada beranda</div>
-                  </div>
-                </label>
-              </div>
-
-              {/* Priority Input matching StepClinicSettings pattern */}
-              <div className='flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border/40'>
-                <div>
-                  <label htmlFor='promo-priority' className='font-semibold text-xs text-foreground'>
-                    Prioritas Tampil
-                  </label>
-                  <p className='text-[11px] text-muted-foreground'>
-                    Angka lebih tinggi ditampilkan lebih awal pada banner dan modal.
-                  </p>
-                </div>
-
-                <div className='flex items-center rounded-lg border border-border/80 bg-background shadow-2xs overflow-hidden h-8.5 focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] transition-[color,box-shadow]'>
-                  <input
-                    id='promo-priority'
-                    type='number'
-                    aria-label='Prioritas Tampil'
-                    min={0}
-                    value={priority}
-                    onChange={(e) => setPriority(Math.max(0, Number(e.target.value)))}
-                    className='w-16 sm:w-20 px-2.5 py-1 text-xs text-foreground bg-transparent focus:outline-none text-right font-medium'
-                  />
-                  <span className='px-2 text-[11px] font-semibold text-muted-foreground bg-muted/50 h-full flex items-center border-l border-border/60 shrink-0 select-none'>
-                    Urutan
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Section 6: Broadcast & Status Publikasi */}
-            <div className='rounded-xl border border-border/70 bg-card p-4 sm:p-5 space-y-4 shadow-2xs'>
-              <div className='flex items-center justify-between border-b border-border/50 pb-2.5'>
-                <h4 className='font-semibold text-xs sm:text-sm text-foreground flex items-center gap-2'>
-                  <Radio className='size-4 text-primary' />
-                  Broadcast & Status Publikasi
-                </h4>
-              </div>
-
-              {/* Broadcast Switch */}
-              <div className='flex items-start justify-between gap-4'>
-                <div className='space-y-0.5'>
-                  <div className='text-xs font-semibold text-foreground'>
-                    Kirim Notifikasi Otomatis ke Pasien Terdaftar
-                  </div>
-                  <p className='text-[11px] text-muted-foreground leading-relaxed'>
-                    Mengirimkan notifikasi ke akun pasien melalui antrean RabbitMQ saat status promosi Live.
-                  </p>
-                </div>
-                <Switch
-                  checked={broadcastToUsers}
-                  onCheckedChange={setBroadcastToUsers}
-                  aria-label='Kirim Notifikasi Otomatis ke Pasien'
-                />
-              </div>
-
-              {broadcastToUsers ? (
-                <div className='flex items-center gap-4 pl-1 pt-1'>
-                  <label className='flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer'>
-                    <input
-                      type='checkbox'
-                      aria-label='In-App Notification'
-                      checked={broadcastInApp}
-                      onChange={(e) => setBroadcastInApp(e.target.checked)}
-                      className='size-3.5 rounded accent-primary'
-                    />
-                    <span>In-App Notification</span>
-                  </label>
-
-                  <label className='flex items-center gap-2 text-xs font-medium text-foreground cursor-pointer'>
-                    <input
-                      type='checkbox'
-                      aria-label='Push Notification'
-                      checked={broadcastPush}
-                      onChange={(e) => setBroadcastPush(e.target.checked)}
-                      className='size-3.5 rounded accent-primary'
-                    />
-                    <span>Push Notification</span>
-                  </label>
-                </div>
-              ) : null}
-
-              {/* Publish Switch */}
-              <div className='flex items-start justify-between gap-4 pt-3 border-t border-border/40'>
-                <div className='space-y-0.5'>
-                  <div className='text-xs font-semibold text-foreground'>
-                    Publikasikan Sekarang
-                  </div>
-                  <p className='text-[11px] text-muted-foreground'>
-                    Jika dinonaktifkan, promosi akan disimpan sebagai Draf.
-                  </p>
-                </div>
-                <Switch
-                  checked={isPublished}
-                  onCheckedChange={setIsPublished}
-                  aria-label='Publikasikan Sekarang'
+                <PromotionPreviewBento
+                  imageType={imageType}
+                  imageValue={imageValue}
+                  imageAlt={imageAlt}
+                  urlTestStatus={urlTestStatus}
+                  previewPromotion={previewPromotion}
+                  onRetryTest={() => testImageUrl(imageValue)}
                 />
               </div>
             </div>
           </form>
-        ) : (
-          /* Live Preview Pane */
-          <div className='flex-1 flex flex-col overflow-hidden bg-muted/20'>
-            {/* Viewport Toolbar */}
-            <div className='flex items-center justify-between border-b border-border bg-card px-5 py-2.5 sm:px-6'>
-              <span className='text-xs font-semibold text-muted-foreground'>
-                Pratinjau Interaktif Publik
-              </span>
+        </div>
 
-              <div className='flex items-center gap-2'>
-                <button
-                  type='button'
-                  onClick={() => setPreviewViewport('desktop')}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer',
-                    previewViewport === 'desktop'
-                      ? 'bg-muted text-foreground font-semibold'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  Desktop
-                </button>
-                <button
-                  type='button'
-                  onClick={() => setPreviewViewport('mobile')}
-                  className={cn(
-                    'flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors cursor-pointer',
-                    previewViewport === 'mobile'
-                      ? 'bg-muted text-foreground font-semibold'
-                      : 'text-muted-foreground hover:text-foreground'
-                  )}
-                >
-                  <Smartphone className='size-3.5' />
-                  <span>Mobile</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Preview Canvas */}
-            <div className='flex-1 overflow-y-auto p-5 sm:p-6 flex justify-center'>
-              <div
-                className={cn(
-                  'w-full transition-all duration-300 space-y-6',
-                  previewViewport === 'mobile'
-                    ? 'max-w-sm rounded-3xl border-4 border-foreground/20 p-4 shadow-xl bg-background'
-                    : 'max-w-3xl'
-                )}
-              >
-                <PromotionsProvider initialData={[previewPromotion]}>
-                  {/* 1. Banner Preview */}
-                  {showBanner ? (
-                    <div className='space-y-1.5'>
-                      <span className='text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-                        Pratinjau: Top Banner
-                      </span>
-                      <div className='overflow-hidden rounded-lg border border-border shadow-xs'>
-                        <PromoBanner />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {/* 2. Card Preview */}
-                  {showSection ? (
-                    <div className='space-y-1.5'>
-                      <span className='text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-                        Pratinjau: Card Beranda
-                      </span>
-                      <div className='max-w-md'>
-                        <PromoCard promo={previewPromotion} />
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {/* 3. Modal Mock Preview */}
-                  {showModal ? (
-                    <div className='space-y-1.5'>
-                      <span className='text-[11px] font-semibold text-muted-foreground uppercase tracking-wider'>
-                        Pratinjau: Tampilan Popup Modal
-                      </span>
-                      <div className='overflow-hidden rounded-2xl border border-border bg-card shadow-lg max-w-md'>
-                        <PromoImage
-                          src={previewPromotion.image.src}
-                          alt={previewPromotion.image.alt}
-                          fallbackTitle={previewPromotion.title}
-                          fallbackSummary={previewPromotion.summary}
-                          aspectRatio='video'
-                        />
-                        <div className='p-5 space-y-2'>
-                          <h4 className='font-bold text-foreground text-base'>
-                            {previewPromotion.title}
-                          </h4>
-                          <p className='text-xs text-muted-foreground leading-relaxed'>
-                            {previewPromotion.summary}
-                          </p>
-                          {previewPromotion.body ? (
-                            <p className='text-xs text-foreground/80 whitespace-pre-line border-t border-border pt-2'>
-                              {previewPromotion.body}
-                            </p>
-                          ) : null}
-                          {previewPromotion.terms ? (
-                            <p className='text-[11px] text-muted-foreground italic border-t border-border/50 pt-1.5'>
-                              * {previewPromotion.terms}
-                            </p>
-                          ) : null}
-                          {previewPromotion.cta ? (
-                            <div className='pt-2 flex justify-end'>
-                              <span className='inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground'>
-                                {previewPromotion.cta.label}
-                              </span>
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
-                </PromotionsProvider>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Footer Actions */}
-      <div className='flex items-center justify-between border-t border-border/70 px-5 py-3.5 sm:px-6 bg-card shrink-0'>
-        <Button
-          type='button'
-          variant='ghost'
-          size='sm'
-          onClick={onClose}
-          className='text-xs'
-        >
-          Batal
-        </Button>
-
-        <div className='flex items-center gap-2.5'>
-          {activeTab === 'preview' ? (
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() => setActiveTab('form')}
-              className='text-xs'
-            >
-              Kembali ke Formulir
-            </Button>
-          ) : (
-            <Button
-              type='button'
-              variant='outline'
-              size='sm'
-              onClick={() => setActiveTab('preview')}
-              className='text-xs'
-            >
-              <Eye className='size-3.5' />
-              <span>Lihat Pratinjau</span>
-            </Button>
-          )}
-
+        {/* Pinned Footer (Format Form Reguler - Pill Buttons) */}
+        <div className='shrink-0 pt-3.5 border-t border-border/40 flex items-center justify-end gap-2.5'>
+          <Button
+            type='button'
+            variant='outline'
+            size='sm'
+            shape='pill'
+            onClick={onClose}
+            disabled={isSubmitting}
+            className='px-5 text-xs font-semibold'
+          >
+            Batal
+          </Button>
           <Button
             type='submit'
-            form='promo-form'
-            variant='primary'
+            form='promo-detail-form'
             size='sm'
+            shape='pill'
             disabled={isSubmitting}
-            className='text-xs min-w-[130px]'
+            className='px-6 text-xs font-semibold'
           >
-            <Send className='size-3.5' />
-            <span>
-              {isSubmitting
-                ? 'Menyimpan...'
-                : isEdit
-                  ? 'Simpan Perubahan'
-                  : 'Simpan Promosi'}
-            </span>
+            {isSubmitting ? (
+              <>
+                <Icons.spinner className='size-3.5 mr-1.5 animate-spin' />
+                Menyimpan...
+              </>
+            ) : (
+              <>
+                <Icons.check className='size-3.5 mr-1.5' />
+                {isEdit ? 'Simpan Perubahan' : 'Simpan Promosi'}
+              </>
+            )}
           </Button>
         </div>
       </div>

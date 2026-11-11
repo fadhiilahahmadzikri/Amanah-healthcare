@@ -19,7 +19,7 @@ export function SideTrayLayout({
   return (
     <div
       className={cn(
-        'relative flex flex-1 min-h-0 flex-col lg:flex-row items-start w-full gap-4 h-full',
+        'relative flex flex-1 min-h-0 flex-col lg:flex-row items-stretch w-full gap-4 h-full',
         className
       )}
     >

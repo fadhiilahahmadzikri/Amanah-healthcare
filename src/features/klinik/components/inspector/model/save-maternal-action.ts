@@ -6,7 +6,7 @@ import type { Appointment } from '../../../api/types';
 import type { UnifiedInspectorData, EditableMaternalData, EditableRegularData } from '../types';
 import {
   validateMaternalForm,
-  validateRegularForm,
+  validatePatientIdentityForm,
   getMaternityTabWithErrors,
   MATERNITY_TAB_LABELS
 } from '../../../validations/inspector-form.schema';
@@ -32,7 +32,7 @@ export async function saveMaternalAction({
   setValidationErrors
 }: SaveMaternalParams): Promise<void> {
   if (regularFormData) {
-    const regValidation = validateRegularForm(regularFormData);
+    const regValidation = validatePatientIdentityForm(regularFormData);
     if (!regValidation.isValid) {
       setValidationErrors(regValidation.errors);
       toast.error('Periksa kembali isian identitas pasien yang ditandai merah.');

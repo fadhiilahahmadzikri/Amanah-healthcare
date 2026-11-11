@@ -5,6 +5,12 @@
     "scripts/**/*.{ts,tsx}"
   ],
   "ignoreDependencies": [
-    "tw-animate-css"
+    "tw-animate-css",
+    "@fontsource/plus-jakarta-sans",
+    "date-fns",
+    "tailwindcss",
+    "tailwindcss-animate",
+    "server-only",
+    "@tanstack/form-core"
   ]
 }

@@ -11,7 +11,6 @@ export const AUDIENCE = {
 
 export type AudienceType = (typeof AUDIENCE)[keyof typeof AUDIENCE];
 
-export const ROLE_AUDIENCE = AUDIENCE;
 export type RoleAudience = AudienceType;
 
 export const NOTIFICATION_AUDIENCE = {

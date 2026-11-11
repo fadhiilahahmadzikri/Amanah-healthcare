@@ -10,6 +10,7 @@ export const clinicEssentialsKeys = {
   relationships: () => [...clinicEssentialsKeys.all, 'relationships'] as const,
   facilities: () => [...clinicEssentialsKeys.all, 'facilities-items'] as const,
   faqs: () => [...clinicEssentialsKeys.all, 'faqs'] as const,
+  promotions: () => ['admin', 'promotions'] as const,
   bloodTypes: (params?: { search?: string; status?: string }) =>
     params ? ([...clinicEssentialsKeys.all, 'blood-types', params] as const) : ([...clinicEssentialsKeys.all, 'blood-types'] as const),
   educationLevels: (params?: { search?: string; status?: string }) =>

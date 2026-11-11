@@ -4,6 +4,28 @@ export type ExportFormat = 'pdf' | 'xlsx' | 'csv';
 
 export type ExportJobStatus = 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
 
+export interface PayrollPeriodOption {
+  id: string;
+  periodName: string;
+  periodStart: string;
+  periodEnd: string;
+  status?: string;
+}
+
+export interface ExportDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  exportType: ExportType;
+  title?: string;
+  subtitle?: string;
+  entityName?: string;
+  parameters?: Record<string, unknown>;
+  fileNamePrefix?: string;
+  enableMonthPicker?: boolean;
+  availablePeriods?: PayrollPeriodOption[];
+  selectedPeriodId?: string;
+}
+
 export interface ExportFormatMeta {
   format: ExportFormat;
   label: string;

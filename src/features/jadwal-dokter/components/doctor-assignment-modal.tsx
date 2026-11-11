@@ -31,7 +31,7 @@ import { SCHEDULE_STATUS, SCHEDULE_STATUS_LABELS } from '../constants/schedule-s
 
 export type { ScheduleSubject };
 
-export interface ScheduleAssignmentModalProps {
+export interface DoctorAssignmentModalProps {
   subject?: ScheduleSubject | null;
   doctor?: ScheduleSubject | null;
   isOpen: boolean;
@@ -39,15 +39,13 @@ export interface ScheduleAssignmentModalProps {
   focusedDow?: number;
 }
 
-export type DoctorAssignmentModalProps = ScheduleAssignmentModalProps;
-
-export function ScheduleAssignmentModal({
+export function DoctorAssignmentModal({
   doctor,
   subject,
   isOpen,
   onClose,
   focusedDow
-}: ScheduleAssignmentModalProps) {
+}: DoctorAssignmentModalProps) {
   const targetSubject = subject || doctor || null;
   const [showAllDays, setShowAllDays] = React.useState(false);
 
@@ -423,5 +421,3 @@ export function ScheduleAssignmentModal({
     </Dialog>
   );
 }
-
-export const DoctorAssignmentModal = ScheduleAssignmentModal;

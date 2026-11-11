@@ -3,9 +3,7 @@ export { DoctorScheduleCardsSkeleton } from './components/doctor-schedule-cards-
 export { DoctorScheduleView } from './components/doctor-schedule-view';
 export { DoctorScheduleMobileFilterToolbar } from './components/doctor-schedule-mobile-filter-toolbar';
 export {
-  ScheduleAssignmentModal,
   DoctorAssignmentModal,
-  type ScheduleAssignmentModalProps,
   type DoctorAssignmentModalProps,
   type ScheduleSubject
 } from './components/doctor-assignment-modal';

@@ -69,5 +69,3 @@ export function formatWibPeriod(
   return `${startFormatted} – ${endFormatted}`;
 }
 
-export const formatSchedulePeriod = formatWibPeriod;
-

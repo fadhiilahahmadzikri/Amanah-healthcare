@@ -22,6 +22,7 @@ import {
 } from '@/features/immunization';
 import {
   RegularIdentitySection,
+  RegularAddressSection,
   RegularEncounterSection
 } from './inspector/sections';
 import { usePatientFormReferences } from '@/features/data-pasien/model/usePatientFormReferences';
@@ -33,6 +34,7 @@ import {
 import {
   validateMaternalForm,
   validateRegularForm,
+  validatePatientIdentityForm,
   validateImmunizationForm
 } from '../validations/inspector-form.schema';
 import {
@@ -126,8 +128,6 @@ export function AppointmentFormInspector({
     activeMaternityIntake,
     activeChildIntake,
     activeUnifiedData,
-    maternalRegionValues,
-    handleMaternalRegionChange,
     handleMaternityFieldChange,
     handleHusbandFieldChange
   } = useActiveInspectorState({
@@ -217,25 +217,88 @@ export function AppointmentFormInspector({
     }
   };
 
-  const isSaveDisabled = React.useMemo(() => {
-    if (!isEditing) return false;
-    if (Object.keys(validationErrors).length > 0) return true;
-    if (!validateRegularForm(regularFormData).isValid) return true;
+  const isSaveDisabled = isSaving;
+
+  const handleSave = React.useCallback(() => {
+    if (isSaving) return;
+
     if (isPregnancy) {
-      return !validateMaternalForm(formData).isValid;
+      const matValidation = validateMaternalForm(formData);
+      const idValidation = validatePatientIdentityForm(regularFormData);
+
+      const allErrors: Record<string, string> = {
+        ...idValidation.errors,
+        ...matValidation.errors
+      };
+
+      if (!matValidation.isValid || !idValidation.isValid) {
+        setValidationErrors(allErrors);
+        const firstMatKey = Object.keys(matValidation.errors)[0];
+        const firstIdKey = Object.keys(idValidation.errors)[0];
+        const firstMsg = matValidation.errors[firstMatKey] || idValidation.errors[firstIdKey];
+        toast.error(`Mohon lengkapi data yang ditandai merah: ${firstMsg}`);
+        return;
+      }
+    } else if (isImmunization) {
+      const imValidation = validateImmunizationForm(immunizationFormData);
+      const idValidation = validatePatientIdentityForm(regularFormData);
+
+      const allErrors: Record<string, string> = {
+        ...idValidation.errors,
+        ...imValidation.errors
+      };
+
+      if (!imValidation.isValid || !idValidation.isValid) {
+        setValidationErrors(allErrors);
+        const firstImKey = Object.keys(imValidation.errors)[0];
+        const firstIdKey = Object.keys(idValidation.errors)[0];
+        const firstMsg = imValidation.errors[firstImKey] || idValidation.errors[firstIdKey];
+        toast.error(`Mohon lengkapi data yang ditandai merah: ${firstMsg}`);
+        return;
+      }
+    } else {
+      const regValidation = validateRegularForm(regularFormData);
+      if (!regValidation.isValid) {
+        setValidationErrors(regValidation.errors);
+        const firstKey = Object.keys(regValidation.errors)[0];
+        const firstMsg = regValidation.errors[firstKey];
+        toast.error(`Mohon lengkapi data yang ditandai merah: ${firstMsg}`);
+        const REGULAR_DOM_MAP: Record<string, string> = {
+          fullName: 'reg-name-input',
+          nik: 'reg-nik-input',
+          birthDate: 'reg-birthdate-input',
+          gender: 'reg-gender-select',
+          complaint: 'reg-complaint-input',
+          emergencyContactName: 'reg-emg-name-input',
+          emergencyContactPhone: 'reg-emg-phone-input',
+          phone: 'reg-phone-input',
+          email: 'reg-email-input'
+        };
+        const domId = REGULAR_DOM_MAP[firstKey] || `reg-${firstKey}-input`;
+        setTimeout(() => {
+          const el = document.getElementById(domId);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) {
+              el.focus({ preventScroll: true });
+            }
+          }
+        }, 100);
+        return;
+      }
     }
-    if (isImmunization) {
-      return !validateImmunizationForm(immunizationFormData).isValid;
-    }
-    return false;
+
+    void handleSaveEdit(isDirty);
   }, [
-    isEditing,
-    validationErrors,
+    isSaving,
     isPregnancy,
     isImmunization,
     formData,
     immunizationFormData,
-    regularFormData
+    regularFormData,
+    setValidationErrors,
+    handleSaveEdit,
+    isDirty
   ]);
 
   return (
@@ -285,6 +348,13 @@ export function AppointmentFormInspector({
               references={references}
             />
 
+            <RegularAddressSection
+              data={parsedData}
+              isEditing={isEditing}
+              regularFormData={regularFormData}
+              onRegularFieldChange={handleRegularFieldChange}
+            />
+
             <RegularEncounterSection
               appointment={appointment}
               data={parsedData}
@@ -299,8 +369,6 @@ export function AppointmentFormInspector({
               <MaternityAdminInspector
                 intake={activeMaternityIntake}
                 isEditing={isEditing}
-                regionValues={maternalRegionValues}
-                onRegionChange={handleMaternalRegionChange}
                 onIntakeFieldChange={handleMaternityFieldChange}
                 onHusbandFieldChange={handleHusbandFieldChange}
                 onPreviousPregnanciesChange={(updated) =>
@@ -341,7 +409,7 @@ export function AppointmentFormInspector({
           isSaving={isSaving}
           isSaveDisabled={isSaveDisabled}
           onCancel={handleCancelEdit}
-          onSave={() => handleSaveEdit(isDirty)}
+          onSave={handleSave}
         />
       )}
 

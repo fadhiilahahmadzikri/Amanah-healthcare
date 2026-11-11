@@ -27,7 +27,11 @@ export const serverEnv = {
     (process.env.NODE_ENV !== 'production' && process.env.HTTP_LOG_HEADERS !== 'false'),
   LOG_LEVEL: process.env.LOG_LEVEL || (process.env.NODE_ENV === 'production' ? 'info' : 'debug'),
   HTTP_LOG_MAX_BODY_LENGTH: Number(process.env.HTTP_LOG_MAX_BODY_LENGTH) || 10_000,
-  TRUSTED_PROXY: process.env.TRUSTED_PROXY === 'true'
+  TRUSTED_PROXY: process.env.TRUSTED_PROXY === 'true',
+  AUTH_COOKIE_SECURE:
+    process.env.AUTH_COOKIE_SECURE !== undefined
+      ? process.env.AUTH_COOKIE_SECURE === 'true'
+      : process.env.NODE_ENV === 'production'
 } as const;
 
 export type ServerEnv = typeof serverEnv;

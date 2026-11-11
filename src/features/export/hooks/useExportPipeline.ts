@@ -44,12 +44,15 @@ export function useExportPipeline() {
           setIsChecking(false);
         }
         return res.available;
-      } catch {
+      } catch (err: unknown) {
         if (isMountedRef.current) {
-          setHasData(true); // Graceful fallback
+          const msg =
+            err instanceof Error ? err.message : 'Gagal memeriksa ketersediaan data';
+          setErrorMessage(msg);
+          setHasData(null);
           setIsChecking(false);
         }
-        return true;
+        return false;
       }
     },
     []

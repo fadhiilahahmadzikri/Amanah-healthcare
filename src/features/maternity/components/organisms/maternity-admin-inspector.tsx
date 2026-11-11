@@ -10,7 +10,6 @@ import type {
   MaternalContraceptiveHistory,
   MaternalConditionResponse
 } from '../../types/maternity.types';
-import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import {
   MaternalHusbandSection,
   MaternityObstetricSection,
@@ -24,8 +23,6 @@ export interface MaternityAdminInspectorProps {
   isEditing?: boolean;
   onIntakeFieldChange?: (field: keyof MaternityIntake, value: any) => void;
   onHusbandFieldChange?: (field: keyof MaternalHusbandProfile, value: any) => void;
-  regionValues?: PatientRegionValues;
-  onRegionChange?: (updates: Partial<PatientRegionValues>) => void;
   onPreviousPregnanciesChange?: (updated: MaternalPreviousPregnancy[]) => void;
   onContraceptiveHistoriesChange?: (updated: MaternalContraceptiveHistory[]) => void;
   onConditionsChange?: (updated: MaternalConditionResponse[]) => void;
@@ -38,8 +35,6 @@ export function MaternityAdminInspector({
   isEditing = false,
   onIntakeFieldChange,
   onHusbandFieldChange,
-  regionValues,
-  onRegionChange,
   onPreviousPregnanciesChange,
   onContraceptiveHistoriesChange,
   onConditionsChange,

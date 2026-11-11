@@ -8,7 +8,6 @@ import type {
   EditableRegularData
 } from '../types';
 import type { MaternityIntake, MaternalHusbandProfile } from '@/features/maternity';
-import type { PatientRegionValues } from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { calculateAgeInYears, calculateBmi } from '../../../utils/medical-appointment';
 import {
   calculateEddFromLmp,
@@ -302,48 +301,10 @@ export function useActiveInspectorState({
     [handleFieldChange]
   );
 
-  const maternalRegionValues: PatientRegionValues = React.useMemo(
-    () => ({
-      provinceName: formData.provinceName || parsedData.patient?.provinceName || '',
-      provinceCode: formData.provinceCode || parsedData.patient?.provinceCode || '',
-      regencyName: formData.regencyName || parsedData.patient?.regencyName || '',
-      regencyCode: formData.regencyCode || parsedData.patient?.regencyCode || '',
-      districtName: formData.districtName || parsedData.patient?.districtName || '',
-      districtCode: formData.districtCode || parsedData.patient?.districtCode || '',
-      villageName: formData.villageName || parsedData.patient?.villageName || '',
-      villageCode: formData.villageCode || parsedData.patient?.villageCode || '',
-      line1: formData.line1 || parsedData.patient?.line1 || formData.domicileAddress || ''
-    }),
-    [formData, parsedData.patient]
-  );
-
-  const handleMaternalRegionChange = React.useCallback(
-    (updates: Partial<PatientRegionValues>) => {
-      Object.entries(updates).forEach(([key, val]) => {
-        handleFieldChange(key as keyof EditableMaternalData, val);
-      });
-      const merged = { ...maternalRegionValues, ...updates };
-      const parts = [
-        merged.line1,
-        merged.villageName ? `Kel. ${merged.villageName}` : '',
-        merged.districtName ? `Kec. ${merged.districtName}` : '',
-        merged.regencyName,
-        merged.provinceName ? `Prov. ${merged.provinceName}` : ''
-      ].filter(Boolean);
-      handleFieldChange('domicileAddress', parts.join(', '));
-      if (validationErrors.domicileAddress) {
-        handleClearError('domicileAddress');
-      }
-    },
-    [handleFieldChange, maternalRegionValues, validationErrors.domicileAddress, handleClearError]
-  );
-
   return {
     activeMaternityIntake,
     activeChildIntake,
     activeUnifiedData,
-    maternalRegionValues,
-    handleMaternalRegionChange,
     handleMaternityFieldChange,
     handleHusbandFieldChange
   };

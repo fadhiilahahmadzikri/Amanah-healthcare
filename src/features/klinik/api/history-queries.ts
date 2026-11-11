@@ -81,8 +81,6 @@ export function maternalHistoryQueryOptions(filters: ClinicalHistoryFilters) {
   });
 }
 
-export const maternityHistoryQueryOptions = maternalHistoryQueryOptions;
-
 export function immunizationHistoryQueryOptions(filters: ClinicalHistoryFilters) {
   return queryOptions<PaginatedHistoryResponse<ImmunizationHistoryItem>>({
     queryKey: clinicalHistoryKeys.immunization(filters),

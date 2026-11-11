@@ -15,7 +15,12 @@ import {
 import { usePatientCheckIn } from '../model/usePatientCheckIn';
 import { PatientQrScanner } from './patient-qr-scanner';
 import { PatientCheckInResultDrawer } from './patient-check-in-result-drawer';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  REGEXP_ONLY_DIGITS_AND_CHARS
+} from '@/components/ui/input-otp';
 import type { PerformCheckInSuccessData } from '@/features/appointment-pasien/api/types';
 
 export interface PatientCheckInModalProps {
@@ -205,6 +210,11 @@ export function PatientCheckInModal({
                   value={manualCode}
                   onChange={(val) => actions.setManualCode(val.toUpperCase())}
                   disabled={isSubmitting}
+                  inputMode='text'
+                  pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                  autoCapitalize='characters'
+                  spellCheck={false}
+                  autoCorrect='off'
                   containerClassName='justify-center'
                 >
                   <InputOTPGroup>
@@ -212,7 +222,7 @@ export function PatientCheckInModal({
                       <InputOTPSlot
                         key={index}
                         index={index}
-                        className='size-11 text-base font-bold font-mono'
+                        className='size-11 text-base font-bold font-mono uppercase'
                       />
                     ))}
                   </InputOTPGroup>

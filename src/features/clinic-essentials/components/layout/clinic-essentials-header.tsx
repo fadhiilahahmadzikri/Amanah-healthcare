@@ -12,6 +12,7 @@ import {
   GraduationCap,
   HelpCircle,
   Layers,
+  Megaphone,
   Plus,
   RefreshCw,
   Settings2,
@@ -34,6 +35,7 @@ import {
 import { cn } from '@/lib/utils';
 import type { FacilityResource } from '../../types/clinic-essentials.types';
 import type { ClinicEssentialEntityType } from '../../model/useClinicEssentialFormModal';
+import type { ResourceToolbarConfig } from '../../config/clinic-essentials-toolbar.config';
 
 export interface ClinicEssentialsHeaderProps {
   searchQuery: string;
@@ -52,8 +54,11 @@ export interface ClinicEssentialsHeaderProps {
   isAnyRefetching: boolean;
   isPerformingAction: boolean;
   activeTab: FacilityResource;
+  currentConfig: ResourceToolbarConfig;
   unitsCount: number;
   categoriesCount: number;
+  unitTypesCount?: number;
+  onPrimaryAction: () => void;
   onOpenModal: (type: ClinicEssentialEntityType) => void;
   onOpenDemographicModal: (
     type: 'blood-types' | 'education-levels' | 'religions' | 'occupations',
@@ -61,6 +66,7 @@ export interface ClinicEssentialsHeaderProps {
   ) => void;
   onOpenFacilityModal?: () => void;
   onOpenFaqModal?: () => void;
+  onOpenPromotionModal?: () => void;
 }
 
 export function ClinicEssentialsHeader({
@@ -79,21 +85,37 @@ export function ClinicEssentialsHeader({
   onRefreshAll,
   isAnyRefetching,
   isPerformingAction,
-  activeTab,
+  activeTab: _activeTab,
+  currentConfig,
   unitsCount,
   categoriesCount,
+  unitTypesCount = 0,
+  onPrimaryAction,
   onOpenModal,
   onOpenDemographicModal,
   onOpenFacilityModal,
   onOpenFaqModal,
+  onOpenPromotionModal,
 }: ClinicEssentialsHeaderProps) {
+  // Check if primary action button should be disabled (e.g. rooms need units, services need categories)
+  const disabledState = React.useMemo(() => {
+    if (!currentConfig.getDisabledState) {
+      return { isDisabled: false };
+    }
+    return currentConfig.getDisabledState({
+      unitTypesCount,
+      unitsCount,
+      categoriesCount,
+    });
+  }, [currentConfig, unitTypesCount, unitsCount, categoriesCount]);
+
   return (
     <div className='shrink-0'>
       <ResponsiveFacetToolbox
         searchQuery={searchQuery}
         onSearchChange={onSearchChange}
         onOpenSearchDialog={onOpenSearchDialog}
-        searchPlaceholder='Pencarian Fasilitas...'
+        searchPlaceholder={currentConfig.searchPlaceholder}
         facets={facets}
         isFiltered={isFiltered}
         onResetAll={onResetAll}
@@ -139,214 +161,24 @@ export function ClinicEssentialsHeader({
 
             {canManage && (
               <>
-                {/* Active Tab Direct Add Button */}
-                {activeTab === 'unit-types' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenModal('unit-type')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Klasifikasi Fasilitas'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Klasifikasi</span>}
-                  </Button>
-                )}
+                {/* Dynamic Primary Action Button according to active tab */}
+                <Button
+                  type='button'
+                  size={isCompact ? 'icon' : 'sm'}
+                  onClick={onPrimaryAction}
+                  disabled={disabledState.isDisabled}
+                  className={
+                    isCompact
+                      ? 'size-8 rounded-md shrink-0 shadow-xs'
+                      : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
+                  }
+                  title={disabledState.isDisabled ? disabledState.reason : currentConfig.createButtonTitle}
+                >
+                  <Plus className='size-3.5' />
+                  {!isCompact && <span>{currentConfig.createButtonLabel}</span>}
+                </Button>
 
-                {activeTab === 'units' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenModal('unit')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Poliklinik & Departemen'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Poliklinik</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'rooms' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenModal('room')}
-                    disabled={unitsCount === 0}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Ruang Periksa'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Ruang Periksa</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'categories' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenModal('category')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Kelompok Layanan'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Kelompok</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'services' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenModal('service')}
-                    disabled={categoriesCount === 0}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Service Medis'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Service</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'facilities' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenFacilityModal?.()}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Fasilitas Unggulan'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Fasilitas</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'faqs' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenFaqModal?.()}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Pertanyaan FAQ'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah FAQ</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'relationships' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenModal('relationship')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Relasi Pasien'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Relasi</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'blood-types' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenDemographicModal('blood-types', 'Golongan Darah')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Golongan Darah'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Golongan Darah</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'education-levels' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenDemographicModal('education-levels', 'Pendidikan')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Jenjang Pendidikan'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Pendidikan</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'religions' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenDemographicModal('religions', 'Agama')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Agama'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Agama</span>}
-                  </Button>
-                )}
-
-                {activeTab === 'occupations' && (
-                  <Button
-                    type='button'
-                    size={isCompact ? 'icon' : 'sm'}
-                    onClick={() => onOpenDemographicModal('occupations', 'Pekerjaan')}
-                    className={
-                      isCompact
-                        ? 'size-8 rounded-md shrink-0 shadow-xs'
-                        : 'h-8 text-xs font-medium gap-1.5 shadow-xs'
-                    }
-                    title='Tambah Pekerjaan'
-                  >
-                    <Plus className='size-3.5' />
-                    {!isCompact && <span>Tambah Pekerjaan</span>}
-                  </Button>
-                )}
-
-                {/* Quick Master Config Dropdown */}
+                {/* Quick Master Config Dropdown for jumping across entities */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
@@ -423,6 +255,14 @@ export function ClinicEssentialsHeader({
                     >
                       <HelpCircle className='size-4 text-primary' />
                       <span>Tambah Pertanyaan FAQ</span>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem
+                      onClick={() => onOpenPromotionModal?.()}
+                      className='cursor-pointer gap-2'
+                    >
+                      <Megaphone className='size-4 text-primary' />
+                      <span>Tambah Promosi & Pengumuman</span>
                     </DropdownMenuItem>
 
                     <DropdownMenuSeparator />

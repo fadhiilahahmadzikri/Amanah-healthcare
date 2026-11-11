@@ -13,7 +13,7 @@ export class ExportApi {
    */
   static async checkAvailability(
     exportType: ExportType,
-    parameters?: Record<string, any>
+    parameters?: Record<string, unknown>
   ): Promise<CheckAvailabilityResponse> {
     return clientFetch<CheckAvailabilityResponse>('/api/v1/exports/check-availability', {
       method: 'POST',
@@ -30,7 +30,7 @@ export class ExportApi {
   static async requestExport(
     exportType: ExportType,
     format: ExportFormat,
-    parameters?: Record<string, any>
+    parameters?: Record<string, unknown>
   ): Promise<RequestExportResponse> {
     return clientFetch<RequestExportResponse>('/api/v1/exports', {
       method: 'POST',

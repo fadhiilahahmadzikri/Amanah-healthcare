@@ -148,8 +148,13 @@ export async function proxyToUpstream(
     }
   }
 
-  // 5. Handle empty responses (204 / 304)
-  if (upstreamResponse.status === 204 || upstreamResponse.status === 304) {
+  // 5. Handle responses that MUST NOT have a body per RFC 9110 (204, 304, and 3xx redirects)
+  const isNoBodyStatus =
+    upstreamResponse.status === 204 ||
+    upstreamResponse.status === 304 ||
+    (upstreamResponse.status >= 300 && upstreamResponse.status < 400);
+
+  if (isNoBodyStatus) {
     return new NextResponse(null, {
       status: upstreamResponse.status,
       headers: responseHeaders

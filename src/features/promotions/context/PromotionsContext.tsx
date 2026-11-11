@@ -5,7 +5,7 @@ import { promotionsApi } from '../api/promotions.api';
 import {
   dismissBanner as persistDismissBanner,
   hasSeenModal,
-  markModalAsSeen,
+  markModalSeen,
   shouldShowBanner,
 } from '../lib/modalMemory';
 import type { PublicPromotion } from '../types/promotions.types';
@@ -114,7 +114,7 @@ export function PromotionsProvider({
 
   const dismissModal = React.useCallback(() => {
     if (activeModalPromo) {
-      markModalAsSeen(
+      markModalSeen(
         activeModalPromo.id,
         activeModalPromo.version,
         activeModalPromo.modal?.frequency ?? 'once_per_day'

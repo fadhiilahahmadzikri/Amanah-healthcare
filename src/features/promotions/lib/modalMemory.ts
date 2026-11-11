@@ -51,9 +51,6 @@ export function hasSeenModal(
   return !shouldShowModal(id, version, frequency);
 }
 
-export const markModalAsSeen = markModalSeen;
-
-
 export function shouldShowBanner(id: string, version: string): boolean {
   if (typeof window === 'undefined') return true;
 

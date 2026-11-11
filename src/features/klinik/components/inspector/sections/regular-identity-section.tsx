@@ -7,15 +7,9 @@ import { getGenderLabel, type Gender } from '@/constants/gender.constants';
 import { getRelationshipLabel } from '@/constants/relationship.constants';
 import { PatientRelationshipSelector } from '@/features/data-pasien/components/registration/molecules/patient-relationship-selector';
 import { PatientLineInput } from '@/features/data-pasien/components/registration/atoms/patient-line-input';
-import { PatientLineTextarea } from '@/features/data-pasien/components/registration/atoms/patient-line-textarea';
 import { PatientGenderSelector } from '@/features/data-pasien/components/registration/molecules/patient-gender-selector';
 import { PatientBloodTypeSelector } from '@/features/data-pasien/components/registration/molecules/patient-blood-type-selector';
 import { PatientSearchableSelect } from '@/features/data-pasien/components/registration/molecules/patient-searchable-select';
-import {
-  CountryBadge,
-  PatientRegionDropdown,
-  type PatientRegionValues
-} from '@/features/data-pasien/components/registration/molecules/patient-region-dropdown';
 import { formatClinicDate } from '@/lib/date-format';
 import type { EditableRegularData, UnifiedInspectorData } from '../types';
 
@@ -55,44 +49,10 @@ export function RegularIdentitySection({
   const phone = patient?.phone || '';
   const email = patient?.email || '';
 
-  const regionValues: PatientRegionValues = React.useMemo(
-    () => ({
-      provinceName: regularFormData?.provinceName || patient?.provinceName || '',
-      provinceCode: regularFormData?.provinceCode || patient?.provinceCode || '',
-      regencyName: regularFormData?.regencyName || patient?.regencyName || '',
-      regencyCode: regularFormData?.regencyCode || patient?.regencyCode || '',
-      districtName: regularFormData?.districtName || patient?.districtName || '',
-      districtCode: regularFormData?.districtCode || patient?.districtCode || '',
-      villageName: regularFormData?.villageName || patient?.villageName || '',
-      villageCode: regularFormData?.villageCode || patient?.villageCode || '',
-      line1: regularFormData?.line1 ?? patient?.line1 ?? ''
-    }),
-    [regularFormData, patient]
-  );
-
-  const handleRegionChange = React.useCallback(
-    (updates: Partial<PatientRegionValues>) => {
-      if (!onRegularFieldChange) return;
-      Object.entries(updates).forEach(([key, val]) => {
-        onRegularFieldChange(key as keyof EditableRegularData, val);
-      });
-      const merged = { ...regionValues, ...updates };
-      const parts = [
-        merged.line1,
-        merged.villageName ? `Kel. ${merged.villageName}` : '',
-        merged.districtName ? `Kec. ${merged.districtName}` : '',
-        merged.regencyName,
-        merged.provinceName ? `Prov. ${merged.provinceName}` : ''
-      ].filter(Boolean);
-      onRegularFieldChange('address', parts.join(', '));
-    },
-    [onRegularFieldChange, regionValues]
-  );
-
   return (
-    <div className='rounded-2xl border border-border/70 p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 space-y-4 shadow-xs font-sans'>
+    <div className='rounded-2xl p-4 sm:p-5 bg-surface-subtle/80 dark:bg-muted/20 space-y-4 shadow-xs font-sans'>
       <span className='text-xs font-bold text-foreground block pb-1 border-b border-border/40 uppercase tracking-wider'>
-        Identitas Pasien & Demografi
+        Identitas Pasien
       </span>
 
       {isEditing && regularFormData && onRegularFieldChange ? (
@@ -275,16 +235,6 @@ export function RegularIdentitySection({
             placeholder='email@domain.com'
           />
 
-          <div className='col-span-1 sm:col-span-2 space-y-2 pt-2 pb-1 border-t border-border/30'>
-            <div className='flex items-center justify-between pb-1'>
-              <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
-                Alamat Domisili Pasien
-              </span>
-              <CountryBadge />
-            </div>
-            <PatientRegionDropdown values={regionValues} onChange={handleRegionChange} />
-          </div>
-
           <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-border/30'>
             <PatientLineInput
               id='reg-emg-name-input'
@@ -409,54 +359,6 @@ export function RegularIdentitySection({
           />
 
           <PatientLineInput id='read-email' label='Email Pasien' value={email} readOnly />
-
-          <div className='col-span-1 sm:col-span-2 space-y-3 p-3.5 rounded-xl bg-card border border-border/60 shadow-2xs'>
-            <div className='flex items-center justify-between pb-1 border-b border-border/30'>
-              <span className='text-xs font-semibold text-muted-foreground block uppercase tracking-wider'>
-                Alamat Domisili Pasien
-              </span>
-              <CountryBadge />
-            </div>
-
-            <div className='grid grid-cols-1 sm:grid-cols-2 gap-4'>
-              <div className='col-span-1 sm:col-span-2'>
-                <PatientLineInput
-                  id='read-province'
-                  label='Provinsi'
-                  value={regionValues.provinceName || ''}
-                  readOnly
-                />
-              </div>
-              <div className='col-span-1 sm:col-span-2'>
-                <PatientLineInput
-                  id='read-regency'
-                  label='Kota / Kabupaten'
-                  value={regionValues.regencyName || ''}
-                  readOnly
-                />
-              </div>
-              <PatientLineInput
-                id='read-district'
-                label='Kecamatan'
-                value={regionValues.districtName || ''}
-                readOnly
-              />
-              <PatientLineInput
-                id='read-village'
-                label='Kelurahan / Desa'
-                value={regionValues.villageName || ''}
-                readOnly
-              />
-              <div className='col-span-1 sm:col-span-2'>
-                <PatientLineTextarea
-                  id='read-line1'
-                  label='Alamat Detail (Jalan, RT/RW, No. Rumah)'
-                  value={regionValues.line1 || ''}
-                  readOnly
-                />
-              </div>
-            </div>
-          </div>
 
           <div className='col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1 border-t border-border/30'>
             <PatientLineInput
