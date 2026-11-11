@@ -5,6 +5,8 @@ export type ModalFrequency =
   | 'once_per_day'
   | 'once_per_week';
 
+export type ModalMode = 'card' | 'image_only';
+
 export type PromoStatus =
   | 'draft'
   | 'scheduled'
@@ -39,10 +41,15 @@ export interface PublicPromotion {
     href: string;
   };
   placements: Placement[];
+  modalMode?: ModalMode;
   modal?: {
     frequency: ModalFrequency;
     delaySec: number;
+    mode: ModalMode;
   };
+  startsAt?: string;
+  endsAt?: string;
+  createdAt?: string;
 }
 
 export interface AdminPromotion {
@@ -64,6 +71,7 @@ export interface AdminPromotion {
   showSection: boolean;
   modalFrequency: ModalFrequency;
   modalDelaySec: number;
+  modalMode: ModalMode;
   priority: number;
   isPublished: boolean;
   startsAt?: string | null;
@@ -104,6 +112,7 @@ export interface CreatePromotionPayload {
   showSection: boolean;
   modalFrequency: ModalFrequency;
   modalDelaySec: number;
+  modalMode: ModalMode;
   priority: number;
   isPublished?: boolean;
   startsAt?: string | null;

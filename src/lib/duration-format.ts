@@ -12,23 +12,20 @@ export interface WorkDurationOptions {
   checkInAt?: string | null;
   checkOutAt?: string | null;
   validatedHours?: number | null;
+  isOverdueCheckOut?: boolean | null;
 }
 
 /**
  * Formats elapsed work duration into natural localized Indonesian units.
- * Examples:
- * - No checkOutAt => "Sedang berdinas"
- * - 25 seconds => "25 detik"
- * - 15 minutes => "15 menit"
- * - 1 hour 20 minutes => "1 jam 20 menit"
- * - 7 hours => "7 jam"
+ * Rules:
+ * - checkInAt && checkOutAt => calculates exact elapsed time ("1 jam 20 menit")
+ * - validatedHours > 0 => formats authorized hours
+ * - checkInAt && !checkOutAt && isOverdueCheckOut => "Perlu Rekonsiliasi"
+ * - checkInAt && !checkOutAt => "Sedang berdinas"
+ * - Not checked in (absent, leave, scheduled) => "-"
  */
 export function formatWorkDuration(options: WorkDurationOptions): string {
-  const { checkInAt, checkOutAt, validatedHours } = options;
-
-  if (!checkOutAt && checkInAt) {
-    return 'Sedang berdinas';
-  }
+  const { checkInAt, checkOutAt, validatedHours, isOverdueCheckOut } = options;
 
   if (checkInAt && checkOutAt) {
     const startMs = new Date(checkInAt).getTime();
@@ -53,7 +50,15 @@ export function formatWorkDuration(options: WorkDurationOptions): string {
     return formatPracticeHours(validatedHours);
   }
 
-  return checkOutAt ? '-' : 'Sedang berdinas';
+  if (isOverdueCheckOut && !checkOutAt) {
+    return 'Perlu Rekonsiliasi';
+  }
+
+  if (checkInAt && !checkOutAt) {
+    return 'Sedang berdinas';
+  }
+
+  return '-';
 }
 
 /**

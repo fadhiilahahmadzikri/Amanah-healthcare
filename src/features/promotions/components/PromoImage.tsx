@@ -11,7 +11,7 @@ interface PromoImageProps {
   fallbackTitle?: string;
   fallbackSummary?: string;
   className?: string;
-  aspectRatio?: 'video' | 'wide' | 'square';
+  aspectRatio?: 'video' | 'wide' | 'square' | 'auto';
   priority?: boolean;
 }
 
@@ -43,7 +43,9 @@ export function PromoImage({
       ? 'aspect-video'
       : aspectRatio === 'wide'
         ? 'aspect-[21/9]'
-        : 'aspect-square';
+        : aspectRatio === 'square'
+          ? 'aspect-square'
+          : 'aspect-auto';
 
   // If no source or image loading failed: Render graceful text-only visual
   if (!normalizedSrc || hasError) {

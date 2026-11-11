@@ -9,7 +9,7 @@ export function getCurrentAttendanceFilterDate(): string {
 export function createDefaultAttendanceFilters(): AttendanceFilterParams {
   return {
     date: getCurrentAttendanceFilterDate(),
-    shift: 'all',
+    shift: 'current',
     status: 'all',
     category: 'all',
     search: ''

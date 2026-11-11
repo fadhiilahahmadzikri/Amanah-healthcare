@@ -37,7 +37,7 @@ export function useAttendanceFilterState(records: StaffAttendance[] = []) {
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (params.search && params.search.trim().length > 0) count++;
-    if (params.shift && params.shift !== 'all') count++;
+    if (params.shift && params.shift !== 'current') count++;
     if (params.status && params.status !== 'all') count++;
     if (params.category && params.category !== 'all') count++;
     if (activeTab !== 'all') count++;

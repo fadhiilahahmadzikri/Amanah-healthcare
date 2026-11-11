@@ -1,10 +1,13 @@
 import { clientFetch } from '@/lib/client-fetch';
 import type {
   StaffAttendance,
+  StaffAttendanceMilestone,
   AttendanceFilterParams,
   AttendanceListResponse,
   AttendanceExportCandidatesResponse,
-  QRPresenceConfig
+  QRPresenceConfig,
+  ReconcileOvertimePayload,
+  ReconcileOvertimeResponse
 } from './types';
 
 class AttendanceService {
@@ -104,6 +107,31 @@ class AttendanceService {
       `/api/v1/attendance/export-candidates${query}`,
       {
         method: 'GET'
+      }
+    );
+  }
+
+  async getStaffMilestones(
+    staffProfileId: string,
+    date?: string
+  ): Promise<StaffAttendanceMilestone[]> {
+    const query = date ? `?date=${encodeURIComponent(date)}` : '';
+    return clientFetch<StaffAttendanceMilestone[]>(
+      `/api/v1/attendance/staff/${encodeURIComponent(staffProfileId)}/milestones${query}`,
+      {
+        method: 'GET'
+      }
+    );
+  }
+
+  async reconcileOvertime(
+    payload: ReconcileOvertimePayload
+  ): Promise<ReconcileOvertimeResponse> {
+    return clientFetch<ReconcileOvertimeResponse>(
+      '/api/v1/attendance/reconcile-overtime',
+      {
+        method: 'POST',
+        body: JSON.stringify(payload)
       }
     );
   }

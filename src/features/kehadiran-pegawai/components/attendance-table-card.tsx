@@ -31,6 +31,7 @@ import {
 import { formatWorkDuration, formatPresenceTimestamp } from '../utils/duration-format';
 import { useCheckoutAttendanceMutation } from '../api/mutations';
 import { EarlyCheckoutModal } from './early-checkout-modal';
+import { AttendanceReconciliationModal } from './attendance-reconciliation-modal';
 import { AttendanceMobileCards } from './attendance-mobile-cards';
 import { AttendanceDetailSheet } from './attendance-detail-sheet';
 import type { useAttendanceFilterState } from '../model/useAttendanceFilterState';
@@ -61,6 +62,7 @@ export function AttendanceTableCard({
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [exportRow, setExportRow] = useState<StaffAttendance | null>(null);
   const [detailRow, setDetailRow] = useState<StaffAttendance | null>(null);
+  const [reconcileRow, setReconcileRow] = useState<StaffAttendance | null>(null);
   const [earlyCheckoutTarget, setEarlyCheckoutTarget] = useState<{
     staffId: string;
     staffName: string;
@@ -235,7 +237,8 @@ export function AttendanceTableCard({
                     const durasiStr = formatWorkDuration({
                       checkInAt: row.checkInAt,
                       checkOutAt: row.checkOutAt,
-                      validatedHours: row.validatedDurationHours
+                      validatedHours: row.validatedDurationHours,
+                      isOverdueCheckOut: row.isOverdueCheckOut
                     });
 
                     return (
@@ -362,17 +365,43 @@ export function AttendanceTableCard({
                                 </Tooltip>
                               )}
                             </div>
-                          ) : (
+                          ) : row.checkInAt ? (
                             <span className='inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'>
                               <span className='size-1.5 rounded-full bg-amber-500 animate-pulse' />
                               <span>Sedang Dinas</span>
                             </span>
+                          ) : (
+                            <span className='font-mono text-xs text-muted-foreground/60'>-</span>
                           )}
                         </TableCell>
 
                         {/* Durasi */}
                         <TableCell className='px-3 py-2.5 text-xs text-muted-foreground font-medium'>
-                          {durasiStr}
+                          {row.isOverdueCheckOut && !row.checkOutAt ? (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  type='button'
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setReconcileRow(row);
+                                  }}
+                                  className='inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-bold bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 hover:bg-amber-500/25 transition-all shadow-2xs cursor-pointer'
+                                >
+                                  <Icons.clock className='size-3.5 text-amber-600 dark:text-amber-400 shrink-0' />
+                                  <span>Perlu Rekonsiliasi</span>
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent side='top' className='text-xs max-w-xs'>
+                                <p className='font-semibold'>Kelebihan Jam Shift (+{row.overdueMinutes || 0} mnt)</p>
+                                <p className='text-muted-foreground mt-0.5'>
+                                  Klik untuk menentukan apakah jam tambahan diakui sebagai lembur atau penyesuaian lupa check-out.
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : (
+                            durasiStr
+                          )}
                         </TableCell>
 
                         {/* Status Presensi */}
@@ -535,6 +564,13 @@ export function AttendanceTableCard({
             );
           }
         }}
+      />
+
+      {/* 10. Modal Rekonsiliasi Lembur Presensi */}
+      <AttendanceReconciliationModal
+        isOpen={Boolean(reconcileRow)}
+        onClose={() => setReconcileRow(null)}
+        attendance={reconcileRow}
       />
     </div>
   );

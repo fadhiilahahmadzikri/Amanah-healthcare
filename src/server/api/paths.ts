@@ -108,5 +108,9 @@ export const paths = {
   },
   time: {
     current: () => `${getBaseApiUrl()}/api/v1/time/current`
+  },
+  promotions: {
+    publicList: () => `${getBaseApiUrl()}/api/v1/public/promotions`,
+    publicById: (id: string) => `${getBaseApiUrl()}/api/v1/public/promotions/${id}`
   }
 } as const;

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { attendanceService } from './service';
 import { attendanceKeys } from './queries';
 import { ATTENDANCE_ACTIONS } from './types';
+import { RECONCILE_DECISION } from '../constants/attendance-status.constants';
 import { toast } from 'sonner';
 import { presentAttendanceModal } from '@/components/feedback/choreographed-modal';
 
@@ -78,6 +79,31 @@ export function useUpdateQRConfigMutation() {
     },
     onError: (err: Error) => {
       toast.error(err.message || 'Gagal memperbarui konfigurasi QR.');
+    }
+  });
+}
+
+export function useReconcileOvertimeMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (payload: import('./types').ReconcileOvertimePayload) => {
+      return attendanceService.reconcileOvertime(payload);
+    },
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: attendanceKeys.all });
+      if (res.decision === RECONCILE_DECISION.APPROVED_OVERTIME) {
+        toast.success(
+          `Rekonsiliasi lembur berhasil disetujui (${res.overtimeHours} jam). Terhubung ke rekap payroll.`
+        );
+      } else {
+        toast.success(
+          'Rekonsiliasi selesai: Presensi disesuaikan ke jam shift standar tanpa penambahan lembur.'
+        );
+      }
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || 'Gagal melakukan rekonsiliasi lembur.');
     }
   });
 }

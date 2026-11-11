@@ -56,6 +56,7 @@ export const PromotionFormSchema = z
       .enum(['once_per_session', 'once_per_day', 'once_per_week'])
       .default('once_per_day'),
     modalDelaySec: z.number().int().min(0).max(30).default(3),
+    modalMode: z.enum(['card', 'image_only']).default('card'),
     priority: z.number().int().min(0, 'Prioritas minimal 0').default(0),
     isPublished: z.boolean().default(false),
     startsAt: z.string().nullable().optional(),

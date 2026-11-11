@@ -52,6 +52,7 @@ export function useAttendanceDashboard() {
   const dynamicOptions = useAttendanceDynamicOptions({
     availableFilters: data?.availableFilters,
     records,
+    currentShift: data?.currentShift,
     params: filterState.params,
     onFilterChange: filterState.changeFilter,
     activeTab: filterState.activeTab,

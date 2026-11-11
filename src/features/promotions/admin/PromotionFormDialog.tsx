@@ -15,6 +15,7 @@ import type {
   AdminPromotion,
   CreatePromotionPayload,
   ModalFrequency,
+  ModalMode,
   PromoImageType,
   PublicPromotion,
 } from '../types/promotions.types';
@@ -66,6 +67,7 @@ export function PromotionFormDialog({
   const [showSection, setShowSection] = React.useState(true);
   const [modalFrequency, setModalFrequency] = React.useState<ModalFrequency>('once_per_day');
   const [modalDelaySec, setModalDelaySec] = React.useState(3);
+  const [modalMode, setModalMode] = React.useState<ModalMode>('card');
   const [priority, setPriority] = React.useState(0);
   const [isPublished, setIsPublished] = React.useState(false);
 
@@ -112,6 +114,7 @@ export function PromotionFormDialog({
       setShowSection(promotion.showSection);
       setModalFrequency(promotion.modalFrequency);
       setModalDelaySec(promotion.modalDelaySec);
+      setModalMode(promotion.modalMode ?? 'card');
       setPriority(promotion.priority);
       setIsPublished(isDuplicate ? false : promotion.isPublished);
 
@@ -140,6 +143,7 @@ export function PromotionFormDialog({
       setShowSection(true);
       setModalFrequency('once_per_day');
       setModalDelaySec(3);
+      setModalMode('card');
       setPriority(0);
       setIsPublished(false);
       setStartDateStr('');
@@ -247,6 +251,7 @@ export function PromotionFormDialog({
       modal: {
         frequency: modalFrequency,
         delaySec: modalDelaySec,
+        mode: modalMode,
       },
     };
   }, [
@@ -266,6 +271,7 @@ export function PromotionFormDialog({
     showSection,
     modalFrequency,
     modalDelaySec,
+    modalMode,
   ]);
 
   // Form Submit with Zod Schema Validation
@@ -292,6 +298,7 @@ export function PromotionFormDialog({
       showSection,
       modalFrequency,
       modalDelaySec: Number(modalDelaySec) || 0,
+      modalMode,
       priority: Number(priority) || 0,
       isPublished,
       startsAt: startsAtIso,
@@ -332,6 +339,7 @@ export function PromotionFormDialog({
       showSection,
       modalFrequency,
       modalDelaySec: Number(modalDelaySec) || 0,
+      modalMode,
       priority: Number(priority) || 0,
       isPublished,
       startsAt: startsAtIso,
@@ -364,9 +372,9 @@ export function PromotionFormDialog({
     <ModalWrapper
       isOpen={isOpen}
       onClose={onClose}
-      maxWidth='max-w-[95vw] w-[95vw]'
+      maxWidth='max-w-[1550px] w-[96vw]'
       showCloseButton={false}
-      className='max-h-[90vh] h-[90vh] flex flex-col p-4 sm:p-6 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl font-sans'
+      className='max-h-[92vh] h-[92vh] flex flex-col p-4 sm:p-6 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl font-sans'
     >
       <div className='flex flex-col font-sans h-full min-h-0 flex-1'>
         {/* Pinned Header (Format Form Reguler - Tanpa Header Icon) */}
@@ -390,12 +398,12 @@ export function PromotionFormDialog({
           </button>
         </div>
 
-        {/* Scrollable / Bento Body (2 Columns Layout) */}
-        <div className='flex-1 min-h-0 py-4'>
+        {/* Scrollable / Bento Body (3 Columns Horizontal Grid Layout) */}
+        <div className='flex-1 min-h-0 py-3 sm:py-4'>
           <form id='promo-detail-form' onSubmit={handleSubmit} className='h-full'>
-            <div className='grid grid-cols-1 lg:grid-cols-12 gap-5 h-full min-h-0'>
-              {/* Kolom Kiri: Box 1 (Konten & Form Promosi) */}
-              <div className='col-span-12 lg:col-span-7 h-full min-h-0'>
+            <div className='grid grid-cols-1 lg:grid-cols-3 gap-4 h-full min-h-0'>
+              {/* Kolom 1: Konten & Formulir Promosi */}
+              <div className='h-full min-h-0'>
                 <PromotionFormFieldsBento
                   title={title}
                   setTitle={setTitle}
@@ -406,6 +414,37 @@ export function PromotionFormDialog({
                   serviceId={serviceId}
                   onServiceChange={handleServiceChange}
                   services={services}
+                  ctaType={ctaType}
+                  setCtaType={setCtaType}
+                  ctaLabel={ctaLabel}
+                  setCtaLabel={setCtaLabel}
+                  ctaUrl={ctaUrl}
+                  setCtaUrl={setCtaUrl}
+                />
+              </div>
+
+              {/* Kolom 2: Visual & Pengaturan Tayang */}
+              <div className='h-full min-h-0'>
+                <PromotionVisualBento
+                  imageType={imageType}
+                  setImageType={setImageType}
+                  imageValue={imageValue}
+                  setImageValue={(val) => {
+                    setImageValue(val);
+                    setUrlTestStatus('idle');
+                  }}
+                  imageAlt={imageAlt}
+                  setImageAlt={setImageAlt}
+                  urlTestStatus={urlTestStatus}
+                  onTestUrl={() => testImageUrl(imageValue)}
+                  showBanner={showBanner}
+                  setShowBanner={setShowBanner}
+                  showModal={showModal}
+                  setShowModal={setShowModal}
+                  modalMode={modalMode}
+                  setModalMode={setModalMode}
+                  showSection={showSection}
+                  setShowSection={setShowSection}
                   startDateStr={startDateStr}
                   setStartDateStr={setStartDateStr}
                   endDateStr={endDateStr}
@@ -413,18 +452,6 @@ export function PromotionFormDialog({
                   customTermsNote={customTermsNote}
                   setCustomTermsNote={setCustomTermsNote}
                   combinedTerms={combinedTerms}
-                  ctaType={ctaType}
-                  setCtaType={setCtaType}
-                  ctaLabel={ctaLabel}
-                  setCtaLabel={setCtaLabel}
-                  ctaUrl={ctaUrl}
-                  setCtaUrl={setCtaUrl}
-                  showBanner={showBanner}
-                  setShowBanner={setShowBanner}
-                  showModal={showModal}
-                  setShowModal={setShowModal}
-                  showSection={showSection}
-                  setShowSection={setShowSection}
                   priority={priority}
                   setPriority={setPriority}
                   broadcastToUsers={broadcastToUsers}
@@ -438,22 +465,8 @@ export function PromotionFormDialog({
                 />
               </div>
 
-              {/* Kolom Kanan: Box 2 (Visual) + Box 3 (Studio Pratinjau di bawahnya) */}
-              <div className='col-span-12 lg:col-span-5 flex flex-col gap-4 h-full min-h-0 overflow-y-auto pr-0.5 scrollbar-thin'>
-                <PromotionVisualBento
-                  imageType={imageType}
-                  setImageType={setImageType}
-                  imageValue={imageValue}
-                  setImageValue={(val) => {
-                    setImageValue(val);
-                    setUrlTestStatus('idle');
-                  }}
-                  imageAlt={imageAlt}
-                  setImageAlt={setImageAlt}
-                  urlTestStatus={urlTestStatus}
-                  onTestUrl={() => testImageUrl(imageValue)}
-                />
-
+              {/* Kolom 3: Studio Pratinjau Luas (Full Height) */}
+              <div className='h-full min-h-0'>
                 <PromotionPreviewBento
                   imageType={imageType}
                   imageValue={imageValue}

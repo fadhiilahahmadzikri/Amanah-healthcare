@@ -15,6 +15,7 @@ import type { AttendanceTabFilter } from './useAttendanceFilterState';
 export interface UseAttendanceDynamicOptionsProps {
   availableFilters?: AvailableAttendanceFilters;
   records?: StaffAttendance[];
+  currentShift?: { id: string; code: string; label: string } | null;
   params: AttendanceFilterParams;
   onFilterChange: (newParams: Partial<AttendanceFilterParams>) => void;
   activeTab?: AttendanceTabFilter;
@@ -25,16 +26,25 @@ export interface UseAttendanceDynamicOptionsProps {
 export function useAttendanceDynamicOptions({
   availableFilters,
   records: _records = [],
+  currentShift,
   params,
   onFilterChange,
   activeTab = 'all',
   onTabChange,
   counts
 }: UseAttendanceDynamicOptionsProps) {
-  // 1. Shift options strictly derived from DB SSOT
+  // 1. Shift options strictly derived from DB SSOT with dynamic current shift option
   const shiftOptions: FilterOption[] = useMemo(() => {
-    return availableFilters?.shifts ?? [];
-  }, [availableFilters?.shifts]);
+    const dbOptions = availableFilters?.shifts ?? [];
+    const currentOptionLabel = currentShift
+      ? `Sesi Sekarang (${currentShift.label})`
+      : 'Sesi Sekarang';
+    return [
+      { label: currentOptionLabel, value: 'current' },
+      { label: 'Semua Shift', value: 'all' },
+      ...dbOptions
+    ];
+  }, [availableFilters?.shifts, currentShift]);
 
   // 2. Role options strictly derived from DB SSOT (roles table via availableFilters)
   const roleOptions: FilterOption[] = useMemo(() => {
@@ -88,10 +98,10 @@ export function useAttendanceDynamicOptions({
           label: s.label || s.value,
           value: s.value
         })),
-        selectedValues: params.shift && params.shift !== 'all' ? [params.shift] : [],
+        selectedValues: params.shift ? [params.shift] : ['current'],
         onSelect: (val) =>
-          onFilterChange({ shift: val === 'all' || val === params.shift ? null : val }),
-        onReset: () => onFilterChange({ shift: null }),
+          onFilterChange({ shift: val === params.shift ? 'current' : val }),
+        onReset: () => onFilterChange({ shift: 'current' }),
         popoverWidth: 'w-48'
       },
       {
@@ -105,8 +115,8 @@ export function useAttendanceDynamicOptions({
         })),
         selectedValues: params.category && params.category !== 'all' ? [params.category] : [],
         onSelect: (val) =>
-          onFilterChange({ category: val === 'all' || val === params.category ? null : val }),
-        onReset: () => onFilterChange({ category: null }),
+          onFilterChange({ category: val === 'all' || val === params.category ? 'all' : val }),
+        onReset: () => onFilterChange({ category: 'all' }),
         popoverWidth: 'w-52'
       },
       {
@@ -120,8 +130,8 @@ export function useAttendanceDynamicOptions({
         })),
         selectedValues: params.status && params.status !== 'all' ? [params.status] : [],
         onSelect: (val) =>
-          onFilterChange({ status: val === 'all' || val === params.status ? null : val }),
-        onReset: () => onFilterChange({ status: null }),
+          onFilterChange({ status: val === 'all' || val === params.status ? 'all' : val }),
+        onReset: () => onFilterChange({ status: 'all' }),
         popoverWidth: 'w-48'
       }
     ];

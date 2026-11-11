@@ -11,6 +11,7 @@ export * from './components/PromoImage';
 export * from './components/PromoBanner';
 export * from './components/PromoModal';
 export * from './components/PromoCard';
+export * from './components/PromoDetailView';
 export * from './components/AdminPromotionCard';
 export * from './components/PromoSection';
 export * from './components/PromotionServicePicker';

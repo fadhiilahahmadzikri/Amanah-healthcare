@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,9 @@ import {
   formatPresenceTimestamp,
   formatLateMinutes
 } from '../utils/duration-format';
-import type { StaffAttendance } from '../api/types';
+import { attendanceService } from '../api/service';
+import { AttendanceMilestoneTimeline } from './attendance-milestone-timeline';
+import type { StaffAttendance, StaffAttendanceMilestone } from '../api/types';
 
 export interface AttendanceDetailSheetProps {
   record: StaffAttendance | null;
@@ -43,6 +45,28 @@ export function AttendanceDetailSheet({
   isCheckoutPending = false
 }: AttendanceDetailSheetProps) {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [fetchedMilestones, setFetchedMilestones] = useState<StaffAttendanceMilestone[] | null>(null);
+
+  useEffect(() => {
+    if (record?.milestones && record.milestones.length > 0) {
+      setFetchedMilestones(record.milestones);
+      return;
+    }
+    if (record?.staffProfileId && isOpen) {
+      let active = true;
+      attendanceService
+        .getStaffMilestones(record.staffProfileId, record.tanggal_presensi)
+        .then((m) => {
+          if (active) setFetchedMilestones(m);
+        })
+        .catch(() => {
+          if (active) setFetchedMilestones([]);
+        });
+      return () => {
+        active = false;
+      };
+    }
+  }, [record?.staffProfileId, record?.tanggal_presensi, record?.milestones, isOpen]);
 
   if (!record) return null;
 
@@ -206,6 +230,13 @@ export function AttendanceDetailSheet({
               <div className='size-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0'>
                 <Icons.clock className='size-4' />
               </div>
+            </div>
+
+            {/* Trajektori Sesi Dinas (Milestones) */}
+            <div className='pt-1'>
+              <AttendanceMilestoneTimeline
+                milestones={fetchedMilestones || record.milestones || []}
+              />
             </div>
 
             {/* Notes Section (if any) */}

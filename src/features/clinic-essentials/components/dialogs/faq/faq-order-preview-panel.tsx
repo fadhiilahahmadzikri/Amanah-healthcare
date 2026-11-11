@@ -218,16 +218,11 @@ export function FaqOrderPreviewPanel({
       {/* Panel Header */}
       <div className='flex items-start justify-between pb-3 border-b border-border/40 shrink-0 gap-3'>
         <div className='min-w-0 flex-1 space-y-0.5'>
-          <div className='flex items-center gap-2'>
-            <h4 className='text-xs sm:text-sm font-bold text-foreground tracking-tight'>
-              Pratinjau Urutan FAQ Landing Page
-            </h4>
-            <span className='inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-semibold text-primary'>
-              Drag & Drop
-            </span>
-          </div>
+          <h4 className='text-xs sm:text-sm font-bold text-foreground tracking-tight'>
+            Susunan & Pratinjau FAQ
+          </h4>
           <p className='text-[11px] text-muted-foreground font-medium'>
-            Tarik baris ke atas atau bawah untuk menentukan susunan urutan tampil
+            Urutan pertanyaan yang tampil pada landing page
           </p>
         </div>
 
@@ -295,51 +290,53 @@ export function FaqOrderPreviewPanel({
                   isDragTarget && 'border-primary bg-primary/10 shadow-sm'
                 )}
               >
-                {/* Card Title & Drag Handle Bar */}
-                <div className='flex items-start gap-2.5'>
+                {/* Meta Header Bar: Index Number, Tags & Status */}
+                <div className='flex items-center justify-between gap-2 pb-2 mb-2 border-b border-border/40'>
+                  <div className='flex items-center gap-1.5 flex-wrap min-w-0'>
+                    <span className='font-mono text-[11px] font-bold text-foreground bg-muted/80 px-2 py-0.5 rounded-md'>
+                      #{index + 1}
+                    </span>
+                    {isCurrent && (
+                      <Badge variant='outline' className='text-[9px] font-semibold text-primary border-primary/40 bg-primary/10 px-1.5 py-0'>
+                        FAQ Ini
+                      </Badge>
+                    )}
+                    {item.serviceName && (
+                      <span className='text-[10px] text-muted-foreground font-medium flex items-center gap-1 truncate'>
+                        <Layers className='size-2.5 shrink-0' /> {item.serviceName}
+                      </span>
+                    )}
+                  </div>
+
+                  <Badge
+                    variant='outline'
+                    className={cn(
+                      'text-[9px] px-1.5 py-0 shrink-0 font-medium',
+                      item.isPublished
+                        ? 'border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300'
+                        : 'border-destructive/40 text-destructive bg-destructive/10'
+                    )}
+                  >
+                    {item.isPublished ? 'Aktif' : 'Draf'}
+                  </Badge>
+                </div>
+
+                {/* Question Row with Drag Handle & Expand Chevron */}
+                <div className='flex items-center gap-2.5'>
                   {/* Drag Handle */}
                   <div
-                    title='Tarik untuk memindahkan urutan'
-                    className='cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground shrink-0 rounded-md hover:bg-muted transition-colors mt-0.5'
+                    title='Pindahkan urutan'
+                    className='cursor-grab active:cursor-grabbing p-1 text-muted-foreground hover:text-foreground shrink-0 rounded-md hover:bg-muted transition-colors'
                   >
                     <GripVertical className='size-4' />
                   </div>
 
-                  {/* Order Index Pill */}
-                  <span className='font-mono text-[11px] font-bold text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded shrink-0 mt-0.5'>
-                    #{index + 1}
-                  </span>
-
-                  {/* Question Header & Expand Toggle */}
+                  {/* Question Title */}
                   <div
                     onClick={() => toggleAccordion(item.id)}
                     className='min-w-0 flex-1 cursor-pointer'
                   >
-                    <div className='flex items-center gap-1.5 flex-wrap'>
-                      {isCurrent && (
-                        <Badge variant='outline' className='text-[9px] font-semibold text-primary border-primary/40 bg-primary/10 px-1.5 py-0'>
-                          FAQ Ini
-                        </Badge>
-                      )}
-                      {item.serviceName && (
-                        <span className='text-[10px] text-muted-foreground font-medium flex items-center gap-1'>
-                          <Layers className='size-2.5' /> {item.serviceName}
-                        </span>
-                      )}
-                      <Badge
-                        variant='outline'
-                        className={cn(
-                          'text-[9px] px-1.5 py-0 ml-auto shrink-0',
-                          item.isPublished
-                            ? 'border-emerald-500/40 text-emerald-700 bg-emerald-50 dark:bg-emerald-950/30 dark:text-emerald-300'
-                            : 'border-destructive/40 text-destructive bg-destructive/10'
-                        )}
-                      >
-                        {item.isPublished ? 'Aktif' : 'Draf'}
-                      </Badge>
-                    </div>
-
-                    <h5 className='text-xs sm:text-sm font-semibold text-foreground pt-1 leading-snug group-hover:text-primary transition-colors'>
+                    <h5 className='text-xs sm:text-sm font-semibold text-foreground leading-snug group-hover:text-primary transition-colors'>
                       {item.title}
                     </h5>
                   </div>
@@ -348,7 +345,7 @@ export function FaqOrderPreviewPanel({
                   <button
                     type='button'
                     onClick={() => toggleAccordion(item.id)}
-                    className='text-muted-foreground hover:text-foreground p-1 shrink-0 cursor-pointer'
+                    className='text-muted-foreground hover:text-foreground p-1 shrink-0 cursor-pointer rounded-md hover:bg-muted transition-colors'
                     aria-label='Buka rincian jawaban'
                   >
                     <ChevronDown

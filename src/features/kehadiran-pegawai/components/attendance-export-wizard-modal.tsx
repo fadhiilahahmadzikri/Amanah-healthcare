@@ -4,7 +4,8 @@ import * as React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Icons } from '@/components/icons';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { SearchInput } from '@/shared/ui/search-input';
+import { FacetedFilter } from '@/shared/ui/faceted-filter';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ModalWrapper } from '@/components/ui/modal-wrapper';
 import { CustomMonthPicker } from '@/components/ui/custom-month-picker';
@@ -85,6 +86,7 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
       setStep('month');
       setExportMode('all');
       setSelectedStaff(null);
+      setActiveTab('all');
       setSearchQuery('');
       reset();
     }
@@ -110,10 +112,9 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
     return candidatesQuery.data?.candidates || [];
   }, [candidatesQuery.data?.candidates]);
 
-  // Dynamic Role Tabs from candidates
-  const roleTabs = React.useMemo(() => {
+  // Dynamic Role Facet Options from candidates
+  const roleFacetOptions = React.useMemo(() => {
     const map = new Map<string, { label: string; count: number }>();
-    map.set('all', { label: 'Semua Staf', count: candidates.length });
     for (const c of candidates) {
       const key = c.roleId || c.roleCode || 'staf';
       const label = c.roleName || c.positionTitle || c.roleCode || 'Staf';
@@ -122,12 +123,14 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
       }
       map.get(key)!.count += 1;
     }
-    return Array.from(map.entries()).map(([id, info]) => ({
-      id,
+    return Array.from(map.entries()).map(([value, info]) => ({
+      value,
       label: info.label,
       count: info.count
     }));
   }, [candidates]);
+
+  const isFiltered = activeTab !== 'all' || searchQuery.trim().length > 0;
 
   // Filtered candidates for Step 3
   const filteredCandidates = React.useMemo(() => {
@@ -361,49 +364,51 @@ export function AttendanceExportWizardModal({ isOpen, onClose }: AttendanceExpor
               </p>
             </div>
 
-            {/* Filter Tabs & Search Bar */}
-            <div className='flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5'>
-              {/* Dynamic Role Tabs */}
-              <div className='flex items-center gap-1.5 p-1 rounded-xl bg-muted/50 border border-border/60 self-start sm:self-auto overflow-x-auto max-w-full'>
-                {roleTabs.map((tab) => (
-                  <button
-                    key={tab.id}
+            {/* Compact Filter Toolbar: Search bar di kiri, Facet Filter Peran di kanan */}
+            <div className='flex items-center justify-between gap-2.5 shrink-0'>
+              <div className='flex items-center gap-2 flex-1 min-w-0'>
+                <SearchInput
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                  placeholder='Cari nama atau spesialisasi...'
+                  ariaLabel='Cari pegawai'
+                  className='max-w-[280px]'
+                />
+
+                <FacetedFilter<string>
+                  title='Peran'
+                  icon={Icons.users}
+                  mode='single'
+                  options={roleFacetOptions}
+                  selectedValues={activeTab !== 'all' ? [activeTab] : []}
+                  onSelect={(val) => setActiveTab(val === activeTab ? 'all' : val)}
+                  onReset={() => setActiveTab('all')}
+                  resetLabel='Semua Peran'
+                  popoverWidth='w-56'
+                />
+
+                {isFiltered && (
+                  <Button
                     type='button'
-                    onClick={() => setActiveTab(tab.id)}
-                    className={cn(
-                      'px-3 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-1.5 cursor-pointer shrink-0',
-                      activeTab === tab.id
-                        ? 'bg-card text-foreground font-semibold shadow-xs border border-border/60'
-                        : 'text-muted-foreground hover:text-foreground'
-                    )}
+                    variant='ghost'
+                    size='sm'
+                    onClick={() => {
+                      setActiveTab('all');
+                      setSearchQuery('');
+                    }}
+                    className='h-8 px-2.5 text-xs border border-dashed border-border text-muted-foreground hover:text-foreground'
                   >
-                    <span>{tab.label}</span>
-                    <span className='size-4 rounded-full flex items-center justify-center text-[10px] bg-muted text-muted-foreground font-mono'>
-                      {tab.count}
-                    </span>
-                  </button>
-                ))}
+                    <Icons.close className='size-3.5 mr-1' />
+                    <span>Reset</span>
+                  </Button>
+                )}
               </div>
 
-              {/* Search input */}
-              <div className='relative w-full sm:w-64'>
-                <Icons.search className='absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground' />
-                <Input
-                  type='text'
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder='Cari nama atau spesialisasi...'
-                  className='h-8.5 pl-8 text-xs bg-card'
-                />
-                {searchQuery && (
-                  <button
-                    type='button'
-                    onClick={() => setSearchQuery('')}
-                    className='absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground'
-                  >
-                    <Icons.close className='size-3.5' />
-                  </button>
-                )}
+              {/* Staf Count Badge */}
+              <div className='flex items-center gap-1.5 shrink-0'>
+                <span className='inline-flex items-center px-2 py-0.5 rounded-full text-[10.5px] font-bold font-mono bg-muted/80 border border-border/70 text-muted-foreground'>
+                  {filteredCandidates.length}/{candidates.length} staf
+                </span>
               </div>
             </div>
 

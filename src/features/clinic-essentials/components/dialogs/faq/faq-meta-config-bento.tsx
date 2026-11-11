@@ -210,7 +210,7 @@ export function FaqMetaConfigBento({
             </div>
           </div>
 
-          {/* Tombol Expand Preview & Drag-and-Drop Order */}
+          {/* Tombol Expand Preview & Reorder */}
           <div className='pt-1'>
             <Button
               type='button'
@@ -222,7 +222,7 @@ export function FaqMetaConfigBento({
             >
               <ArrowUpDown className='size-3.5 text-primary' />
               <span>
-                {isOrderExpanded ? 'Tutup Panel Atur Urutan' : 'Atur Urutan via Drag & Drop'}
+                {isOrderExpanded ? 'Tutup Panel Urutan' : 'Lihat & Atur Urutan Tampil'}
               </span>
             </Button>
           </div>

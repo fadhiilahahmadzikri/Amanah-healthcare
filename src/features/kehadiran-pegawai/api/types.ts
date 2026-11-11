@@ -1,6 +1,7 @@
 import type {
   CanonicalAttendanceStatus,
-  CanonicalAttendanceShift
+  CanonicalAttendanceShift,
+  ReconcileDecision
 } from '../constants/attendance-status.constants';
 
 export type AttendanceStatus = CanonicalAttendanceStatus | (string & {});
@@ -23,6 +24,23 @@ export interface AvailableAttendanceFilters {
   shifts: FilterOption[];
   statuses: FilterOption[];
   categories: FilterOption[];
+}
+
+export interface StaffAttendanceMilestone {
+  sessionId: string;
+  shiftCode: string;
+  shiftLabel: string;
+  startsAt: string;
+  endsAt: string;
+  status: 'present' | 'late' | 'absent' | 'leave' | 'ongoing' | 'upcoming';
+  statusLabel: string;
+  checkInAt: string | null;
+  checkOutAt: string | null;
+  lateMinutes: number | null;
+  validatedDurationHours: number | null;
+  attendanceRecordId: string | null;
+  notes: string | null;
+  isCurrentShift: boolean;
 }
 
 export interface StaffAttendance {
@@ -52,6 +70,10 @@ export interface StaffAttendance {
   replacedStaffCode?: string | null;
   isEarlyDeparture?: boolean;
   notes?: string | null;
+  milestones?: StaffAttendanceMilestone[];
+  isOverdueCheckOut?: boolean;
+  overdueMinutes?: number;
+  scheduledEndsAt?: string | null;
 }
 
 export interface MetricSparklinePoint {
@@ -96,9 +118,32 @@ export interface AttendanceFilterParams {
 export interface AttendanceListResponse {
   records: StaffAttendance[];
   total: number;
+  currentShift?: {
+    id: string;
+    code: string;
+    label: string;
+    defaultStartsAt?: string | null;
+    defaultEndsAt?: string | null;
+  } | null;
   summary: AttendanceMetrics;
   qrConfig: QRPresenceConfig;
   availableFilters?: AvailableAttendanceFilters;
+}
+
+export interface ReconcileOvertimePayload {
+  attendanceId: string;
+  decision: ReconcileDecision;
+  overtimeHours?: number;
+  adminNotes?: string;
+}
+
+export interface ReconcileOvertimeResponse {
+  attendance: StaffAttendance;
+  decision: ReconcileDecision;
+  overtimeHours: number;
+  validatedDurationHours: number;
+  overtimeAmount: number;
+  reconciledAt: string;
 }
 
 export interface AttendanceExportCandidate {

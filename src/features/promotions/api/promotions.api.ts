@@ -47,6 +47,38 @@ export const promotionsApi = {
   },
 
   /**
+   * Fetches an active public promotion by ID for the detail page.
+   */
+  async getPublicPromotionById(id: string): Promise<PublicPromotion | null> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), PUBLIC_PROMOTIONS_TIMEOUT_MS);
+
+    try {
+      const response = await fetch(`/api/v1/public/promotions/${id}`, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      const res = await response.json();
+      if (res && typeof res === 'object' && 'data' in res) {
+        return res.data as PublicPromotion;
+      }
+      return res as PublicPromotion;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
+  },
+
+  /**
    * Admin operations for managing clinic promotions
    */
   async getAdminPromotions(
